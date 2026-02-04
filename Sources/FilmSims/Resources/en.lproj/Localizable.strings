@@ -1,0 +1,101 @@
+/* Image loading */
+"image_loaded" = "Image loaded: %@ (Preview: %@)";
+"image_load_failed" = "Failed to load image: %@";
+"select_image_first" = "Please select an image first";
+
+/* Export */
+"exporting" = "Exporting…";
+"cpu_processing" = "CPU processing… (Large images may take time)";
+"save_error" = "Save error: %@";
+"save_folder_create_failed" = "Failed to create save folder";
+"image_saved" = "Saved (%@): %@/%@";
+"lut_load_failed" = "Failed to load filter";
+
+/* Settings */
+"enter_save_folder" = "Enter save folder";
+"save_path_hint" = "e.g. Pictures/MyPhotos";
+"save" = "Save";
+"cancel" = "Cancel";
+"save_path_changed" = "Save path changed: %@";
+
+/* Update dialog */
+"update_available" = "Update Available";
+"new_version_available" = "New version %@ is available";
+"update_now" = "Update";
+"later" = "Later";
+"update_check_failed" = "Failed to check for updates";
+
+/* LUT Categories - OnePlus */
+"category_app_filters" = "App Filters";
+"category_artistic" = "Artistic";
+"category_black_white" = "Black & White";
+"category_cinematic_movie" = "Cinematic Movie";
+"category_cool_tones" = "Cool Tones";
+"category_food" = "Food";
+"category_golden_touch" = "Golden Touch";
+"category_instagram_filters" = "Instagram Filters";
+"category_japanese_style" = "Japanese Style";
+"category_landscape" = "Landscape";
+"category_night" = "Night";
+"category_portrait" = "Portrait";
+"category_uncategorized" = "Uncategorized";
+"category_vintage_retro" = "Vintage-Retro";
+"category_warm_tones" = "Warm Tones";
+
+/* LUT Categories - Xiaomi */
+"category_cinematic" = "Cinematic";
+"category_film_simulation" = "Film Simulation";
+"category_monochrome" = "Monochrome";
+"category_nature_landscape" = "Nature-Landscape";
+"category_portrait_soft" = "Portrait-Soft";
+"category_special_effects" = "Special Effects";
+"category_vivid_natural" = "Vivid-Natural";
+"category_warm_vintage" = "Warm-Vintage";
+
+/* LUT Categories - Nothing/Common */
+"category_all" = "All";
+
+/* LUT Categories - Leica_lux */
+"category_leica_looks" = "Leica Looks";
+"category_artist_looks" = "Artist Looks";
+
+/* Brand names */
+"brand_leica_lux" = "Leica LUX";
+
+/* Leica_lux filter names */
+"lut_leica_classic" = "Leica Classic";
+"lut_leica_contemporary" = "Leica Contemporary";
+"lut_leica_monochrome_natural" = "Leica Monochrome Natural";
+"lut_leica_natural" = "Leica Natural";
+"lut_leica_blue" = "Leica Blue";
+"lut_leica_eternal" = "Leica Eternal";
+"lut_leica_selenium" = "Leica Selenium";
+"lut_leica_sepia" = "Leica Sepia";
+"lut_leica_silver" = "Leica Silver";
+"lut_leica_teal" = "Leica Teal";
+"lut_leica_bleach" = "Leica Bleach";
+"lut_leica_brass" = "Leica Brass";
+"lut_leica_high_contrast" = "Leica Monochrome High Contrast";
+"lut_leica_vivid" = "Leica Vivid";
+"lut_100_years_mono" = "100 Years Mono";
+"lut_greg_williams_sepia_0" = "Greg Williams Sepia 0%";
+"lut_greg_williams_sepia_100" = "Greg Williams Sepia 100%";
+"lut_leica_standard" = "Leica Standard";
+"lut_leica_chrome" = "Leica Chrome";
+
+/* UI Labels */
+"subtitle_film_simulator" = "Film Simulator";
+"label_pick_image" = "Pick Image";
+"desc_pick_image" = "Pick a photo to apply film simulations";
+"btn_open_gallery" = "Open Gallery";
+"header_grain" = "Grain";
+"label_film_grain" = "Film Grain";
+"header_camera" = "Camera";
+"header_style" = "Style";
+"label_intensity" = "Intensity";
+"header_presets" = "Presets";
+"title_settings" = "Settings";
+"label_save_folder" = "Save Folder";
+"btn_change" = "Change";
+"label_quality" = "Quality";
+"btn_close" = "Close";

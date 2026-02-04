@@ -1,0 +1,101 @@
+/* Image loading */
+"image_loaded" = "読み込み完了: %@ (プレビュー: %@)";
+"image_load_failed" = "画像の読み込みに失敗しました: %@";
+"select_image_first" = "先に画像を選択してください";
+
+/* Export */
+"exporting" = "書き出し中…";
+"cpu_processing" = "CPU処理中…（大きい画像は時間がかかる場合があります）";
+"save_error" = "保存エラー: %@";
+"save_folder_create_failed" = "保存フォルダの作成に失敗しました";
+"image_saved" = "保存しました（%@）: %@/%@";
+"lut_load_failed" = "フィルターの読み込みに失敗しました";
+
+/* Settings */
+"enter_save_folder" = "保存先フォルダを入力";
+"save_path_hint" = "例: Pictures/MyPhotos";
+"save" = "保存";
+"cancel" = "キャンセル";
+"save_path_changed" = "保存先を変更しました: %@";
+
+/* Update dialog */
+"update_available" = "アップデートがあります";
+"new_version_available" = "新しいバージョン %@ が利用できます";
+"update_now" = "アップデート";
+"later" = "あとで";
+"update_check_failed" = "アップデート確認に失敗しました";
+
+/* LUT Categories - OnePlus */
+"category_app_filters" = "アプリフィルター";
+"category_artistic" = "アーティスティック";
+"category_black_white" = "白黒";
+"category_cinematic_movie" = "シネマティック";
+"category_cool_tones" = "クールトーン";
+"category_food" = "フード";
+"category_golden_touch" = "ゴールデンタッチ";
+"category_instagram_filters" = "Instagram";
+"category_japanese_style" = "和風";
+"category_landscape" = "風景";
+"category_night" = "夜景";
+"category_portrait" = "ポートレート";
+"category_uncategorized" = "未分類";
+"category_vintage_retro" = "ヴィンテージ";
+"category_warm_tones" = "ウォームトーン";
+
+/* LUT Categories - Xiaomi */
+"category_cinematic" = "シネマ";
+"category_film_simulation" = "フィルムシミュレーション";
+"category_monochrome" = "モノクロ";
+"category_nature_landscape" = "自然・風景";
+"category_portrait_soft" = "ポートレート（ソフト）";
+"category_special_effects" = "特殊効果";
+"category_vivid_natural" = "ビビッド・ナチュラル";
+"category_warm_vintage" = "ウォーム・ヴィンテージ";
+
+/* LUT Categories - Nothing/Common */
+"category_all" = "すべて";
+
+/* LUT Categories - Leica_lux */
+"category_leica_looks" = "Leica Looks";
+"category_artist_looks" = "Artist Looks";
+
+/* Brand names */
+"brand_leica_lux" = "Leica LUX";
+
+/* Leica_lux filter names */
+"lut_leica_classic" = "ライカ クラシック";
+"lut_leica_contemporary" = "ライカ コンテンポラリー";
+"lut_leica_monochrome_natural" = "ライカ モノクローム ナチュラル";
+"lut_leica_natural" = "ライカ ナチュラル";
+"lut_leica_blue" = "ライカ ブルー";
+"lut_leica_eternal" = "ライカ エターナル";
+"lut_leica_selenium" = "ライカ セレニウム";
+"lut_leica_sepia" = "ライカ セピア";
+"lut_leica_silver" = "ライカ シルバー";
+"lut_leica_teal" = "ライカ ティール";
+"lut_leica_bleach" = "ライカ ブリーチ";
+"lut_leica_brass" = "ライカ ブラス";
+"lut_leica_high_contrast" = "ライカ モノクローム ハイコントラスト";
+"lut_leica_vivid" = "ライカ ビビッド";
+"lut_100_years_mono" = "100周年モノクロ";
+"lut_greg_williams_sepia_0" = "Greg Williams セピア 0%";
+"lut_greg_williams_sepia_100" = "Greg Williams セピア 100%";
+"lut_leica_standard" = "ライカ スタンダード";
+"lut_leica_chrome" = "ライカ クローム";
+
+/* UI Labels */
+"subtitle_film_simulator" = "フィルムシミュレーター";
+"label_pick_image" = "画像を選択";
+"desc_pick_image" = "写真を選んでフィルム調を適用します";
+"btn_open_gallery" = "ギャラリーを開く";
+"header_grain" = "グレイン";
+"label_film_grain" = "フィルムグレイン";
+"header_camera" = "カメラ";
+"header_style" = "スタイル";
+"label_intensity" = "強度";
+"header_presets" = "プリセット";
+"title_settings" = "設定";
+"label_save_folder" = "保存先";
+"btn_change" = "変更";
+"label_quality" = "画質";
+"btn_close" = "閉じる";

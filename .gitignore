@@ -1,0 +1,23 @@
+
+# --- SwiftPM / Xcode-like build artifacts ---
+.build/
+.swiftpm/
+Package.resolved
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# --- macOS / editor ---
+.DS_Store
+.vscode/
+.idea/
+
+# --- xtool outputs (xtools系) ---
+xtool/
+*.ipa
+
+# --- App assets that must not be committed ---
+Sources/FilmSims/Resources/film_grain.png
+Sources/FilmSims/Resources/luts/
