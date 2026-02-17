@@ -14,6 +14,12 @@ extension Color {
     static let glassBorder = Color.white.opacity(0.12)
     static let glassBorderLight = Color.white.opacity(0.08)
     static let glassHighlight = Color.white.opacity(0.06)
+
+    // Android Liquid palette (glass surfaces)
+    static let glassSurface = Color.white.opacity(0.125)      // 0x20FFFFFF
+    static let glassSurfaceDark = Color.white.opacity(0.082)  // 0x15FFFFFF
+    static let glassBorderAndroid = Color.white.opacity(0.094) // 0x18FFFFFF
+    static let glassBorderHighlightAndroid = Color.white.opacity(0.145) // 0x25FFFFFF
     
     // Accent Colors - Warm amber/gold palette
     static let accentStart = Color(hex: "#FF8A50")
@@ -27,6 +33,9 @@ extension Color {
     static let secondaryStart = Color(hex: "#40C4B0")
     static let secondaryEnd = Color(hex: "#60D4C4")
     static let accentSecondary = Color(hex: "#50D0B8")
+
+    // Tertiary accent (purple)
+    static let accentTertiary = Color(hex: "#6200EE")
     
     // Text Colors
     static let textPrimary = Color(hex: "#FAFAFA")
@@ -43,8 +52,8 @@ extension Color {
     // Selection State Colors
     static let chipSelectedBackground = Color(hex: "#FFAB60")
     static let chipSelectedText = Color(hex: "#121212")
-    static let chipUnselectedBackground = Color.white.opacity(0.188)
-    static let chipUnselectedText = Color.white.opacity(0.867)
+    static let chipUnselectedBackground = Color.white.opacity(0.157) // 0x28FFFFFF
+    static let chipUnselectedText = Color.white.opacity(0.847) // 0xD8FFFFFF
     
     // Hex initializer
     init(hex: String) {

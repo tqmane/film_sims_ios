@@ -99,3 +99,86 @@
 "btn_change" = "変更";
 "label_quality" = "画質";
 "btn_close" = "閉じる";
+
+/* Leica FOTOS LUT names */
+"lut_fotos_classic" = "クラシック";
+"lut_fotos_contemporary" = "コンテンポラリー";
+"lut_fotos_eternal" = "エターナル";
+"lut_fotos_gregwilliams" = "Greg Williams";
+"lut_fotos_selenium" = "セレニウム";
+"lut_fotos_sepia" = "セピア";
+"lut_fotos_silver" = "シルバー";
+"lut_fotos_teal" = "ティール";
+"lut_fotos_mono_blue" = "モノ ブルー";
+"lut_fotos_mono_gregwilliams" = "モノ Greg Williams";
+"lut_fotos_mono_selenium" = "モノ セレニウム";
+"lut_fotos_mono_sepia" = "モノ セピア";
+
+/* Nubia LUT names */
+"lut_nubia_landscape" = "風景";
+"lut_nubia_food" = "料理";
+"lut_nubia_portrait_bg" = "ポートレート (BG)";
+"lut_nubia_portrait_skin" = "ポートレート (肌)";
+"lut_nubia_portrait_skin_2" = "ポートレート (肌2)";
+"lut_nubia_daily" = "日常";
+"lut_nubia_life_bg" = "生活 (BG)";
+"lut_nubia_life_skin" = "生活 (肌)";
+
+/* Honor LUT names */
+"lut_honor_baixi" = "スケッチ";
+"lut_honor_fendiao" = "ピンクトーン";
+"lut_honor_heibai" = "白黒";
+"lut_honor_heijin" = "ブラックゴールド";
+"lut_honor_huaijiu" = "ノスタルジック";
+"lut_honor_huidiao" = "グレートーン";
+"lut_honor_jiaotang" = "キャラメル";
+"lut_honor_jingdian" = "クラシック";
+"lut_honor_landiao" = "ブルートーン";
+"lut_honor_qingcheng" = "クリアシティ";
+"lut_honor_senxi" = "フォレスト";
+"lut_honor_tangguo" = "キャンディー";
+"lut_honor_yingxiang" = "シャドウ";
+"lut_honor_zhishi" = "ナレッジ";
+"lut_honor_ziran" = "ナチュラル";
+"lut_honor_danya" = "エレガント";
+"lut_honor_jiaopian" = "フィルム";
+"lut_honor_qingchun" = "ユース";
+"lut_honor_rouhe" = "ソフト";
+"lut_honor_xianming" = "ビビッド";
+"lut_honor_xianyan" = "バイブラント";
+"lut_honor_yuanqi" = "バイタリティ";
+
+/* Meizu categories */
+"category_general" = "一般";
+"category_classic_filter" = "クラシックフィルター";
+"category_filter_manager" = "フィルターマネージャー";
+
+/* Meizu LUT names */
+"lut_meizu_warm" = "ウォーム";
+"lut_meizu_warm_front" = "ウォーム (フロント)";
+"lut_meizu_retro" = "レトロ";
+"lut_meizu_retro_front" = "レトロ (フロント)";
+"lut_meizu_tender" = "テンダー";
+"lut_meizu_tender_front" = "テンダー (フロント)";
+"lut_meizu_warm_tone" = "ウォームトーン";
+"lut_meizu_warm_tone_front" = "ウォームトーン (フロント)";
+"lut_meizu_vivid" = "ビビッド";
+"lut_meizu_vivid_front" = "ビビッド (フロント)";
+"lut_meizu_original" = "オリジナル";
+"lut_meizu_skin_whiten" = "美肌";
+
+/* Watermark */
+"header_watermark" = "ウォーターマーク";
+"label_watermark" = "Honor ウォーターマーク";
+"label_watermark_style" = "スタイル";
+"label_watermark_brand" = "ブランド";
+"watermark_none" = "なし";
+"brand_none" = "なし";
+"brand_honor" = "Honor";
+"brand_meizu" = "Meizu";
+"brand_vivo" = "vivo";
+"brand_tecno" = "TECNO";
+"label_watermark_device" = "デバイス";
+"label_watermark_lens" = "レンズ";
+"label_watermark_time" = "時刻";
+"label_watermark_location" = "位置情報";

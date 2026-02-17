@@ -99,3 +99,86 @@
 "btn_change" = "Change";
 "label_quality" = "Quality";
 "btn_close" = "Close";
+
+/* Leica FOTOS LUT names */
+"lut_fotos_classic" = "经典";
+"lut_fotos_contemporary" = "现代";
+"lut_fotos_eternal" = "永恒";
+"lut_fotos_gregwilliams" = "Greg Williams";
+"lut_fotos_selenium" = "硒色";
+"lut_fotos_sepia" = "棕褐";
+"lut_fotos_silver" = "银色";
+"lut_fotos_teal" = "青色";
+"lut_fotos_mono_blue" = "单色蓝";
+"lut_fotos_mono_gregwilliams" = "单色 Greg Williams";
+"lut_fotos_mono_selenium" = "单色硒";
+"lut_fotos_mono_sepia" = "单色棕褐";
+
+/* Nubia LUT names */
+"lut_nubia_landscape" = "风景";
+"lut_nubia_food" = "美食";
+"lut_nubia_portrait_bg" = "人像 (背景)";
+"lut_nubia_portrait_skin" = "人像 (肤色)";
+"lut_nubia_portrait_skin_2" = "人像 (肤色2)";
+"lut_nubia_daily" = "日常";
+"lut_nubia_life_bg" = "生活 (背景)";
+"lut_nubia_life_skin" = "生活 (肤色)";
+
+/* Honor LUT names */
+"lut_honor_baixi" = "白皙";
+"lut_honor_fendiao" = "粉调";
+"lut_honor_heibai" = "黑白";
+"lut_honor_heijin" = "黑金";
+"lut_honor_huaijiu" = "怀旧";
+"lut_honor_huidiao" = "灰调";
+"lut_honor_jiaotang" = "焦糖";
+"lut_honor_jingdian" = "经典";
+"lut_honor_landiao" = "蓝调";
+"lut_honor_qingcheng" = "倾城";
+"lut_honor_senxi" = "森系";
+"lut_honor_tangguo" = "糖果";
+"lut_honor_yingxiang" = "印象";
+"lut_honor_zhishi" = "知识";
+"lut_honor_ziran" = "自然";
+"lut_honor_danya" = "淡雅";
+"lut_honor_jiaopian" = "胶片";
+"lut_honor_qingchun" = "青春";
+"lut_honor_rouhe" = "柔和";
+"lut_honor_xianming" = "鲜明";
+"lut_honor_xianyan" = "鲜艳";
+"lut_honor_yuanqi" = "元气";
+
+/* Meizu categories */
+"category_general" = "通用";
+"category_classic_filter" = "经典滤镜";
+"category_filter_manager" = "滤镜管理器";
+
+/* Meizu LUT names */
+"lut_meizu_warm" = "暖色";
+"lut_meizu_warm_front" = "暖色 (前置)";
+"lut_meizu_retro" = "复古";
+"lut_meizu_retro_front" = "复古 (前置)";
+"lut_meizu_tender" = "柔嫩";
+"lut_meizu_tender_front" = "柔嫩 (前置)";
+"lut_meizu_warm_tone" = "暖色调";
+"lut_meizu_warm_tone_front" = "暖色调 (前置)";
+"lut_meizu_vivid" = "鲜艳";
+"lut_meizu_vivid_front" = "鲜艳 (前置)";
+"lut_meizu_original" = "原图";
+"lut_meizu_skin_whiten" = "美白";
+
+/* Watermark */
+"header_watermark" = "水印";
+"label_watermark" = "Honor 水印";
+"label_watermark_style" = "样式";
+"label_watermark_brand" = "品牌";
+"watermark_none" = "无";
+"brand_none" = "无";
+"brand_honor" = "Honor";
+"brand_meizu" = "Meizu";
+"brand_vivo" = "vivo";
+"brand_tecno" = "TECNO";
+"label_watermark_device" = "设备";
+"label_watermark_lens" = "镜头";
+"label_watermark_time" = "时间";
+"label_watermark_location" = "位置";

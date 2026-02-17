@@ -26,8 +26,16 @@ let package = Package(
                 .process("Resources/ja.lproj"),
                 .process("Resources/ko.lproj"),
                 .process("Resources/zh-Hans.lproj"),
+                .process("Resources/ar.lproj"),
+                .process("Resources/de.lproj"),
+                .process("Resources/es.lproj"),
+                .process("Resources/fr.lproj"),
+                .process("Resources/it.lproj"),
+                .process("Resources/pt.lproj"),
+                .process("Resources/ru.lproj"),
                 .copy("Resources/film_grain.png"),
                 .copy("Resources/luts"),
+                .copy("Resources/watermark"),
             ]
         ),
     ]

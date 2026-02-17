@@ -21,17 +21,16 @@ struct SettingsView: View {
                 VStack(spacing: 24) {
                     // Image Quality Setting
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("QUALITY")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.textTertiary)
-                            .tracking(1.0)
+                        LiquidSectionHeader(text: "Quality")
                         
                         HStack {
-                            Slider(value: Binding(
-                                get: { Double(viewModel.saveQuality) },
-                                set: { viewModel.saveQuality = max(10, Int($0)) }
-                            ), in: 10...100, step: 1)
-                            .tint(.accentPrimary)
+                            LiquidSlider(
+                                value: Binding(
+                                    get: { Float(viewModel.saveQuality) },
+                                    set: { viewModel.saveQuality = max(10, min(100, Int($0.rounded()))) }
+                                ),
+                                range: 10...100
+                            )
                             
                             Text("\(viewModel.saveQuality)%")
                                 .font(.system(size: 13, weight: .bold))

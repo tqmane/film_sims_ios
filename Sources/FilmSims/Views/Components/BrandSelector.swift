@@ -48,22 +48,23 @@ struct ChipButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 12, weight: .medium))
-                .tracking(0.12) // Android: letterSpacing=0.01em @ 12sp
-                .foregroundColor(isSelected ? .chipSelectedText : Color.white.opacity(0.867)) // #DDFFFFFF
+                .font(.system(size: 12, weight: isSelected ? .medium : .regular))
+                .tracking(0.01)
+                .foregroundColor(isSelected ? Color.chipSelectedText : Color.chipUnselectedText)
                 .padding(.horizontal, 12)
                 .frame(height: 32)
                 .background(
-                    Capsule()
-                        .fill(isSelected ? Color.chipSelectedBackground : Color.white.opacity(0.188)) // #30FFFFFF
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(
-                                    isSelected ? Color.accentDark : Color.white.opacity(0.094), // #18FFFFFF
-                                    lineWidth: 1.5
-                                )
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(isSelected ? Color.chipSelectedBackground : Color.chipUnselectedBackground)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(
+                            isSelected ? Color.accentDark : Color.glassBorderAndroid,
+                            lineWidth: 1.5
                         )
                 )
+                .animation(.easeInOut(duration: 0.3), value: isSelected)
         }
         .buttonStyle(.plain)
     }

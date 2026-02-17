@@ -34,13 +34,13 @@ struct AndroidRoundGlassBackground: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(Color.white.opacity(0.188)) // #30FFFFFF
+                .fill(Color.glassSurface) // 0x20FFFFFF
 
             Circle()
                 .fill(
                     RadialGradient(
                         stops: [
-                            .init(color: Color.white.opacity(0.082), location: 0.0), // #15FFFFFF
+                            .init(color: Color.glassSurfaceDark, location: 0.0), // 0x15FFFFFF
                             .init(color: Color.white.opacity(0.0), location: 1.0),
                         ],
                         center: UnitPoint(x: 0.5, y: 0.35),
@@ -50,7 +50,7 @@ struct AndroidRoundGlassBackground: View {
                 )
 
             Circle()
-                .stroke(Color.white.opacity(0.145), lineWidth: 1) // #25FFFFFF
+                .stroke(Color.glassBorderAndroid, lineWidth: 1) // 0x18FFFFFF
         }
     }
 }

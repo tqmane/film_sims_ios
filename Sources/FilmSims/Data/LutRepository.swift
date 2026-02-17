@@ -1,11 +1,11 @@
 import Foundation
-import UIKit
 
 @MainActor
 class LutRepository {
     static let shared = LutRepository()
     
-    private let lutExtensions = [".cube", ".png", ".bin"]
+    // Keep parity with Android supported formats.
+    private let lutExtensions = [".cube", ".png", ".bin", ".webp", ".jpg", ".jpeg"]
     
     private init() {}
     
@@ -40,6 +40,26 @@ class LutRepository {
         // Leica_lux categories
         case "Leica Looks": return L10n.tr("category_leica_looks")
         case "Artist Looks": return L10n.tr("category_artist_looks")
+        // Huawei categories
+        case "Darkroom": return "Darkroom"
+        case "Google_Filters": return "Google Filters"
+        case "Huawei_Basic": return "Huawei Basic"
+        case "Huawei_Special": return "Huawei Special"
+        case "Mono_Effects": return "Mono Effects"
+        case "Paint_Artistic": return "Paint Artistic"
+        // Meizu categories
+        case "General": return L10n.tr("category_general")
+        case "classicFilter": return L10n.tr("category_classic_filter")
+        case "filterManager": return L10n.tr("category_filter_manager")
+        // Vivo categories
+        case "collage_filters": return "Collage Filters"
+        case "editor_filters": return "Editor Filters"
+        case "movielut": return "Movie LUT"
+        case "newfilter": return "New Filter"
+        case "nightstylefilter": return "Night Style"
+        case "portraitstylefilter": return "Portrait Style"
+        case "portraitstylefilter_multistyle": return "Portrait Multi-Style"
+        case "superzoom": return "Super Zoom"
         // Common/Nothing
         case "_all": return L10n.tr("category_all")
         default:
@@ -52,6 +72,12 @@ class LutRepository {
     private func getBrandDisplayName(_ brandName: String) -> String {
         switch brandName {
         case "Leica_lux": return L10n.tr("brand_leica_lux")
+        case "Leica_FOTOS": return "Leica FOTOS"
+        case "Honor": return "Honor"
+        case "Huawei": return "Huawei"
+        case "Meizu": return "Meizu"
+        case "Vivo": return "vivo"
+        case "Nubia": return "Nubia"
         default: return brandName
         }
     }
@@ -108,6 +134,106 @@ class LutRepository {
         return fileName.replacingOccurrences(of: "_", with: " ")
     }
     
+    // MARK: - Leica FOTOS Filter Names
+    private func getLeicaFotosFilterName(_ fileName: String) -> String {
+        // Based on Android LutRepository.kt getLeicaFotosFilterName
+        let mapping: [String: String] = [
+            "Classic": "lut_fotos_classic",
+            "Contemporary": "lut_fotos_contemporary",
+            "Eternal": "lut_fotos_eternal",
+            "Greg-Williams": "lut_fotos_gregwilliams",
+            "Selenium": "lut_fotos_selenium",
+            "Sepia": "lut_fotos_sepia",
+            "Silver": "lut_fotos_silver",
+            "Teal": "lut_fotos_teal",
+            "Mono_Blue": "lut_fotos_mono_blue",
+            "Mono_Greg-Williams": "lut_fotos_mono_gregwilliams",
+            "Mono_Selenium": "lut_fotos_mono_selenium",
+            "Mono_Sepia": "lut_fotos_mono_sepia",
+        ]
+        if let key = mapping[fileName] {
+            return L10n.tr(key)
+        }
+        return fileName.replacingOccurrences(of: "_", with: " ")
+    }
+    
+    // MARK: - Honor Filter Names
+    private func getHonorFilterName(_ fileName: String) -> String {
+        // Based on Android LutRepository.kt getHonorFilterName
+        let mapping: [String: String] = [
+            "baixi": "lut_honor_baixi",
+            "fendiao": "lut_honor_fendiao",
+            "heibai": "lut_honor_heibai",
+            "heijin": "lut_honor_heijin",
+            "huaijiu": "lut_honor_huaijiu",
+            "huidiao": "lut_honor_huidiao",
+            "jiaotang": "lut_honor_jiaotang",
+            "jingdian": "lut_honor_jingdian",
+            "landiao": "lut_honor_landiao",
+            "qingcheng": "lut_honor_qingcheng",
+            "senxi": "lut_honor_senxi",
+            "tangguo": "lut_honor_tangguo",
+            "yingxiang": "lut_honor_yingxiang",
+            "zhishi": "lut_honor_zhishi",
+            "ziran": "lut_honor_ziran",
+            "danya": "lut_honor_danya",
+            "jiaopian": "lut_honor_jiaopian",
+            "qingchun": "lut_honor_qingchun",
+            "rouhe": "lut_honor_rouhe",
+            "xianming": "lut_honor_xianming",
+            "xianyan": "lut_honor_xianyan",
+            "yuanqi": "lut_honor_yuanqi",
+        ]
+        if let key = mapping[fileName] {
+            return L10n.tr(key)
+        }
+        return fileName.replacingOccurrences(of: "_", with: " ")
+    }
+    
+    // MARK: - Meizu Filter Names
+    private func getMeizuFilterName(_ fileName: String) -> String {
+        // Based on Android LutRepository.kt getMeizuFilterName
+        let mapping: [String: String] = [
+            "warm": "lut_meizu_warm",
+            "warm_front": "lut_meizu_warm_front",
+            "retro": "lut_meizu_retro",
+            "retro_front": "lut_meizu_retro_front",
+            "tender": "lut_meizu_tender",
+            "tender_front": "lut_meizu_tender_front",
+            "warm_tone": "lut_meizu_warm_tone",
+            "warm_tone_front": "lut_meizu_warm_tone_front",
+            "vivid": "lut_meizu_vivid",
+            "vivid_front": "lut_meizu_vivid_front",
+            "original": "lut_meizu_original",
+            "skin_whiten": "lut_meizu_skin_whiten",
+        ]
+        let lowerFileName = fileName.lowercased()
+        if let key = mapping[lowerFileName] {
+            return L10n.tr(key)
+        }
+        return fileName.replacingOccurrences(of: "_", with: " ")
+    }
+    
+    // MARK: - Nubia Filter Names
+    private func getNubiaFilterName(_ fileName: String) -> String {
+        // Based on Android LutRepository.kt getNubiaFilterName
+        if fileName.starts(with: "fengjing") { return L10n.tr("lut_nubia_landscape") }
+        if fileName.starts(with: "meishi") { return L10n.tr("lut_nubia_food") }
+        if fileName.starts(with: "renxiang") && fileName.contains("bg") { return L10n.tr("lut_nubia_portrait_bg") }
+        if fileName.starts(with: "renxiang") && fileName.contains("skin 2") { return L10n.tr("lut_nubia_portrait_skin_2") }
+        if fileName.starts(with: "renxiang") && fileName.contains("skin") { return L10n.tr("lut_nubia_portrait_skin") }
+        if fileName.starts(with: "richang") { return L10n.tr("lut_nubia_daily") }
+        if fileName.starts(with: "shenghuo") && fileName.contains("bg") { return L10n.tr("lut_nubia_life_bg") }
+        if fileName.starts(with: "shenghuo") && fileName.contains("skin") { return L10n.tr("lut_nubia_life_skin") }
+        return fileName.replacingOccurrences(of: "_", with: " ")
+    }
+    
+    // MARK: - Vivo Filter Names
+    private func getVivoFilterName(_ fileName: String) -> String {
+        // Vivo filters use simple filename-based display (no special mapping needed)
+        return fileName.replacingOccurrences(of: "_", with: " ")
+    }
+    
     // MARK: - Load LUT Brands
     func getLutBrands() -> [LutBrand] {
         var brands: [LutBrand] = []
@@ -135,15 +261,39 @@ class LutRepository {
             
             var categories: [LutCategory] = []
             let isLeicaLux = brandName == "Leica_lux"
+            let isLeicaFotos = brandName == "Leica_FOTOS"
+            let isHonor = brandName == "Honor"
+            let isMeizu = brandName == "Meizu"
+            let isNubia = brandName == "Nubia"
+            let isVivo = brandName == "Vivo"
             
             // Check for flat structure (LUT files directly in brand folder)
-            let directLutFiles = contents.filter { file in
-                lutExtensions.contains { file.lowercased().hasSuffix($0) }
+            let directLutFiles = contents.filter { name in
+                let fullPath = (brandPath as NSString).appendingPathComponent(name)
+                var isDir: ObjCBool = false
+                guard fileManager.fileExists(atPath: fullPath, isDirectory: &isDir), !isDir.boolValue else {
+                    return false
+                }
+
+                // Some vendors ship raw LUT binaries without an extension.
+                let leaf = (name as NSString).lastPathComponent
+                if !leaf.contains(".") { return true }
+                return lutExtensions.contains { leaf.lowercased().hasSuffix($0) }
             }
             
             if !directLutFiles.isEmpty {
                 // Flat structure - create single "All" category
-                let lutItems = createLutItems(from: directLutFiles, basePath: brandPath, isLeicaLux: isLeicaLux)
+                let lutItems = createLutItems(
+                    from: directLutFiles, 
+                    basePath: brandPath, 
+                    brandName: brandName,
+                    isLeicaLux: isLeicaLux,
+                    isLeicaFotos: isLeicaFotos,
+                    isHonor: isHonor,
+                    isMeizu: isMeizu,
+                    isNubia: isNubia,
+                    isVivo: isVivo
+                )
                 
                 categories.append(LutCategory(
                     name: "_all",
@@ -165,12 +315,30 @@ class LutRepository {
                       isCategoryDir.boolValue else { continue }
                 
                 guard let files = try? fileManager.contentsOfDirectory(atPath: categoryPath) else { continue }
-                
-                let lutFiles = files.filter { file in
-                    lutExtensions.contains { file.lowercased().hasSuffix($0) }
+
+                let lutFiles = files.filter { name in
+                    let fullPath = (categoryPath as NSString).appendingPathComponent(name)
+                    var isDir: ObjCBool = false
+                    guard fileManager.fileExists(atPath: fullPath, isDirectory: &isDir), !isDir.boolValue else {
+                        return false
+                    }
+
+                    let leaf = (name as NSString).lastPathComponent
+                    if !leaf.contains(".") { return true }
+                    return lutExtensions.contains { leaf.lowercased().hasSuffix($0) }
                 }
                 
-                let lutItems = createLutItems(from: lutFiles, basePath: categoryPath, isLeicaLux: isLeicaLux)
+                let lutItems = createLutItems(
+                    from: lutFiles, 
+                    basePath: categoryPath, 
+                    brandName: brandName,
+                    isLeicaLux: isLeicaLux,
+                    isLeicaFotos: isLeicaFotos,
+                    isHonor: isHonor,
+                    isMeizu: isMeizu,
+                    isNubia: isNubia,
+                    isVivo: isVivo
+                )
                 
                 if !lutItems.isEmpty {
                     categories.append(LutCategory(
@@ -193,7 +361,17 @@ class LutRepository {
         return brands.sorted { $0.displayName < $1.displayName }
     }
     
-    private func createLutItems(from files: [String], basePath: String, isLeicaLux: Bool) -> [LutItem] {
+    private func createLutItems(
+        from files: [String], 
+        basePath: String, 
+        brandName: String,
+        isLeicaLux: Bool,
+        isLeicaFotos: Bool,
+        isHonor: Bool,
+        isMeizu: Bool,
+        isNubia: Bool,
+        isVivo: Bool
+    ) -> [LutItem] {
         // Group by basename to handle duplicates
         var groupedFiles: [String: [String]] = [:]
         
@@ -217,9 +395,22 @@ class LutRepository {
                 ?? variants.first { $0.lowercased().hasSuffix(".cube") }
                 ?? variants.first!
             
-            let displayName = isLeicaLux
-                ? getLeicaLuxFilterName(baseName)
-                : baseName.replacingOccurrences(of: "_", with: " ")
+            let displayName: String
+            if isLeicaLux {
+                displayName = getLeicaLuxFilterName(baseName)
+            } else if isLeicaFotos {
+                displayName = getLeicaFotosFilterName(baseName)
+            } else if isHonor {
+                displayName = getHonorFilterName(baseName)
+            } else if isMeizu {
+                displayName = getMeizuFilterName(baseName)
+            } else if isNubia {
+                displayName = getNubiaFilterName(baseName)
+            } else if isVivo {
+                displayName = getVivoFilterName(baseName)
+            } else {
+                displayName = baseName.replacingOccurrences(of: "_", with: " ")
+            }
             
             let assetPath = (basePath as NSString).appendingPathComponent(selectedFile)
             

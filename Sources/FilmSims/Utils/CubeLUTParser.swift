@@ -5,12 +5,20 @@ class CubeLUTParser {
     
     static func parse(assetPath: String) -> CubeLUT? {
         let lowercasePath = assetPath.lowercased()
+        let pathExtension = URL(fileURLWithPath: assetPath).pathExtension.lowercased()
         
         if lowercasePath.hasSuffix(".png") {
+            return parsePngLut(assetPath: assetPath)
+        } else if lowercasePath.hasSuffix(".webp") || lowercasePath.hasSuffix(".jpg") || lowercasePath.hasSuffix(".jpeg") {
+            // iOS cannot decode WebP via UIImage on all OS versions without additional decoders.
+            // Keep parity with Android by attempting to load through UIImage; if it fails, return nil.
             return parsePngLut(assetPath: assetPath)
         } else if lowercasePath.hasSuffix(".cube") {
             return parseCubeLut(assetPath: assetPath)
         } else if lowercasePath.hasSuffix(".bin") {
+            return parseBinLut(assetPath: assetPath)
+        } else if pathExtension.isEmpty {
+            // Some vendors ship raw binary LUTs without an extension.
             return parseBinLut(assetPath: assetPath)
         }
         
@@ -32,11 +40,35 @@ class CubeLUTParser {
         var isBgr = false
         var isFloatFormat = false
         
-        // Check for .MS-LUT header
-        let magic = bytes.count >= 8 ? String(bytes: bytes[0..<8], encoding: .ascii) ?? "" : ""
-        let hasMsLutHeader = magic == ".MS-LUT "
+        // Check for known headers
+        let magic8 = bytes.count >= 8 ? String(bytes: bytes[0..<8], encoding: .ascii) ?? "" : ""
+        let magic4 = bytes.count >= 4 ? String(bytes: bytes[0..<4], encoding: .ascii) ?? "" : ""
+        let hasMsLutHeader = magic8 == ".MS-LUT "
+        let hasLut3Header = magic4 == "LUT3"
         
-        if hasMsLutHeader {
+        if hasLut3Header && bytes.count >= 12 {
+            // LUT3 header (Huawei format) — ported from Android's CubeLUTParser.kt
+            // 0x00-0x03: "LUT3"
+            // 0x04-0x07: LUT size (little endian uint32)
+            // 0x08-0x0B: entry count (little endian uint32) = lutSize^3
+            // 0x0C..   : RGB data, 3 bytes per entry
+            lutSize = Int(readUInt32LE(bytes: bytes, offset: 0x04))
+            let entryCount = Int(readUInt32LE(bytes: bytes, offset: 0x08))
+            dataOffset = 12
+            channels = 3
+            isFloatFormat = false
+
+            let expectedEntries = lutSize * lutSize * lutSize
+            if !(lutSize >= 8 && lutSize <= 128 && entryCount == expectedEntries) {
+                // Fallback: attempt brute force from file size, but keep LUT3 offset.
+                (lutSize, channels, _) = detectLutSizeFromFileSize(bytes.count - dataOffset)
+                channels = 3
+                isFloatFormat = false
+                if lutSize < 8 || lutSize > 128 {
+                    return nil
+                }
+            }
+        } else if hasMsLutHeader {
             // Parse MS-LUT header
             if bytes.count > 0x30 {
                 lutSize = Int(bytes[0x0C]) | (Int(bytes[0x0D]) << 8) | (Int(bytes[0x0E]) << 16) | (Int(bytes[0x0F]) << 24)
@@ -89,6 +121,12 @@ class CubeLUTParser {
         
         var index = dataOffset
         
+        let bytesPerPixel = isFloatFormat ? 12 : channels
+        let requiredBytes = dataOffset + totalPixels * bytesPerPixel
+        guard requiredBytes <= bytes.count else {
+            return nil
+        }
+
         for _ in 0..<totalPixels {
             if isFloatFormat {
                 if index + 12 > bytes.count { break }
@@ -126,8 +164,20 @@ class CubeLUTParser {
                 index += channels
             }
         }
-        
+
+        guard floatData.count == totalPixels * 3 else {
+            return nil
+        }
+
         return CubeLUT(size: lutSize, data: floatData)
+    }
+
+    private static func readUInt32LE(bytes: [UInt8], offset: Int) -> UInt32 {
+        guard offset + 4 <= bytes.count else { return 0 }
+        return UInt32(bytes[offset]) |
+            (UInt32(bytes[offset + 1]) << 8) |
+            (UInt32(bytes[offset + 2]) << 16) |
+            (UInt32(bytes[offset + 3]) << 24)
     }
     
     private static func detectLutSizeFromFileSize(_ fileSize: Int) -> (Int, Int, Int) {
@@ -222,16 +272,12 @@ class CubeLUTParser {
     private static func parseHaldLut(cgImage: CGImage, lutSize: Int) -> CubeLUT? {
         let width = cgImage.width
         let height = cgImage.height
-        
-        // Get pixel data
-        guard let dataProvider = cgImage.dataProvider,
-              let data = dataProvider.data,
-              let pointer = CFDataGetBytePtr(data) else {
-            return nil
-        }
-        
-        let bytesPerPixel = cgImage.bitsPerPixel / 8
-        let bytesPerRow = cgImage.bytesPerRow
+
+        // Decode into a predictable RGBA8 buffer (PNG decoding often yields BGRA/ARGB depending on source).
+        guard let rgba = decodeToRGBA8(cgImage: cgImage) else { return nil }
+        let pointer = rgba.bytes
+        let bytesPerPixel = 4
+        let bytesPerRow = rgba.bytesPerRow
         
         let tilesPerRow = Int(sqrt(Double(lutSize)))
         let tileWidth = width / tilesPerRow
@@ -265,6 +311,47 @@ class CubeLUTParser {
         
         return CubeLUT(size: lutSize, data: dataList)
     }
+
+    private struct RGBA8Buffer {
+        let bytes: UnsafePointer<UInt8>
+        let bytesPerRow: Int
+        let backing: Data
+    }
+
+    private static func decodeToRGBA8(cgImage: CGImage) -> RGBA8Buffer? {
+        let width = cgImage.width
+        let height = cgImage.height
+        guard width > 0, height > 0 else { return nil }
+
+        let bytesPerPixel = 4
+        let bytesPerRow = width * bytesPerPixel
+        var data = Data(count: bytesPerRow * height)
+
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGBitmapInfo.byteOrder32Big.union(CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue))
+
+        let ok = data.withUnsafeMutableBytes { raw -> Bool in
+            guard let base = raw.baseAddress else { return false }
+            guard let ctx = CGContext(
+                data: base,
+                width: width,
+                height: height,
+                bitsPerComponent: 8,
+                bytesPerRow: bytesPerRow,
+                space: colorSpace,
+                bitmapInfo: bitmapInfo.rawValue
+            ) else { return false }
+
+            ctx.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+            return true
+        }
+
+        guard ok else { return nil }
+        return data.withUnsafeBytes { raw in
+            guard let base = raw.baseAddress?.assumingMemoryBound(to: UInt8.self) else { return nil }
+            return RGBA8Buffer(bytes: base, bytesPerRow: bytesPerRow, backing: data)
+        }
+    }
     
     // MARK: - Cube File Parser
     private static func parseCubeLut(assetPath: String) -> CubeLUT? {
@@ -285,19 +372,19 @@ class CubeLUTParser {
             }
             
             if trimmed.hasPrefix("LUT_3D_SIZE") {
-                let parts = trimmed.split(separator: " ")
+                let parts = trimmed.split(whereSeparator: { $0.isWhitespace })
                 if parts.count >= 2, let parsedSize = Int(parts[1]) {
                     size = parsedSize
                 }
             } else {
-                let parts = trimmed.split(separator: " ")
+                let parts = trimmed.split(whereSeparator: { $0.isWhitespace })
                 if parts.count >= 3,
-                   let r = Float(parts[0]),
-                   let g = Float(parts[1]),
-                   let b = Float(parts[2]) {
-                    dataList.append(r)
-                    dataList.append(g)
-                    dataList.append(b)
+                   let r = Float(String(parts[0])),
+                   let g = Float(String(parts[1])),
+                   let b = Float(String(parts[2])) {
+                    dataList.append(min(max(r, 0), 1))
+                    dataList.append(min(max(g, 0), 1))
+                    dataList.append(min(max(b, 0), 1))
                 }
             }
         }
@@ -306,6 +393,11 @@ class CubeLUTParser {
             return nil
         }
         
+        let expected = size * size * size * 3
+        guard dataList.count == expected else {
+            return nil
+        }
+
         return CubeLUT(size: size, data: dataList)
     }
 }

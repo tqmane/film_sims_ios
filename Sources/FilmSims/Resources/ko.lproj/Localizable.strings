@@ -99,3 +99,86 @@
 "btn_change" = "Change";
 "label_quality" = "Quality";
 "btn_close" = "Close";
+
+/* Leica FOTOS LUT names */
+"lut_fotos_classic" = "클래식";
+"lut_fotos_contemporary" = "컨템포러리";
+"lut_fotos_eternal" = "이터널";
+"lut_fotos_gregwilliams" = "Greg Williams";
+"lut_fotos_selenium" = "셀레늄";
+"lut_fotos_sepia" = "세피아";
+"lut_fotos_silver" = "실버";
+"lut_fotos_teal" = "틸";
+"lut_fotos_mono_blue" = "모노 블루";
+"lut_fotos_mono_gregwilliams" = "모노 Greg Williams";
+"lut_fotos_mono_selenium" = "모노 셀레늄";
+"lut_fotos_mono_sepia" = "모노 세피아";
+
+/* Nubia LUT names */
+"lut_nubia_landscape" = "풍경";
+"lut_nubia_food" = "음식";
+"lut_nubia_portrait_bg" = "인물 (BG)";
+"lut_nubia_portrait_skin" = "인물 (피부)";
+"lut_nubia_portrait_skin_2" = "인물 (피부 2)";
+"lut_nubia_daily" = "일상";
+"lut_nubia_life_bg" = "생활 (BG)";
+"lut_nubia_life_skin" = "생활 (피부)";
+
+/* Honor LUT names */
+"lut_honor_baixi" = "스케치";
+"lut_honor_fendiao" = "핑크 톤";
+"lut_honor_heibai" = "흑백";
+"lut_honor_heijin" = "블랙 골드";
+"lut_honor_huaijiu" = "노스탤지";
+"lut_honor_huidiao" = "그레이 톤";
+"lut_honor_jiaotang" = "캐러멜";
+"lut_honor_jingdian" = "클래식";
+"lut_honor_landiao" = "블루 톤";
+"lut_honor_qingcheng" = "클리어 시티";
+"lut_honor_senxi" = "포레스트";
+"lut_honor_tangguo" = "캔디";
+"lut_honor_yingxiang" = "쉐도우";
+"lut_honor_zhishi" = "지식";
+"lut_honor_ziran" = "내추럴";
+"lut_honor_danya" = "우아함";
+"lut_honor_jiaopian" = "필름";
+"lut_honor_qingchun" = "젊음";
+"lut_honor_rouhe" = "소프트";
+"lut_honor_xianming" = "비비드";
+"lut_honor_xianyan" = "바이브런트";
+"lut_honor_yuanqi" = "활력";
+
+/* Meizu categories */
+"category_general" = "일반";
+"category_classic_filter" = "클래식 필터";
+"category_filter_manager" = "필터 관리자";
+
+/* Meizu LUT names */
+"lut_meizu_warm" = "웜";
+"lut_meizu_warm_front" = "웜 (프론트)";
+"lut_meizu_retro" = "레트로";
+"lut_meizu_retro_front" = "레트로 (프론트)";
+"lut_meizu_tender" = "텐더";
+"lut_meizu_tender_front" = "텐더 (프론트)";
+"lut_meizu_warm_tone" = "웜 톤";
+"lut_meizu_warm_tone_front" = "웜 톤 (프론트)";
+"lut_meizu_vivid" = "비비드";
+"lut_meizu_vivid_front" = "비비드 (프론트)";
+"lut_meizu_original" = "오리지널";
+"lut_meizu_skin_whiten" = "피부 화이트닝";
+
+/* Watermark */
+"header_watermark" = "워터마크";
+"label_watermark" = "Honor 워터마크";
+"label_watermark_style" = "스타일";
+"label_watermark_brand" = "브랜드";
+"watermark_none" = "없음";
+"brand_none" = "없음";
+"brand_honor" = "Honor";
+"brand_meizu" = "Meizu";
+"brand_vivo" = "vivo";
+"brand_tecno" = "TECNO";
+"label_watermark_device" = "기기";
+"label_watermark_lens" = "렌즈";
+"label_watermark_time" = "시간";
+"label_watermark_location" = "위치";

@@ -11,7 +11,7 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                Color.surfaceDark.ignoresSafeArea()
+                LivingBackground()
 
                 // Preview layer (GLSurfaceView equivalent)
                 Group {
@@ -45,7 +45,7 @@ struct ContentView: View {
                 .zIndex(10)
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: isImmersiveMode)
+        .animation(.easeInOut(duration: 0.3), value: isImmersiveMode)
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView(viewModel: viewModel)
         }
@@ -57,14 +57,15 @@ struct ContentView: View {
             // App Title
             VStack(alignment: .leading, spacing: 2) {
                 Text("FilmSims")
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.system(size: 24, weight: .medium))
                     .foregroundColor(.textPrimary)
                 
                 Text(L10n.tr("subtitle_film_simulator"))
-                    .font(.system(size: 10, weight: .regular))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundColor(.accentPrimary)
-                    .tracking(1.2)
+                    .tracking(0.1)
                     .textCase(.uppercase)
+                    .padding(.top, 3)
             }
             
             Spacer()
@@ -92,17 +93,16 @@ struct ContentView: View {
                 // Save Button
                 Button(action: { viewModel.saveImage() }) {
                     Text(L10n.tr("save"))
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .frame(height: 40)
+                        .frame(width: 80, height: 44)
                         .background(AndroidAccentGradientButtonBackground(cornerRadius: 24))
-                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 24)
         .background(
             AndroidTopShadow()
         )
@@ -113,8 +113,8 @@ struct ContentView: View {
         VStack(spacing: 0) {
             // Icon Container
             ZStack {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.glassBackground)
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color.glassSurface)
                     .frame(width: 100, height: 100)
                 
                 Image(systemName: "photo.badge.plus")
@@ -123,32 +123,32 @@ struct ContentView: View {
             }
             
             Text(L10n.tr("label_pick_image"))
-                .font(.system(size: 24, weight: .light))
+                .font(.system(size: 26, weight: .light))
                 .foregroundColor(.textPrimary)
-                .padding(.top, 32)
+                .padding(.top, 36)
             
             Text(L10n.tr("desc_pick_image"))
-                .font(.system(size: 14))
+                .font(.system(size: 15))
                 .foregroundColor(.textTertiary)
                 .multilineTextAlignment(.center)
-                .padding(.top, 12)
+                .padding(.top, 14)
             
             PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
                 HStack(spacing: 10) {
                     Image(systemName: "photo.on.rectangle")
-                        .font(.system(size: 16))
+                        .font(.system(size: 22))
                     Text(L10n.tr("btn_open_gallery"))
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.system(size: 15, weight: .medium))
                 }
                 .foregroundColor(.white)
-                .padding(.horizontal, 28)
-                .frame(height: 52)
+                .frame(height: 56)
                 .background(AndroidAccentGradientButtonBackground(cornerRadius: 24))
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             }
-            .padding(.top, 40)
+            .frame(minWidth: 200)
+            .padding(.top, 44)
         }
-        .padding(48)
+        .padding(56)
     }
     
     // MARK: - Image Preview View
@@ -180,16 +180,13 @@ struct ContentView: View {
 
                 if isAdjustmentPanelExpanded {
                     grainControls
+                    watermarkControls
                 }
             }
             
             // Camera Brands Section
             VStack(alignment: .leading, spacing: 6) {
-                Text(L10n.tr("header_camera"))
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.accentPrimary)
-                    .tracking(1.5)
-                    .textCase(.uppercase)
+                LiquidSectionHeader(text: L10n.tr("header_camera"))
                 
                 BrandSelector(
                     brands: viewModel.brands,
@@ -203,11 +200,7 @@ struct ContentView: View {
             
             // Style Section
             VStack(alignment: .leading, spacing: 6) {
-                Text(L10n.tr("header_style"))
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.accentPrimary)
-                    .tracking(1.5)
-                    .textCase(.uppercase)
+                LiquidSectionHeader(text: L10n.tr("header_style"))
                 
                 GenreSelector(
                     categories: viewModel.currentCategories,
@@ -226,11 +219,7 @@ struct ContentView: View {
             
             // Presets Section
             VStack(alignment: .leading, spacing: 6) {
-                Text(L10n.tr("header_presets"))
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.accentPrimary)
-                    .tracking(1.5)
-                    .textCase(.uppercase)
+                LiquidSectionHeader(text: L10n.tr("header_presets"))
                 
                 LutPresetSelector(
                     luts: viewModel.currentLuts,
@@ -259,7 +248,7 @@ struct ContentView: View {
                 Text(L10n.tr("header_grain"))
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(.accentPrimary)
-                    .tracking(1.8)
+                    .tracking(0.12)
                     .textCase(.uppercase)
 
                 Spacer()
@@ -298,10 +287,8 @@ struct ContentView: View {
                     .tint(.accentPrimary)
                     .scaleEffect(0.8)
             }
-            
-            Slider(value: $viewModel.grainIntensity, in: 0...1)
-                .tint(viewModel.grainEnabled ? .accentPrimary : .textTertiary)
-                .disabled(!viewModel.grainEnabled)
+
+            LiquidSlider(value: $viewModel.grainIntensity, enabled: viewModel.grainEnabled)
             
             Divider()
                 .background(Color.white.opacity(0.1))
@@ -310,14 +297,22 @@ struct ContentView: View {
         .padding(.bottom, 8)
     }
     
+    // MARK: - Watermark Controls
+    private var watermarkControls: some View {
+        WatermarkView(viewModel: viewModel)
+            .padding(.bottom, 12)
+    }
+    
     // MARK: - Intensity Slider
     private var intensitySlider: some View {
         VStack(spacing: 6) {
             HStack {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 12))
+                    .font(.system(size: 16))
                     .foregroundColor(.accentPrimary)
-                
+
+                Spacer().frame(width: 10)
+
                 Text(L10n.tr("label_intensity"))
                     .font(.system(size: 12))
                     .foregroundColor(.textSecondary)
@@ -329,9 +324,9 @@ struct ContentView: View {
                     .foregroundColor(.textPrimary)
                     .frame(width: 40, alignment: .trailing)
             }
-            
-            Slider(value: $viewModel.intensity, in: 0...1)
-                .tint(.accentPrimary)
+            .padding(.vertical, 6)
+
+            LiquidSlider(value: $viewModel.intensity)
         }
         .padding(.bottom, 14)
     }

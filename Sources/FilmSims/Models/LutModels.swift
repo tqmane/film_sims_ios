@@ -45,6 +45,22 @@ struct CubeLUT {
         var cubeArray: [Float] = []
         let totalEntries = size * size * size
         cubeArray.reserveCapacity(totalEntries * 4)
+
+        guard data.count >= totalEntries * 3 else {
+            // Fail-safe: return an identity cube (no color change) rather than crashing.
+            // This should not happen if parsers validate lengths correctly.
+            for b in 0..<size {
+                for g in 0..<size {
+                    for r in 0..<size {
+                        cubeArray.append(Float(r) / Float(size - 1))
+                        cubeArray.append(Float(g) / Float(size - 1))
+                        cubeArray.append(Float(b) / Float(size - 1))
+                        cubeArray.append(1.0)
+                    }
+                }
+            }
+            return cubeArray.withUnsafeBytes { Data($0) }
+        }
         
         for i in 0..<totalEntries {
             let baseIndex = i * 3

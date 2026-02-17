@@ -37,34 +37,71 @@ class FilmSimsViewModel: ObservableObject {
     
     @Published var currentLut: LutItem? {
         didSet {
-            Task {
-                await applyCurrentLut()
-            }
+            scheduleApply()
         }
     }
     
     @Published var intensity: Float = 1.0 {
         didSet {
-            Task {
-                await applyCurrentLut()
-            }
+            scheduleApply()
         }
     }
     
     @Published var grainEnabled: Bool = false {
         didSet {
-            Task {
-                await applyCurrentLut()
-            }
+            scheduleApply()
         }
     }
     
     @Published var grainIntensity: Float = 0.5 {
         didSet {
             if grainEnabled {
-                Task {
-                    await applyCurrentLut()
-                }
+                scheduleApply()
+            }
+        }
+    }
+    
+    // Watermark
+    @Published var watermarkEnabled: Bool = false {
+        didSet {
+            scheduleApply()
+        }
+    }
+    
+    @Published var watermarkStyle: WatermarkProcessor.WatermarkStyle = .none {
+        didSet {
+            scheduleApply()
+        }
+    }
+    
+    @Published var watermarkDeviceName: String = "" {
+        didSet {
+            if watermarkEnabled {
+                scheduleApply()
+            }
+        }
+    }
+    
+    @Published var watermarkLensInfo: String = "" {
+        didSet {
+            if watermarkEnabled {
+                scheduleApply()
+            }
+        }
+    }
+    
+    @Published var watermarkTimeText: String = "" {
+        didSet {
+            if watermarkEnabled {
+                scheduleApply()
+            }
+        }
+    }
+    
+    @Published var watermarkLocationText: String = "" {
+        didSet {
+            if watermarkEnabled {
+                scheduleApply()
             }
         }
     }
@@ -76,6 +113,11 @@ class FilmSimsViewModel: ObservableObject {
     private let ciContext = CIContext(options: [.useSoftwareRenderer: false])
     private var lutCache: [String: CubeLUT] = [:]
     private var originalImageData: Data?
+
+    private var applyTask: Task<Void, Never>?
+    private var thumbnailStamp = UUID()
+    private var thumbnailPreviewCache: [String: UIImage] = [:]
+    private var thumbnailPreviewTaskCache: [String: Task<UIImage?, Never>] = [:]
     
     // MARK: - Computed Properties
     var currentCategories: [LutCategory] {
@@ -146,7 +188,7 @@ class FilmSimsViewModel: ObservableObject {
                     processedImage = uiImage
                     
                     // Create thumbnail for LUT previews
-                    let maxDim: CGFloat = 500
+                    let maxDim: CGFloat = 256
                     let scale = min(maxDim / uiImage.size.width, maxDim / uiImage.size.height, 1.0)
                     let newSize = CGSize(
                         width: uiImage.size.width * scale,
@@ -157,6 +199,11 @@ class FilmSimsViewModel: ObservableObject {
                     uiImage.draw(in: CGRect(origin: .zero, size: newSize))
                     thumbnailImage = UIGraphicsGetImageFromCurrentImageContext()
                     UIGraphicsEndImageContext()
+
+                    // Invalidate per-thumbnail preview cache
+                    thumbnailStamp = UUID()
+                    thumbnailPreviewCache.removeAll(keepingCapacity: true)
+                    thumbnailPreviewTaskCache.removeAll(keepingCapacity: true)
                     
                     // Reset intensity when new image is loaded
                     intensity = 1.0
@@ -197,8 +244,12 @@ class FilmSimsViewModel: ObservableObject {
     func applyCurrentLut() async {
         guard let originalImage = originalImage else { return }
 
+        if Task.isCancelled { return }
+
         // Scale down for preview to keep UI responsive.
         let previewImage = scaleToMaxPixels(originalImage, maxPixels: 10_000_000)
+
+        if Task.isCancelled { return }
 
         // If no LUT selected, still allow grain to be applied.
         guard let lutItem = currentLut,
@@ -213,6 +264,8 @@ class FilmSimsViewModel: ObservableObject {
         
         if let processed = await applyLutToImage(previewImage, lut: lut, intensity: intensity) {
             var finalImage = processed
+
+            if Task.isCancelled { return }
             
             // Apply grain if enabled
             if grainEnabled && grainIntensity > 0 {
@@ -221,8 +274,37 @@ class FilmSimsViewModel: ObservableObject {
                 }
             }
             
+            // Apply watermark if enabled
+            if watermarkEnabled && watermarkStyle != .none {
+                finalImage = applyWatermark(to: finalImage)
+            }
+            
+            if Task.isCancelled { return }
             processedImage = finalImage
         }
+    }
+
+    private func scheduleApply() {
+        applyTask?.cancel()
+        applyTask = Task { [weak self] in
+            guard let self else { return }
+            // Coalesce rapid slider/toggle edits.
+            try? await Task.sleep(nanoseconds: 40_000_000)
+            if Task.isCancelled { return }
+            await self.applyCurrentLut()
+        }
+    }
+    
+    // MARK: - Watermark Application
+    private func applyWatermark(to image: UIImage) -> UIImage {
+        let config = WatermarkProcessor.WatermarkConfig(
+            style: watermarkStyle,
+            deviceName: watermarkDeviceName.isEmpty ? nil : watermarkDeviceName,
+            timeText: watermarkTimeText.isEmpty ? nil : watermarkTimeText,
+            locationText: watermarkLocationText.isEmpty ? nil : watermarkLocationText,
+            lensInfo: watermarkLensInfo.isEmpty ? nil : watermarkLensInfo
+        )
+        return WatermarkProcessor.applyWatermark(image, config: config)
     }
 
     private func applyFilmGrainAsync(to image: UIImage, intensity: Float) async -> UIImage? {
@@ -423,6 +505,30 @@ class FilmSimsViewModel: ObservableObject {
         guard let thumbnail = thumbnailImage else { return nil }
         return await applyLutToImage(thumbnail, lut: lut, intensity: 1.0)
     }
+
+    func lutPreviewImage(for item: LutItem) async -> UIImage? {
+        // Avoid parsing/applying hundreds of LUTs before the user picks an image.
+        guard originalImage != nil else { return nil }
+        guard thumbnailImage != nil else { return nil }
+
+        let key = "\(thumbnailStamp.uuidString)|\(item.assetPath)"
+        if let cached = thumbnailPreviewCache[key] { return cached }
+        if let task = thumbnailPreviewTaskCache[key] { return await task.value }
+
+        let task: Task<UIImage?, Never> = Task { [weak self] in
+            guard let self else { return nil }
+            guard let lut = self.getLut(for: item) else { return nil }
+            return await self.applyLutToThumbnail(lut)
+        }
+
+        thumbnailPreviewTaskCache[key] = task
+        let result = await task.value
+        thumbnailPreviewTaskCache[key] = nil
+        if let result {
+            thumbnailPreviewCache[key] = result
+        }
+        return result
+    }
     
     // MARK: - Save Image
     func saveImage() {
@@ -448,6 +554,11 @@ class FilmSimsViewModel: ObservableObject {
                 } else {
                     imageToSave = originalImage
                 }
+            }
+            
+            // Apply watermark if enabled
+            if watermarkEnabled && watermarkStyle != .none {
+                imageToSave = applyWatermark(to: imageToSave)
             }
             
             // Save to photo library
