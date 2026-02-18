@@ -10,6 +10,7 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader { geometry in
+            let isCompact = geometry.size.height <= 700
             ZStack {
                 LivingBackground()
 
@@ -45,19 +46,25 @@ struct ContentView: View {
                 .zIndex(10)
             }
         }
+        .environment(\.compactUI, {
+            // We need a way to inject compactUI from geometry; use screen bounds as proxy.
+            UIScreen.main.bounds.height <= 700
+        }())
         .animation(.easeInOut(duration: 0.3), value: isImmersiveMode)
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView(viewModel: viewModel)
         }
     }
     
+    @Environment(\.compactUI) private var compactUI
+
     // MARK: - Top Bar
     private var topBar: some View {
         HStack(alignment: .center) {
             // App Title
             VStack(alignment: .leading, spacing: 2) {
                 Text("FilmSims")
-                    .font(.system(size: 24, weight: .medium))
+                    .font(.system(size: compactUI ? 20 : 24, weight: .medium))
                     .foregroundColor(.textPrimary)
                 
                 Text(L10n.tr("subtitle_film_simulator"))
@@ -75,18 +82,18 @@ struct ContentView: View {
                 // Change Photo Button
                 PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
                     Image(systemName: "plus")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: compactUI ? 14 : 16, weight: .medium))
                         .foregroundColor(.textPrimary)
-                        .frame(width: 42, height: 42)
+                        .frame(width: compactUI ? 36 : 42, height: compactUI ? 36 : 42)
                         .background(AndroidRoundGlassBackground())
                 }
                 
                 // Settings Button
                 Button(action: { isSettingsPresented = true }) {
                     Image(systemName: "gearshape")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: compactUI ? 14 : 16, weight: .medium))
                         .foregroundColor(.textPrimary)
-                        .frame(width: 42, height: 42)
+                        .frame(width: compactUI ? 36 : 42, height: compactUI ? 36 : 42)
                         .background(AndroidRoundGlassBackground())
                 }
                 
@@ -95,14 +102,14 @@ struct ContentView: View {
                     Text(L10n.tr("save"))
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.white)
-                        .frame(width: 80, height: 44)
+                        .frame(width: compactUI ? 72 : 80, height: compactUI ? 36 : 44)
                         .background(AndroidAccentGradientButtonBackground(cornerRadius: 24))
                         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 }
             }
         }
         .padding(.horizontal, 24)
-        .padding(.vertical, 24)
+        .padding(.vertical, compactUI ? 16 : 24)
         .background(
             AndroidTopShadow()
         )
@@ -185,30 +192,24 @@ struct ContentView: View {
             }
             
             // Camera Brands Section
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 0) {
                 LiquidSectionHeader(text: L10n.tr("header_camera"))
                 
                 BrandSelector(
                     brands: viewModel.brands,
                     selectedBrand: $viewModel.selectedBrand
                 )
-                .padding(.horizontal, 6)
-                .padding(.vertical, 6)
-                .background(AndroidSelectorContainerBackground(cornerRadius: 18))
             }
             .padding(.bottom, 10)
             
             // Style Section
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 0) {
                 LiquidSectionHeader(text: L10n.tr("header_style"))
                 
                 GenreSelector(
                     categories: viewModel.currentCategories,
                     selectedCategory: $viewModel.selectedCategory
                 )
-                .padding(.horizontal, 6)
-                .padding(.vertical, 6)
-                .background(AndroidSelectorContainerBackground(cornerRadius: 18))
             }
             .padding(.bottom, 10)
             
@@ -218,7 +219,7 @@ struct ContentView: View {
             }
             
             // Presets Section
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 0) {
                 LiquidSectionHeader(text: L10n.tr("header_presets"))
                 
                 LutPresetSelector(
@@ -229,11 +230,11 @@ struct ContentView: View {
                 )
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 12)
-        .padding(.bottom, 16)
+        .padding(.horizontal, compactUI ? 12 : 16)
+        .padding(.top, compactUI ? 12 : 16)
+        .padding(.bottom, compactUI ? 14 : 20)
         .background(
-            AndroidControlPanelBackground(topRadius: 28)
+            AndroidControlPanelBackground(topRadius: 20)
         )
     }
 
@@ -246,9 +247,9 @@ struct ContentView: View {
         } label: {
             HStack(spacing: 10) {
                 Text(L10n.tr("header_grain"))
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.accentPrimary)
-                    .tracking(0.12)
+                    .tracking(0.15)
                     .textCase(.uppercase)
 
                 Spacer()
@@ -258,40 +259,75 @@ struct ContentView: View {
                     .foregroundColor(.textTertiary)
                     .rotationEffect(.degrees(isAdjustmentPanelExpanded ? 180 : 0))
             }
-            .padding(.vertical, 10)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
     
     // MARK: - Grain Controls
     private var grainControls: some View {
-        VStack(spacing: 8) {
-            HStack {
+        VStack(spacing: 0) {
+            // Row 1: icon + label + percent + checkbox
+            HStack(spacing: 0) {
                 Image(systemName: "circle.grid.3x3.fill")
-                    .font(.system(size: 14))
+                    .font(.system(size: 18))
                     .foregroundColor(viewModel.grainEnabled ? .accentPrimary : .textTertiary)
-                
+                    .frame(width: 18)
+                Spacer().frame(width: 12)
                 Text(L10n.tr("label_film_grain"))
                     .font(.system(size: 13))
                     .foregroundColor(.textSecondary)
-                
                 Spacer()
-                
                 Text("\(Int(viewModel.grainIntensity * 100))%")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(viewModel.grainEnabled ? .accentPrimary : .textTertiary)
                     .frame(width: 42, alignment: .trailing)
-                
+                    .padding(.trailing, 8)
                 Toggle("", isOn: $viewModel.grainEnabled)
                     .labelsHidden()
                     .tint(.accentPrimary)
+                    .frame(width: 24, height: 24)
                     .scaleEffect(0.8)
             }
+            .padding(.vertical, 8)
 
+            // Row 2: intensity slider
             LiquidSlider(value: $viewModel.grainIntensity, enabled: viewModel.grainEnabled)
-            
+                .padding(.bottom, 12)
+
+            // Row 3: grain style selector (Xiaomi / OnePlus)
+            HStack(spacing: 0) {
+                Image(systemName: "circle.grid.3x3.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(.accentSecondary)
+                    .frame(width: 18)
+                Spacer().frame(width: 12)
+                Text(L10n.tr("label_grain_style"))
+                    .font(.system(size: 13))
+                    .foregroundColor(.textSecondary)
+                    .padding(.trailing, 12)
+                HStack(spacing: 6) {
+                    ForEach(["Xiaomi", "OnePlus"], id: \.self) { style in
+                        ChipButton(
+                            title: L10n.tr("grain_style_\(style.lowercased())"),
+                            isSelected: viewModel.grainStyle == style,
+                            enabled: viewModel.grainEnabled
+                        ) {
+                            if viewModel.grainEnabled {
+                                viewModel.grainStyle = style
+                            }
+                        }
+                    }
+                }
+                Spacer()
+            }
+            .padding(.vertical, 8)
+            .opacity(viewModel.grainEnabled ? 1 : 0.4)
+
+            // Divider before watermark section
             Divider()
-                .background(Color.white.opacity(0.1))
+                .background(Color.white.opacity(0.063))
                 .padding(.vertical, 8)
         }
         .padding(.bottom, 8)
@@ -300,7 +336,7 @@ struct ContentView: View {
     // MARK: - Watermark Controls
     private var watermarkControls: some View {
         WatermarkView(viewModel: viewModel)
-            .padding(.bottom, 12)
+            .padding(.bottom, 16)
     }
     
     // MARK: - Intensity Slider

@@ -20,5 +20,6 @@ xtool/
 
 # --- App assets that must not be committed ---
 Sources/FilmSims/Resources/film_grain.png
+Sources/FilmSims/Resources/film_grain_oneplus.png
 Sources/FilmSims/Resources/luts/
 Sources/FilmSims/Resources/watermark/

@@ -4,7 +4,7 @@ import SwiftUI
 extension Color {
     // Base Dark Theme Colors
     static let surfaceDark = Color(hex: "#050508")
-    static let surfaceMedium = Color(hex: "#0C0C10")
+    static let surfaceMedium = Color(hex: "#0A0A0E")     // Android SurfaceMedium 0xFF0A0A0E
     static let surfaceLight = Color(hex: "#151519")
     static let surfaceElevated = Color(hex: "#1E1E24")
     
@@ -29,18 +29,18 @@ extension Color {
     static let accentGlow = Color(hex: "#FF8A50").opacity(0.2)
     static let accentGlowStrong = Color(hex: "#FF8A50").opacity(0.3)
     
-    // Secondary Accent - Soft cyan
+    // Secondary Accent - Soft cyan (Android AccentSecondary 0xFF40C4B0)
     static let secondaryStart = Color(hex: "#40C4B0")
     static let secondaryEnd = Color(hex: "#60D4C4")
-    static let accentSecondary = Color(hex: "#50D0B8")
+    static let accentSecondary = Color(hex: "#40C4B0")
 
     // Tertiary accent (purple)
     static let accentTertiary = Color(hex: "#6200EE")
     
-    // Text Colors
-    static let textPrimary = Color(hex: "#FAFAFA")
-    static let textSecondary = Color(hex: "#D8D8D8").opacity(0.82)
-    static let textTertiary = Color(hex: "#A0A0A8").opacity(0.44)
+    // Text Colors (matches Android LiquidColors exactly)
+    static let textPrimary = Color(hex: "#F0F0F0")        // Android TextHighEmphasis 0xFFF0F0F0
+    static let textSecondary = Color.white.opacity(0.847) // Android TextMediumEmphasis 0xD8FFFFFF
+    static let textTertiary = Color.white.opacity(0.502)  // Android TextLowEmphasis 0x80FFFFFF
     static let textDisabled = Color.white.opacity(0.25)
     
     // Utility Colors
@@ -49,9 +49,9 @@ extension Color {
     static let rippleLight = Color.white.opacity(0.09)
     static let rippleAccent = Color(hex: "#FFAB60").opacity(0.16)
     
-    // Selection State Colors
+    // Selection State Colors (matches Android LiquidColors)
     static let chipSelectedBackground = Color(hex: "#FFAB60")
-    static let chipSelectedText = Color(hex: "#121212")
+    static let chipSelectedText = Color(hex: "#0C0C10")    // Android ChipSelectedText 0xFF0C0C10
     static let chipUnselectedBackground = Color.white.opacity(0.157) // 0x28FFFFFF
     static let chipUnselectedText = Color.white.opacity(0.847) // 0xD8FFFFFF
     

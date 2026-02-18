@@ -127,13 +127,13 @@ struct AndroidSelectorContainerBackground: View {
 }
 
 struct AndroidControlPanelBackground: View {
-    var topRadius: CGFloat = 28
+    var topRadius: CGFloat = 20
 
     var body: some View {
         ZStack {
-            // Main glass background
+            // Main glass background - matches Android LiquidColors.SurfaceDark (0xFF050508) at alpha 0.85 = 0xD9050508
             RoundedCornerShape(radius: topRadius, corners: [.topLeft, .topRight])
-                .fill(Color(hex: "#101014").opacity(0.949)) // #F2101014
+                .fill(Color(hex: "#050508").opacity(0.85))
 
             // Inner gradient for depth (bottom gets slightly lighter)
             RoundedCornerShape(radius: topRadius, corners: [.topLeft, .topRight])

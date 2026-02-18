@@ -32,6 +32,7 @@ class FilmSimsViewModel: ObservableObject {
     @Published var selectedCategory: LutCategory? {
         didSet {
             currentLut = nil
+            prefetchCategoryLuts()
         }
     }
     
@@ -60,8 +61,34 @@ class FilmSimsViewModel: ObservableObject {
             }
         }
     }
+
+    @Published var grainStyle: String = "Xiaomi" {
+        didSet {
+            if grainEnabled {
+                scheduleApply()
+            }
+        }
+    }
     
     // Watermark
+    @Published var watermarkBrand: String = "None" {
+        didSet {
+            // Auto-select first style for the new brand; clear when None.
+            switch watermarkBrand {
+            case "Honor":
+                watermarkStyle = .frame
+            case "Meizu":
+                watermarkStyle = .meizuNorm
+            case "Vivo":
+                watermarkStyle = .vivoZeiss
+            case "TECNO":
+                watermarkStyle = .tecno1
+            default:
+                watermarkStyle = .none
+            }
+        }
+    }
+
     @Published var watermarkEnabled: Bool = false {
         didSet {
             scheduleApply()
@@ -70,6 +97,7 @@ class FilmSimsViewModel: ObservableObject {
     
     @Published var watermarkStyle: WatermarkProcessor.WatermarkStyle = .none {
         didSet {
+            watermarkEnabled = (watermarkStyle != .none)
             scheduleApply()
         }
     }
@@ -115,9 +143,12 @@ class FilmSimsViewModel: ObservableObject {
     private var originalImageData: Data?
 
     private var applyTask: Task<Void, Never>?
+    private var prefetchTask: Task<Void, Never>?
     private var thumbnailStamp = UUID()
     private var thumbnailPreviewCache: [String: UIImage] = [:]
     private var thumbnailPreviewTaskCache: [String: Task<UIImage?, Never>] = [:]
+    // Limits concurrent LUT parse+apply tasks for thumbnail previews.
+    private let previewSemaphore = AsyncSemaphore(limit: 4)
     
     // MARK: - Computed Properties
     var currentCategories: [LutCategory] {
@@ -207,7 +238,10 @@ class FilmSimsViewModel: ObservableObject {
                     
                     // Reset intensity when new image is loaded
                     intensity = 1.0
-                    
+
+                    // Extract EXIF metadata to auto-populate watermark fields.
+                    readExif(from: data)
+
                     // Apply current LUT if selected
                     if currentLut != nil {
                         await applyCurrentLut()
@@ -226,7 +260,32 @@ class FilmSimsViewModel: ObservableObject {
             selectedBrand = firstBrand
         }
     }
-    
+
+    /// Pre-parse all LUTs in the selected category off the main thread
+    /// so thumbnails appear immediately when the user scrolls the preset row.
+    private func prefetchCategoryLuts() {
+        prefetchTask?.cancel()
+        guard let items = selectedCategory?.items, !items.isEmpty else { return }
+        prefetchTask = Task.detached(priority: .utility) { [weak self] in
+            guard let self else { return }
+            for item in items {
+                if Task.isCancelled { break }
+                await self.prefetchLutIfNeeded(item)
+            }
+        }
+    }
+
+    private func prefetchLutIfNeeded(_ item: LutItem) async {
+        let key = item.assetPath
+        let alreadyCached = await MainActor.run { lutCache[key] != nil }
+        guard !alreadyCached else { return }
+        if let lut = CubeLUTParser.parse(assetPath: key) {
+            await MainActor.run { [weak self] in
+                self?.lutCache[key] = lut
+            }
+        }
+    }
+
     func getLut(for item: LutItem) -> CubeLUT? {
         if let cached = lutCache[item.assetPath] {
             return cached
@@ -251,14 +310,17 @@ class FilmSimsViewModel: ObservableObject {
 
         if Task.isCancelled { return }
 
-        // If no LUT selected, still allow grain to be applied.
+        // If no LUT selected, still allow grain/watermark to be applied.
         guard let lutItem = currentLut,
               let lut = getLut(for: lutItem) else {
+            var noLutImage = previewImage
             if grainEnabled && grainIntensity > 0 {
-                processedImage = await applyFilmGrainAsync(to: previewImage, intensity: grainIntensity) ?? previewImage
-            } else {
-                processedImage = previewImage
+                noLutImage = await applyFilmGrainAsync(to: noLutImage, intensity: grainIntensity) ?? noLutImage
             }
+            if watermarkEnabled && watermarkStyle != .none {
+                noLutImage = applyWatermark(to: noLutImage)
+            }
+            processedImage = noLutImage
             return
         }
         
@@ -296,6 +358,43 @@ class FilmSimsViewModel: ObservableObject {
     }
     
     // MARK: - Watermark Application
+    private func readExif(from data: Data) {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any] else {
+            // No EXIF — set default time
+            watermarkTimeText = WatermarkProcessor.defaultTimeString()
+            return
+        }
+
+        let tiff = props[kCGImagePropertyTIFFDictionary as String] as? [String: Any]
+        let exif = props[kCGImagePropertyExifDictionary as String] as? [String: Any]
+        let gps  = props[kCGImagePropertyGPSDictionary  as String] as? [String: Any]
+
+        // Always reset all fields from EXIF when new image loads; user can edit afterwards
+        watermarkDeviceName = (tiff?[kCGImagePropertyTIFFModel as String] as? String) ?? ""
+
+        if let dt = exif?[kCGImagePropertyExifDateTimeOriginal as String] as? String {
+            // Convert "2024:01:15 10:30:00" → "2024-01-15 10:30:00"
+            let cutoff = dt.index(dt.startIndex, offsetBy: min(10, dt.count))
+            let datePart = dt[dt.startIndex..<cutoff].replacingOccurrences(of: ":", with: "-")
+            let timePart = dt.count > 11 ? String(dt[dt.index(cutoff, offsetBy: 1)...]) : ""
+            watermarkTimeText = timePart.isEmpty ? datePart : "\(datePart) \(timePart)"
+        } else {
+            watermarkTimeText = WatermarkProcessor.defaultTimeString()
+        }
+
+        watermarkLensInfo = (exif?[kCGImagePropertyExifLensModel as String] as? String) ?? ""
+
+        if let lat = gps?[kCGImagePropertyGPSLatitude  as String] as? Double,
+           let lon = gps?[kCGImagePropertyGPSLongitude as String] as? Double {
+            let latRef = gps?[kCGImagePropertyGPSLatitudeRef  as String] as? String ?? "N"
+            let lonRef = gps?[kCGImagePropertyGPSLongitudeRef as String] as? String ?? "E"
+            watermarkLocationText = String(format: "%.4f°%@ %.4f°%@", lat, latRef, lon, lonRef)
+        } else {
+            watermarkLocationText = ""
+        }
+    }
+
     private func applyWatermark(to image: UIImage) -> UIImage {
         let config = WatermarkProcessor.WatermarkConfig(
             style: watermarkStyle,
@@ -310,13 +409,14 @@ class FilmSimsViewModel: ObservableObject {
     private func applyFilmGrainAsync(to image: UIImage, intensity: Float) async -> UIImage? {
         // Capture context on the MainActor, then do the expensive work off-main.
         let context = ciContext
+        let style = grainStyle
         return await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 guard self != nil else {
                     continuation.resume(returning: nil)
                     return
                 }
-                let result = Self.applyFilmGrain(to: image, intensity: intensity, ciContext: context)
+                let result = Self.applyFilmGrain(to: image, intensity: intensity, ciContext: context, style: style)
                 continuation.resume(returning: result)
             }
         }
@@ -384,7 +484,7 @@ class FilmSimsViewModel: ObservableObject {
         }
     }
     
-    nonisolated private static func applyFilmGrain(to image: UIImage, intensity: Float, ciContext: CIContext) -> UIImage? {
+    nonisolated private static func applyFilmGrain(to image: UIImage, intensity: Float, ciContext: CIContext, style: String = "Xiaomi") -> UIImage? {
         guard let cgImage = image.cgImage else { return nil }
         
         let ciImage = CIImage(cgImage: cgImage)
@@ -393,54 +493,32 @@ class FilmSimsViewModel: ObservableObject {
 
         let extent = ciImage.extent
 
-        // Base random noise (breaks tiling artifacts).
+        // CIRandomGenerator is infinite (no tiling) — use it directly.
         guard let random = CIFilter(name: "CIRandomGenerator")?.outputImage else { return image }
         let randomCropped = random.cropped(to: extent)
 
-        // Modulation texture from Android asset (film_grain.png).
-        guard let grainTexture = Self.filmGrainTextureCIImage() else { return image }
-
-        // Randomize transform so the texture doesn't visibly repeat.
-        let maxDim = max(extent.width, extent.height)
-        let textureScale = max(0.25, min(1.0, 1024.0 / maxDim))
-        let angles: [CGFloat] = [0, .pi / 2, .pi, 3 * .pi / 2]
-        let angle = angles.randomElement() ?? 0
-        let offsetX = CGFloat.random(in: 0..<512)
-        let offsetY = CGFloat.random(in: 0..<512)
-        let textureTransform = CGAffineTransform(translationX: offsetX, y: offsetY)
-            .rotated(by: angle)
-            .scaledBy(x: textureScale, y: textureScale)
-
-        let tiledTexture: CIImage
-        if let tile = CIFilter(name: "CIAffineTile") {
-            tile.setValue(grainTexture, forKey: kCIInputImageKey)
-            tile.setValue(textureTransform, forKey: kCIInputTransformKey)
-            tiledTexture = (tile.outputImage ?? grainTexture).cropped(to: extent)
+        // Soft-blur the white noise to produce organic film-like grain clusters.
+        // OnePlus uses a slightly coarser grain than Xiaomi.
+        let blurRadius: Double = style == "OnePlus" ? 1.5 : 0.8
+        let blurredNoise: CIImage
+        if let blur = CIFilter(name: "CIGaussianBlur") {
+            blur.setValue(randomCropped, forKey: kCIInputImageKey)
+            blur.setValue(blurRadius, forKey: kCIInputRadiusKey)
+            blurredNoise = (blur.outputImage ?? randomCropped).cropped(to: extent)
         } else {
-            tiledTexture = grainTexture.transformed(by: textureTransform).cropped(to: extent)
-        }
-
-        // Multiply random noise with the texture so we keep the characteristic grain shape
-        // while avoiding obvious repetition.
-        let modulated: CIImage
-        if let multiply = CIFilter(name: "CIMultiplyBlendMode") {
-            multiply.setValue(randomCropped, forKey: kCIInputImageKey)
-            multiply.setValue(tiledTexture, forKey: kCIInputBackgroundImageKey)
-            modulated = (multiply.outputImage ?? randomCropped).cropped(to: extent)
-        } else {
-            modulated = randomCropped
+            blurredNoise = randomCropped
         }
 
         // Desaturate to luma-only noise.
         let grayNoise: CIImage
         if let controls = CIFilter(name: "CIColorControls") {
-            controls.setValue(modulated, forKey: kCIInputImageKey)
+            controls.setValue(blurredNoise, forKey: kCIInputImageKey)
             controls.setValue(0.0, forKey: kCIInputSaturationKey)
             controls.setValue(1.0, forKey: kCIInputContrastKey)
             controls.setValue(0.0, forKey: kCIInputBrightnessKey)
-            grayNoise = (controls.outputImage ?? modulated).cropped(to: extent)
+            grayNoise = (controls.outputImage ?? blurredNoise).cropped(to: extent)
         } else {
-            grayNoise = modulated
+            grayNoise = blurredNoise
         }
 
         // Convert [0,1] -> [-amp,+amp] and add to the image.
@@ -464,11 +542,12 @@ class FilmSimsViewModel: ObservableObject {
         return UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
     }
 
-    nonisolated(unsafe) private static var cachedFilmGrainTexture: CIImage?
+    nonisolated(unsafe) private static var cachedFilmGrainTextures: [String: CIImage] = [:]
 
-    nonisolated private static func filmGrainTextureCIImage() -> CIImage? {
-        if let cached = cachedFilmGrainTexture { return cached }
-        guard let url = Bundle.module.url(forResource: "film_grain", withExtension: "png") else {
+    nonisolated private static func filmGrainTextureCIImage(style: String = "Xiaomi") -> CIImage? {
+        if let cached = cachedFilmGrainTextures[style] { return cached }
+        let resourceName = style == "OnePlus" ? "film_grain_oneplus" : "film_grain"
+        guard let url = Bundle.module.url(forResource: resourceName, withExtension: "png") else {
             return nil
         }
         guard let ci = CIImage(contentsOf: url, options: [CIImageOption.applyOrientationProperty: true]) else {
@@ -476,7 +555,7 @@ class FilmSimsViewModel: ObservableObject {
         }
         // Clamp so tiling doesn't sample transparent edges.
         let clamped = ci.clampedToExtent()
-        cachedFilmGrainTexture = clamped
+        cachedFilmGrainTextures[style] = clamped
         return clamped
     }
     
@@ -517,6 +596,9 @@ class FilmSimsViewModel: ObservableObject {
 
         let task: Task<UIImage?, Never> = Task { [weak self] in
             guard let self else { return nil }
+            // Rate-limit concurrent preview renders to avoid memory pressure.
+            await self.previewSemaphore.wait()
+            defer { Task { await self.previewSemaphore.signal() } }
             guard let lut = self.getLut(for: item) else { return nil }
             return await self.applyLutToThumbnail(lut)
         }
@@ -541,7 +623,7 @@ class FilmSimsViewModel: ObservableObject {
             if let lutItem = currentLut, let lut = getLut(for: lutItem) {
                 if let processed = await applyLutToImage(originalImage, lut: lut, intensity: intensity) {
                     if grainEnabled && grainIntensity > 0 {
-                        imageToSave = Self.applyFilmGrain(to: processed, intensity: grainIntensity, ciContext: ciContext) ?? processed
+                        imageToSave = Self.applyFilmGrain(to: processed, intensity: grainIntensity, ciContext: ciContext, style: grainStyle) ?? processed
                     } else {
                         imageToSave = processed
                     }
@@ -550,7 +632,7 @@ class FilmSimsViewModel: ObservableObject {
                 }
             } else {
                 if grainEnabled && grainIntensity > 0 {
-                    imageToSave = Self.applyFilmGrain(to: originalImage, intensity: grainIntensity, ciContext: ciContext) ?? originalImage
+                    imageToSave = Self.applyFilmGrain(to: originalImage, intensity: grainIntensity, ciContext: ciContext, style: grainStyle) ?? originalImage
                 } else {
                     imageToSave = originalImage
                 }

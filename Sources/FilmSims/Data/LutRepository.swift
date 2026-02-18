@@ -60,6 +60,19 @@ class LutRepository {
         case "portraitstylefilter": return "Portrait Style"
         case "portraitstylefilter_multistyle": return "Portrait Multi-Style"
         case "superzoom": return "Super Zoom"
+        // OnePlus Film category
+        case "Film": return L10n.tr("category_film")
+        // TECNO categories
+        case "A_series": return L10n.tr("category_a_series")
+        case "B_series": return L10n.tr("category_b_series")
+        case "C_series": return L10n.tr("category_c_series")
+        case "AI_camera": return L10n.tr("category_ai_camera")
+        case "Filters": return L10n.tr("category_filters")
+        case "India_filters": return L10n.tr("category_india_filters")
+        case "Misc": return L10n.tr("category_misc")
+        case "Night_mode": return L10n.tr("category_night_mode")
+        case "Street_photo": return L10n.tr("category_street_photo")
+        case "Custom": return L10n.tr("category_custom")
         // Common/Nothing
         case "_all": return L10n.tr("category_all")
         default:
@@ -78,6 +91,7 @@ class LutRepository {
         case "Meizu": return "Meizu"
         case "Vivo": return "vivo"
         case "Nubia": return "Nubia"
+        case "TECNO": return L10n.tr("brand_tecno")
         default: return brandName
         }
     }
@@ -234,6 +248,52 @@ class LutRepository {
         return fileName.replacingOccurrences(of: "_", with: " ")
     }
     
+    // MARK: - Film (OnePlus) Filter Names
+    private func getFilmLutName(_ fileName: String) -> String {
+        if fileName.contains("field") { return L10n.tr("lut_film_field") }
+        if fileName.contains("seaside") { return L10n.tr("lut_film_seaside") }
+        if fileName.contains("city") { return L10n.tr("lut_film_city") }
+        if fileName.contains("neon") { return L10n.tr("lut_film_neon") }
+        if fileName.contains("cold_flash") || fileName.contains("cold flash") { return L10n.tr("lut_film_cold_flash") }
+        if fileName.contains("warm_flash") || fileName.contains("warm flash") { return L10n.tr("lut_film_warm_flash") }
+        if fileName.contains("vintage") { return L10n.tr("lut_film_vintage") }
+        if fileName.contains("clear") { return L10n.tr("lut_film_clear") }
+        if fileName.contains("800t") || fileName.contains("800T") { return L10n.tr("lut_film_800t") }
+        return fileName.replacingOccurrences(of: "_", with: " ")
+    }
+    
+    // MARK: - TECNO Filter Names
+    private func getTecnoFilterName(_ fileName: String, categoryName: String) -> String {
+        var name = fileName
+        // Strip category-specific prefixes
+        switch categoryName {
+        case "A_series": name = name.hasPrefix("A_") ? String(name.dropFirst(2)) : name
+        case "B_series": name = name.hasPrefix("B_") ? String(name.dropFirst(2)) : name
+        case "C_series": name = name.hasPrefix("C_") ? String(name.dropFirst(2)) : name
+        case "AI_camera":
+            if let match = name.range(of: #"aicam(\d+)a?"#, options: [.regularExpression, .caseInsensitive]) {
+                let digits = name[match].filter { $0.isNumber }
+                return "AI Cam \(digits)"
+            }
+        case "Night_mode":
+            if let match = name.range(of: #"supernight(\d+)a?"#, options: [.regularExpression, .caseInsensitive]) {
+                let digits = name[match].filter { $0.isNumber }
+                return "Super Night \(digits)"
+            }
+        case "Street_photo":
+            if name.lowercased().hasPrefix("streetphoto_") {
+                name = String(name.dropFirst("streetphoto_".count))
+            }
+        case "India_filters":
+            // Strip leading digit
+            if let first = name.first, first.isNumber {
+                name = String(name.dropFirst())
+            }
+        default: break
+        }
+        return name.replacingOccurrences(of: "_", with: " ")
+    }
+    
     // MARK: - Load LUT Brands
     func getLutBrands() -> [LutBrand] {
         var brands: [LutBrand] = []
@@ -266,6 +326,7 @@ class LutRepository {
             let isMeizu = brandName == "Meizu"
             let isNubia = brandName == "Nubia"
             let isVivo = brandName == "Vivo"
+            let isTecno = brandName == "TECNO"
             
             // Check for flat structure (LUT files directly in brand folder)
             let directLutFiles = contents.filter { name in
@@ -287,12 +348,14 @@ class LutRepository {
                     from: directLutFiles, 
                     basePath: brandPath, 
                     brandName: brandName,
+                    categoryName: "_all",
                     isLeicaLux: isLeicaLux,
                     isLeicaFotos: isLeicaFotos,
                     isHonor: isHonor,
                     isMeizu: isMeizu,
                     isNubia: isNubia,
-                    isVivo: isVivo
+                    isVivo: isVivo,
+                    isTecno: isTecno
                 )
                 
                 categories.append(LutCategory(
@@ -332,12 +395,14 @@ class LutRepository {
                     from: lutFiles, 
                     basePath: categoryPath, 
                     brandName: brandName,
+                    categoryName: categoryName,
                     isLeicaLux: isLeicaLux,
                     isLeicaFotos: isLeicaFotos,
                     isHonor: isHonor,
                     isMeizu: isMeizu,
                     isNubia: isNubia,
-                    isVivo: isVivo
+                    isVivo: isVivo,
+                    isTecno: isTecno
                 )
                 
                 if !lutItems.isEmpty {
@@ -365,13 +430,17 @@ class LutRepository {
         from files: [String], 
         basePath: String, 
         brandName: String,
+        categoryName: String = "_all",
         isLeicaLux: Bool,
         isLeicaFotos: Bool,
         isHonor: Bool,
         isMeizu: Bool,
         isNubia: Bool,
-        isVivo: Bool
+        isVivo: Bool,
+        isTecno: Bool = false
     ) -> [LutItem] {
+        let isFilm = (brandName == "OnePlus" && categoryName == "Film")
+        
         // Group by basename to handle duplicates
         var groupedFiles: [String: [String]] = [:]
         
@@ -408,6 +477,10 @@ class LutRepository {
                 displayName = getNubiaFilterName(baseName)
             } else if isVivo {
                 displayName = getVivoFilterName(baseName)
+            } else if isTecno {
+                displayName = getTecnoFilterName(baseName, categoryName: categoryName)
+            } else if isFilm {
+                displayName = getFilmLutName(baseName.lowercased())
             } else {
                 displayName = baseName.replacingOccurrences(of: "_", with: " ")
             }

@@ -34,6 +34,7 @@ let package = Package(
                 .process("Resources/pt.lproj"),
                 .process("Resources/ru.lproj"),
                 .copy("Resources/film_grain.png"),
+                .copy("Resources/film_grain_oneplus.png"),
                 .copy("Resources/luts"),
                 .copy("Resources/watermark"),
             ]

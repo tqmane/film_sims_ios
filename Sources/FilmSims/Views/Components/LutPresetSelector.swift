@@ -5,7 +5,9 @@ struct LutPresetSelector: View {
     @Binding var selectedLut: LutItem?
     let sourceThumbnail: UIImage?
     @ObservedObject var viewModel: FilmSimsViewModel
-    
+
+    @Environment(\.compactUI) private var compactUI
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -22,7 +24,7 @@ struct LutPresetSelector: View {
             }
             .padding(.vertical, 4)
         }
-        .frame(height: 96)
+        .frame(height: compactUI ? 100 : 120)
     }
 }
 
@@ -32,12 +34,14 @@ struct LutPresetCard: View {
     let thumbnail: UIImage?
     @ObservedObject var viewModel: FilmSimsViewModel
     let action: () -> Void
-    
+
+    @Environment(\.compactUI) private var compactUI
     @State private var previewImage: UIImage?
     @State private var isLoading = true
     @State private var loadTask: Task<Void, Never>?
-    
+
     var body: some View {
+        let cardSize: CGFloat = compactUI ? 70 : 86
         Button(action: action) {
             VStack(spacing: 0) {
                 ZStack {
@@ -56,14 +60,14 @@ struct LutPresetCard: View {
                             Color.surfaceMedium
                         }
                     }
-                    .frame(width: 86, height: 86)
+                    .frame(width: cardSize, height: cardSize)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .background(Color.surfaceMedium)
 
                     if isSelected {
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .stroke(Color.accentPrimary, lineWidth: 2)
-                            .frame(width: 86, height: 86)
+                            .frame(width: cardSize, height: cardSize)
                     }
 
                     // Selection glow overlay (radial)
@@ -77,7 +81,7 @@ struct LutPresetCard: View {
                                     endRadius: 64
                                 )
                             )
-                            .frame(width: 86, height: 86)
+                            .frame(width: cardSize, height: cardSize)
                     }
                 }
 
@@ -87,10 +91,14 @@ struct LutPresetCard: View {
                     .tracking(0.01)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
-                    .frame(width: 86, height: 22, alignment: .top)
-                    .padding(.top, 6)
+                    .frame(width: cardSize, height: 22, alignment: .top)
+                    .padding(.top, compactUI ? 4 : 6)
                     .padding(.bottom, 2)
             }
+            // Match Android card padding: start=4, end=8, top=4, bottom=4
+            .padding(.leading, 4)
+            .padding(.trailing, 8)
+            .padding(.vertical, 4)
         }
         .buttonStyle(.plain)
         .onAppear {

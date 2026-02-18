@@ -11,10 +11,36 @@ struct ZoomableImageView: View {
     @State private var offset: CGSize = .zero
     @State private var lastOffset: CGSize = .zero
     @State private var isLongPressing = false
-    
+
+    // Compute natural fit size of `img` within `frame` using .aspectRatio(.fit) rules.
+    private func naturalFitSize(for img: UIImage, in frame: CGSize) -> CGSize {
+        guard img.size.width > 0, img.size.height > 0,
+              frame.width > 0, frame.height > 0 else { return frame }
+        let imageAspect = img.size.width / img.size.height
+        let frameAspect = frame.width / frame.height
+        if imageAspect > frameAspect {
+            return CGSize(width: frame.width, height: frame.width / imageAspect)
+        } else {
+            return CGSize(width: frame.height * imageAspect, height: frame.height)
+        }
+    }
+
+    // Clamp `proposedOffset` so the scaled image doesn't drift beyond the frame boundary.
+    private func clampOffset(_ proposed: CGSize, scale: CGFloat, naturalSize: CGSize, in frame: CGSize) -> CGSize {
+        let scaledW = naturalSize.width  * scale
+        let scaledH = naturalSize.height * scale
+        let maxX = max(0, (scaledW - frame.width)  / 2)
+        let maxY = max(0, (scaledH - frame.height) / 2)
+        return CGSize(
+            width:  min(max(proposed.width,  -maxX), maxX),
+            height: min(max(proposed.height, -maxY), maxY)
+        )
+    }
+
     var body: some View {
         GeometryReader { geometry in
             if let image = image {
+                let natural = naturalFitSize(for: image, in: geometry.size)
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -27,26 +53,26 @@ struct ZoomableImageView: View {
                             MagnificationGesture()
                                 .onChanged { value in
                                     let newScale = lastScale * value
-                                    scale = min(max(newScale, 0.5), 10.0)
+                                    scale = min(max(newScale, 0.3), 10.0)
                                 }
                                 .onEnded { _ in
                                     lastScale = scale
-                                    if scale < 1.0 {
-                                        withAnimation(.spring()) {
-                                            scale = 1.0
-                                            lastScale = 1.0
-                                            offset = .zero
-                                            lastOffset = .zero
-                                        }
+                                    let clamped = clampOffset(offset, scale: scale, naturalSize: natural, in: geometry.size)
+                                    if clamped != offset {
+                                        withAnimation(.spring()) { offset = clamped }
+                                        lastOffset = clamped
+                                    } else {
+                                        lastOffset = offset
                                     }
                                 },
                             // Drag (pan)
                             DragGesture()
                                 .onChanged { value in
-                                    offset = CGSize(
-                                        width: lastOffset.width + value.translation.width,
+                                    let proposed = CGSize(
+                                        width:  lastOffset.width  + value.translation.width,
                                         height: lastOffset.height + value.translation.height
                                     )
+                                    offset = clampOffset(proposed, scale: scale, naturalSize: natural, in: geometry.size)
                                 }
                                 .onEnded { _ in
                                     lastOffset = offset

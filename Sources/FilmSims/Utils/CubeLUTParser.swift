@@ -104,11 +104,22 @@ class CubeLUTParser {
                 }
             }
         } else {
-            // Raw binary
-            let result = detectLutSizeFromFileSize(bytes.count)
-            lutSize = result.0
-            channels = result.1
-            dataOffset = result.2
+            // Raw binary — try float32 (3-ch) first for Leica FOTOS and similar formats
+            let fileSize = bytes.count
+            var detected = false
+            if fileSize % 12 == 0 {
+                let sizeF3 = Int(round(pow(Double(fileSize / 12), 1.0/3.0)))
+                if sizeF3 >= 8 && sizeF3 <= 128 && sizeF3 * sizeF3 * sizeF3 * 12 == fileSize {
+                    lutSize = sizeF3; channels = 3; isFloatFormat = true; dataOffset = 0
+                    detected = true
+                }
+            }
+            if !detected {
+                let result = detectLutSizeFromFileSize(fileSize)
+                lutSize = result.0
+                channels = result.1
+                dataOffset = result.2
+            }
         }
         
         // Auto-detect BGR from data pattern
@@ -246,27 +257,82 @@ class CubeLUTParser {
         let width = cgImage.width
         let height = cgImage.height
 
-        // HALD LUT common sizes:
-        // width == height == lutSize * sqrt(lutSize)
-        // e.g. lutSize=16 -> 64x64, 32 -> 181x181 (rare), 64 -> 512x512.
-        guard width == height else { return nil }
-
-        // size = width^(2/3)
-        let estimated = Int(round(pow(Double(width), 2.0 / 3.0)))
-        let candidates = [estimated, 16, 32, 64]
-
-        for lutSize in candidates {
-            guard lutSize > 1 else { continue }
-            let tilesPerRowDouble = sqrt(Double(lutSize))
-            let tilesPerRow = Int(round(tilesPerRowDouble))
-            guard tilesPerRow * tilesPerRow == lutSize else { continue }
-            let expected = lutSize * tilesPerRow
-            if expected == width {
-                return parseHaldLut(cgImage: cgImage, lutSize: lutSize)
+        // Square HALD LUT: width == height == lutSize * sqrt(lutSize)
+        // e.g. lutSize=16 -> 64x64, lutSize=64 -> 512x512
+        if width == height {
+            let estimated = Int(round(pow(Double(width), 2.0 / 3.0)))
+            let candidates = [estimated, 16, 32, 64]
+            for lutSize in candidates {
+                guard lutSize > 1 else { continue }
+                let tilesPerRowDouble = sqrt(Double(lutSize))
+                let tilesPerRow = Int(round(tilesPerRowDouble))
+                guard tilesPerRow * tilesPerRow == lutSize else { continue }
+                let expected = lutSize * tilesPerRow
+                if expected == width {
+                    return parseHaldLut(cgImage: cgImage, lutSize: lutSize)
+                }
             }
         }
 
+        // Strip format A: width = N², height = N  (e.g. 1024×32, 256×16, 4096×64)
+        // pixel(r + g*N, b) → output(r,g,b)
+        if height >= 8, height <= 128, width == height * height {
+            return parseStripLutA(cgImage: cgImage, lutSize: height)
+        }
+
+        // Strip format B: width = N, height = N²  (e.g. 33×1089)
+        // pixel(r, b*N + g) → output(r,g,b)
+        if width >= 8, width <= 128, height == width * width {
+            return parseStripLutB(cgImage: cgImage, lutSize: width)
+        }
+
         return nil
+    }
+
+    // Format A: row=B, col=R+G*N
+    private static func parseStripLutA(cgImage: CGImage, lutSize: Int) -> CubeLUT? {
+        guard let rgba = decodeToRGBA8(cgImage: cgImage) else { return nil }
+        let pointer = rgba.bytes
+        let bytesPerPixel = 4
+        let bytesPerRow = rgba.bytesPerRow
+
+        var dataList: [Float] = []
+        dataList.reserveCapacity(lutSize * lutSize * lutSize * 3)
+
+        for b in 0..<lutSize {
+            for g in 0..<lutSize {
+                for r in 0..<lutSize {
+                    let offset = b * bytesPerRow + (r + g * lutSize) * bytesPerPixel
+                    dataList.append(Float(pointer[offset])     / 255.0)
+                    dataList.append(Float(pointer[offset + 1]) / 255.0)
+                    dataList.append(Float(pointer[offset + 2]) / 255.0)
+                }
+            }
+        }
+        return CubeLUT(size: lutSize, data: dataList)
+    }
+
+    // Format B: col=R, row=B*N+G
+    private static func parseStripLutB(cgImage: CGImage, lutSize: Int) -> CubeLUT? {
+        guard let rgba = decodeToRGBA8(cgImage: cgImage) else { return nil }
+        let pointer = rgba.bytes
+        let bytesPerPixel = 4
+        let bytesPerRow = rgba.bytesPerRow
+
+        var dataList: [Float] = []
+        dataList.reserveCapacity(lutSize * lutSize * lutSize * 3)
+
+        for b in 0..<lutSize {
+            for g in 0..<lutSize {
+                for r in 0..<lutSize {
+                    let offset = (b * lutSize + g) * bytesPerRow + r * bytesPerPixel
+                    dataList.append(Float(pointer[offset])     / 255.0)
+                    dataList.append(Float(pointer[offset + 1]) / 255.0)
+                    dataList.append(Float(pointer[offset + 2]) / 255.0)
+                }
+            }
+        }
+        return CubeLUT(size: lutSize, data: dataList)
     }
     
     private static func parseHaldLut(cgImage: CGImage, lutSize: Int) -> CubeLUT? {

@@ -104,7 +104,14 @@ class WatermarkProcessor {
     nonisolated(unsafe) private static var fontCache: [String: UIFont] = [:]
     
     // MARK: - Public API
-    
+
+    /// Returns the current time as a default watermark time string (matches Android getDefaultTimeString)
+    static func defaultTimeString() -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd HH:mm"
+        return fmt.string(from: Date())
+    }
+
     /// Apply watermark to an image
     static func applyWatermark(_ image: UIImage, config: WatermarkConfig) -> UIImage {
         guard config.style != .none else { return image }
@@ -128,13 +135,65 @@ class WatermarkProcessor {
             return applyMeizuNorm(baseImage, bitmap: bitmap, config: config)
         case .meizuPro:
             return applyMeizuPro(baseImage, bitmap: bitmap, config: config)
-        case .meizuZ1, .meizuZ2, .meizuZ3, .meizuZ4, .meizuZ5, .meizuZ6, .meizuZ7:
-            return applyMeizuZ(baseImage, bitmap: bitmap, config: config)
+        case .meizuZ1:
+            return applyMeizuZ1(baseImage, bitmap: bitmap, config: config)
+        case .meizuZ2:
+            return applyMeizuZ2(baseImage, bitmap: bitmap, config: config)
+        case .meizuZ3:
+            return applyMeizuZ3(baseImage, bitmap: bitmap, config: config)
+        case .meizuZ4:
+            return applyMeizuZ4(baseImage, bitmap: bitmap, config: config)
+        case .meizuZ5:
+            return applyMeizuZ5(baseImage, bitmap: bitmap, config: config)
+        case .meizuZ6:
+            return applyMeizuZ6(baseImage, bitmap: bitmap, config: config)
+        case .meizuZ7:
+            return applyMeizuZ7(baseImage, bitmap: bitmap, config: config)
         case .vivoZeiss:
             return applyVivoZeiss(baseImage, bitmap: bitmap, config: config)
         case .vivoClassic:
              return applyVivoClassic(baseImage, bitmap: bitmap, config: config)
         case .vivoPro:
+             return applyVivoPro(baseImage, bitmap: bitmap, config: config)
+        case .vivoIqoo:
+             return applyVivoIqoo(baseImage, bitmap: bitmap, config: config)
+        case .vivoZeissV1:
+             return applyVivoZeissV1(baseImage, bitmap: bitmap, config: config)
+        case .vivoZeissSonnar:
+             return applyVivoZeissSonnar(baseImage, bitmap: bitmap, config: config)
+        case .vivoZeissHumanity:
+             return applyVivoZeissHumanity(baseImage, bitmap: bitmap, config: config)
+        case .vivoIqooV1:
+             return applyVivoIqooV1(baseImage, bitmap: bitmap, config: config)
+        case .vivoIqooHumanity:
+             return applyVivoIqooHumanity(baseImage, bitmap: bitmap, config: config)
+        case .vivoZeissFrame:
+             return applyVivoZeissFrame(baseImage, bitmap: bitmap, config: config)
+        case .vivoZeissOverlay:
+             return applyVivoZeissOverlay(baseImage, bitmap: bitmap, config: config)
+        case .vivoZeissCenter:
+             return applyVivoZeissCenter(baseImage, bitmap: bitmap, config: config)
+        case .vivoFrameTime:
+             return applyVivoFrameTime(baseImage, bitmap: bitmap, config: config)
+        case .vivoIqooFrame:
+             return applyVivoIqooFrame(baseImage, bitmap: bitmap, config: config)
+        case .vivoIqooFrameTime:
+             return applyVivoIqooFrameTime(baseImage, bitmap: bitmap, config: config)
+        case .vivoOS:
+             return applyVivoOS(baseImage, bitmap: bitmap, config: config)
+        case .vivoOSCorner:
+             return applyVivoOSCorner(baseImage, bitmap: bitmap, config: config)
+        case .vivoOSSimple:
+             return applyVivoOSSimple(baseImage, bitmap: bitmap, config: config)
+        case .vivoEvent:
+             return applyVivoEvent(baseImage, bitmap: bitmap, config: config)
+        // Config-driven styles — nearest equivalent fallback
+        case .vivoZeiss0, .vivoZeiss1, .vivoZeiss2, .vivoZeiss3,
+             .vivoZeiss4, .vivoZeiss5, .vivoZeiss6, .vivoZeiss7, .vivoZeiss8:
+             return applyVivoZeiss(baseImage, bitmap: bitmap, config: config)
+        case .vivoIqoo4, .vivoCommonIqoo4:
+             return applyVivoIqoo(baseImage, bitmap: bitmap, config: config)
+        case .vivo1, .vivo2, .vivo3, .vivo4, .vivo5:
              return applyVivoPro(baseImage, bitmap: bitmap, config: config)
         case .vivoFrame:
              return applyVivoFrame(baseImage, bitmap: bitmap, config: config)
@@ -146,14 +205,6 @@ class WatermarkProcessor {
              return applyTecnoWatermark(baseImage, bitmap: bitmap, config: config, mode: 3)
         case .tecno4:
              return applyTecnoWatermark(baseImage, bitmap: bitmap, config: config, mode: 4)
-        default:
-            if String(describing: config.style).starts(with: "vivo") {
-                return applyVivoZeiss(baseImage, bitmap: bitmap, config: config)
-            }
-            if String(describing: config.style).starts(with: "tecno") {
-                 return applyTecnoWatermark(baseImage, bitmap: bitmap, config: config, mode: 1)
-            }
-            return image
         }
     }
 
@@ -371,8 +422,394 @@ class WatermarkProcessor {
     }
     
     private static func applyMeizuZ(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
-        // Z series watermarks
+        // Legacy stub — unused now that all Z variants are routed individually
         return applyMeizuNorm(image, bitmap: bitmap, config: config)
+    }
+
+    // MARK: - Meizu font/logo helpers
+
+    private static func loadMeizuFont(_ filename: String, size: CGFloat) -> UIFont {
+        let key = "\(filename)-\(size)"
+        if let cached = fontCache[key] { return cached }
+        if let url = Bundle.module.url(forResource: filename, withExtension: nil,
+                                        subdirectory: "watermark/Meizu/fonts") {
+            var error: Unmanaged<CFError>?
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error)
+            if let data = try? Data(contentsOf: url),
+               let provider = CGDataProvider(data: data as CFData),
+               let cgFont = CGFont(provider),
+               let name = cgFont.postScriptName as String?,
+               let font = UIFont(name: name, size: size) {
+                fontCache[key] = font
+                return font
+            }
+        }
+        return UIFont.systemFont(ofSize: size)
+    }
+
+    private static func getMeizuDeviceFont(size: CGFloat) -> UIFont {
+        return loadMeizuFont("MEIZUCamera-Medium.otf", size: size)
+    }
+
+    private static func getMeizuTextFont(size: CGFloat) -> UIFont {
+        return loadMeizuFont("TTForsRegular.ttf", size: size)
+    }
+
+    private static func loadMeizuLogo(_ name: String) -> UIImage? {
+        guard let url = Bundle.module.resourceURL else { return nil }
+        let logoURL = url.appendingPathComponent("watermark/Meizu/logos/\(name)")
+        if let data = try? Data(contentsOf: logoURL) { return UIImage(data: data) }
+        return nil
+    }
+
+    /// Split lensInfo string into discrete parts separated by "  " or " | " or "|"
+    private static func splitDiscreteParts(_ text: String?) -> [String] {
+        guard let text = text, !text.isEmpty else { return [] }
+        return text.components(separatedBy: "  ")
+            .flatMap { $0.components(separatedBy: " | ") }
+            .flatMap { $0.components(separatedBy: "|") }
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+    }
+
+    /// Draw discrete text parts separated by thin dividers, centered at centerX/baselineY
+    private static func drawDiscreteText(_ ctx: CGContext, _ parts: [String],
+                                          centerX: CGFloat, baselineY: CGFloat,
+                                          font: UIFont, textColor: UIColor,
+                                          separatorColor: UIColor = UIColor(red: 0.69, green: 0.69, blue: 0.69, alpha: 1),
+                                          scale: CGFloat) {
+        guard !parts.isEmpty else { return }
+        let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: textColor]
+        let sepW = max(1.0, scale)
+        let sepH = font.lineHeight * 0.8
+        let gap = 16.0 * scale
+
+        var totalW: CGFloat = 0
+        var textWidths: [CGFloat] = []
+        for part in parts {
+            let w = (part as NSString).size(withAttributes: attrs).width
+            textWidths.append(w)
+            totalW += w
+        }
+        totalW += CGFloat(parts.count - 1) * (gap * 2 + sepW)
+
+        var x = centerX - totalW / 2
+        for (i, part) in parts.enumerated() {
+            let partAttrs = NSAttributedString(string: part, attributes: attrs)
+            partAttrs.draw(at: CGPoint(x: x, y: baselineY + font.ascender - font.lineHeight))
+            x += textWidths[i]
+            if i < parts.count - 1 {
+                x += gap
+                ctx.setFillColor(separatorColor.cgColor)
+                ctx.fill(CGRect(x: x, y: baselineY - sepH / 2, width: sepW, height: sepH))
+                x += sepW + gap
+            }
+        }
+    }
+
+    private static func drawMeizuRedDot(_ ctx: CGContext, _ cx: CGFloat, _ cy: CGFloat, _ s: CGFloat) {
+        let r = max(5.0, 8.0 * s)
+        ctx.setFillColor(UIColor.red.cgColor)
+        ctx.fillEllipse(in: CGRect(x: cx - r, y: cy - r, width: 2 * r, height: 2 * r))
+    }
+
+    // MARK: - Meizu Z1-Z7
+
+    private static func applyMeizuZ1(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width)
+        let imgH = CGFloat(bitmap.height)
+        let s = imgW / 1470.0
+        let marginSide = round(30.0 * s)
+        let marginTop = round(30.0 * s)
+
+        let deviceText = config.deviceName ?? ""
+        let lensText = config.lensInfo ?? ""
+
+        let deviceFont = getMeizuDeviceFont(size: 45.0 * s)
+        let lensFont = getMeizuTextFont(size: 32.0 * s)
+        let textGray = UIColor(red: 0.286, green: 0.271, blue: 0.310, alpha: 0.6)
+
+        let deviceH = deviceText.isEmpty ? 0.0 : deviceFont.lineHeight
+        let lensH   = lensText.isEmpty   ? 0.0 : lensFont.lineHeight
+
+        let photoW = round(imgW - 2 * marginSide)
+        let photoH = round(imgH * (photoW / imgW))
+        let totalW = imgW
+        let textAreaH = 40 * s + deviceH + (lensText.isEmpty ? 0 : 16 * s + lensH) + 51 * s
+        let totalH = round(marginTop + photoH + textAreaH)
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: totalW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: 0, width: totalW, height: totalH))
+            image.draw(in: CGRect(x: marginSide, y: marginTop, width: photoW, height: photoH))
+
+            let centerX = totalW / 2
+            var y = marginTop + photoH + 40 * s
+            if !deviceText.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: deviceFont, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: deviceText, attributes: attrs)
+                as1.draw(at: CGPoint(x: centerX - as1.size().width / 2, y: y))
+                y += deviceH
+            }
+            if !lensText.isEmpty {
+                y += 16 * s
+                let attrs: [NSAttributedString.Key: Any] = [.font: lensFont, .foregroundColor: textGray]
+                let as2 = NSAttributedString(string: lensText, attributes: attrs)
+                as2.draw(at: CGPoint(x: centerX - as2.size().width / 2, y: y))
+            }
+        }
+    }
+
+    private static func applyMeizuZ2(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width)
+        let imgH = CGFloat(bitmap.height)
+        let s = imgW / 1130.0
+        let margin = round(200.0 * s)
+        let marginT = round(200.0 * s)
+
+        let deviceText = config.deviceName ?? ""
+        let lensText = config.lensInfo ?? ""
+
+        let deviceFont = getMeizuDeviceFont(size: 38.0 * s)
+        let lensFont = getMeizuTextFont(size: 28.0 * s)
+        let textGray = UIColor(red: 0.235, green: 0.235, blue: 0.263, alpha: 0.6)
+
+        let photoW = round(imgW - 2 * margin)
+        let photoH = round(imgH * (photoW / imgW))
+        let iconH = 48.0 * s
+        let bottomBarH = 247.0 * s + iconH + 245.0 * s
+        let totalW = imgW; let totalH = round(marginT + photoH + bottomBarH)
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: totalW, height: totalH), format: format).image { _ in
+            UIColor.white.setFill()
+            UIRectFill(CGRect(x: 0, y: 0, width: totalW, height: totalH))
+            image.draw(in: CGRect(x: margin, y: marginT, width: photoW, height: photoH))
+
+            let barCY = marginT + photoH + 247.0 * s + iconH / 2
+            if !deviceText.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: deviceFont, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: deviceText, attributes: attrs)
+                as1.draw(at: CGPoint(x: margin, y: barCY - deviceFont.lineHeight / 2))
+            }
+            if !lensText.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: lensFont, .foregroundColor: textGray]
+                let as2 = NSAttributedString(string: lensText, attributes: attrs)
+                as2.draw(at: CGPoint(x: totalW - margin - as2.size().width, y: barCY - lensFont.lineHeight / 2))
+            }
+        }
+    }
+
+    private static func applyMeizuZ3(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width)
+        let imgH = CGFloat(bitmap.height)
+        let s = imgW / 1470.0
+        let marginSide = round(30.0 * s); let marginTop = round(30.0 * s)
+
+        let deviceText = config.deviceName ?? ""
+        let lensParts = splitDiscreteParts(config.lensInfo)
+
+        let deviceFont = getMeizuDeviceFont(size: 50.0 * s)
+        let lensFont = getMeizuTextFont(size: 30.0 * s)
+        let textGray = UIColor(red: 0.286, green: 0.271, blue: 0.310, alpha: 0.6)
+
+        let deviceH = deviceText.isEmpty ? 0.0 : deviceFont.lineHeight
+        let discreteAreaH = 107.0 * s
+        let textAreaH = 53 * s + deviceH + (lensParts.isEmpty ? 0 : 53 * s + discreteAreaH) + 75 * s
+
+        let photoW = round(imgW - 2 * marginSide); let photoH = round(imgH * (photoW / imgW))
+        let totalW = imgW; let totalH = round(marginTop + photoH + textAreaH)
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: totalW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: 0, width: totalW, height: totalH))
+            image.draw(in: CGRect(x: marginSide, y: marginTop, width: photoW, height: photoH))
+
+            let centerX = totalW / 2
+            var y = marginTop + photoH + 53 * s
+            if !deviceText.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: deviceFont, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: deviceText, attributes: attrs)
+                as1.draw(at: CGPoint(x: centerX - as1.size().width / 2, y: y))
+                y += deviceH
+            }
+            if !lensParts.isEmpty {
+                y += 53 * s
+                let baselineY = y + discreteAreaH / 2
+                drawDiscreteText(c, lensParts, centerX: centerX, baselineY: baselineY,
+                                 font: lensFont, textColor: textGray, scale: s)
+            }
+        }
+    }
+
+    private static func applyMeizuZ4(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width)
+        let imgH = CGFloat(bitmap.height)
+        let s = imgW / 1530.0
+
+        let panelMarginL = 40.0 * s; let lensTextH = 32.0 * s
+        let textGap = 15.0 * s; let deviceTextH = 45.0 * s; let panelMarginR = 40.0 * s
+        let panelWidth = panelMarginL + lensTextH + textGap + deviceTextH + panelMarginR
+
+        let photoW = round(imgW - panelWidth); let photoH = round(imgH * (photoW / imgW))
+        let totalW = imgW; let totalH = photoH
+
+        let deviceText = config.deviceName ?? ""; let lensText = config.lensInfo ?? ""
+        let deviceFont = getMeizuDeviceFont(size: 45.0 * s)
+        let lensFont = getMeizuTextFont(size: 32.0 * s)
+        let textGray = UIColor(red: 0.286, green: 0.271, blue: 0.310, alpha: 0.6)
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: totalW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: 0, width: totalW, height: totalH))
+            image.draw(in: CGRect(x: 0, y: 0, width: photoW, height: photoH))
+
+            if !deviceText.isEmpty {
+                c.saveGState()
+                let colCX = totalW - panelMarginR - deviceTextH / 2
+                let startY = totalH - 143.0 * s
+                c.translateBy(x: colCX, y: startY)
+                c.rotate(by: -.pi / 2)
+                let attrs: [NSAttributedString.Key: Any] = [.font: deviceFont, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: deviceText, attributes: attrs)
+                as1.draw(at: CGPoint(x: 0, y: -(deviceFont.lineHeight / 2)))
+                c.restoreGState()
+            }
+            if !lensText.isEmpty {
+                c.saveGState()
+                let colCX = totalW - panelMarginR - deviceTextH - textGap - lensTextH / 2
+                let startY = totalH - 100.0 * s
+                c.translateBy(x: colCX, y: startY)
+                c.rotate(by: -.pi / 2)
+                let attrs: [NSAttributedString.Key: Any] = [.font: lensFont, .foregroundColor: textGray]
+                let as2 = NSAttributedString(string: lensText, attributes: attrs)
+                as2.draw(at: CGPoint(x: 0, y: -(lensFont.lineHeight / 2)))
+                c.restoreGState()
+            }
+            let dotCX = totalW - panelMarginR - deviceTextH / 2
+            drawMeizuRedDot(c, dotCX, totalH - 40.0 * s, s)
+        }
+    }
+
+    private static func applyMeizuZ5(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width)
+        let imgH = CGFloat(bitmap.height)
+        let s = imgW / 1220.0
+        let marginSide = round(155.0 * s); let marginTop = round(170.0 * s)
+
+        let deviceText = config.deviceName ?? ""
+        let lensParts = splitDiscreteParts(config.lensInfo)
+        let locParts = (config.locationText.map { [$0] }) ?? []
+        let allParts = lensParts + locParts
+
+        let deviceFont = getMeizuDeviceFont(size: 45.0 * s)
+        let infoFont = getMeizuTextFont(size: 32.0 * s)
+        let textGray = UIColor(red: 0.286, green: 0.271, blue: 0.310, alpha: 0.6)
+
+        let deviceH = deviceText.isEmpty ? 0.0 : deviceFont.lineHeight
+        let infoH = allParts.isEmpty ? 0.0 : infoFont.lineHeight
+        let textAreaH = 150 * s + deviceH + (allParts.isEmpty ? 0 : 16 * s + infoH) + 183 * s
+
+        let photoW = round(imgW - 2 * marginSide); let photoH = round(imgH * (photoW / imgW))
+        let totalW = imgW; let totalH = round(marginTop + photoH + textAreaH)
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: totalW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: 0, width: totalW, height: totalH))
+            image.draw(in: CGRect(x: marginSide, y: marginTop, width: photoW, height: photoH))
+
+            let centerX = totalW / 2
+            var y = marginTop + photoH + 150 * s
+            if !deviceText.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: deviceFont, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: deviceText, attributes: attrs)
+                as1.draw(at: CGPoint(x: centerX - as1.size().width / 2, y: y)); y += deviceH
+            }
+            if !allParts.isEmpty {
+                y += 16 * s
+                drawDiscreteText(c, allParts, centerX: centerX, baselineY: y + infoH / 2,
+                                 font: infoFont, textColor: textGray, scale: s)
+            }
+        }
+    }
+
+    private static func applyMeizuZ6(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width)
+        let imgH = CGFloat(bitmap.height)
+        let s = imgW / 1530.0
+        let margin = round(38.0 * s)
+
+        let lensText = config.lensInfo ?? ""
+        let lensFont = getMeizuTextFont(size: 32.0 * s)
+        let lensColor = UIColor(white: 1.0, alpha: 0.7)
+
+        let photoW = round(imgW - 2 * margin); let photoH = round(imgH * (photoW / imgW))
+        let totalW = imgW; let totalH = round(margin + photoH + margin)
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: totalW, height: totalH), format: format).image { _ in
+            UIColor.white.setFill(); UIRectFill(CGRect(x: 0, y: 0, width: totalW, height: totalH))
+            image.draw(in: CGRect(x: margin, y: margin, width: photoW, height: photoH))
+
+            let centerX = totalW / 2
+            let naturalY = margin + photoH + margin
+            // Flyme logo overlaid at -200 from natural bottom
+            if let logo = loadMeizuLogo("flyme_z6.png") {
+                let lW = 321.0 * s; let lH = 60.0 * s
+                let lY = naturalY - 200.0 * s - lH / 2
+                logo.draw(in: CGRect(x: centerX - lW / 2, y: lY, width: lW, height: lH))
+            }
+            // Lens text overlaid at -124 from natural bottom
+            if !lensText.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: lensFont, .foregroundColor: lensColor]
+                let as1 = NSAttributedString(string: lensText, attributes: attrs)
+                let ty = naturalY - 124.0 * s - lensFont.lineHeight / 2
+                as1.draw(at: CGPoint(x: centerX - as1.size().width / 2, y: ty))
+            }
+        }
+    }
+
+    private static func applyMeizuZ7(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width)
+        let imgH = CGFloat(bitmap.height)
+        let s = imgW / 1470.0
+        let lensParts = splitDiscreteParts(config.lensInfo)
+        let lensFont = getMeizuTextFont(size: 30.0 * s)
+        let textGray = UIColor(red: 0, green: 0, blue: 0, alpha: 0.6)
+
+        let logoTopMargin = 134.0 * s; let logoH = 60.0 * s; let photoTopMargin = 106.0 * s
+        let photoMarginSide = 30.0 * s
+        let photoW = round(imgW - 2 * photoMarginSide); let photoH = round(imgH * (photoW / imgW))
+        let discreteAreaH = 107.0 * s
+        let lensMarginT = lensParts.isEmpty ? 0.0 : 92.0 * s
+        let lensMarginB = lensParts.isEmpty ? 30.0 * s : 100.0 * s
+        let totalW = imgW
+        let totalH = round(logoTopMargin + logoH + photoTopMargin + photoH + lensMarginT + discreteAreaH + lensMarginB)
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: totalW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: 0, width: totalW, height: totalH))
+            let centerX = totalW / 2
+
+            if let logo = loadMeizuLogo("flyme_z7.png") {
+                let lW = 321.0 * s
+                logo.draw(in: CGRect(x: centerX - lW / 2, y: logoTopMargin, width: lW, height: logoH))
+            }
+            let photoY = logoTopMargin + logoH + photoTopMargin
+            image.draw(in: CGRect(x: photoMarginSide, y: photoY, width: photoW, height: photoH))
+
+            if !lensParts.isEmpty {
+                let y = photoY + photoH + lensMarginT
+                let sepColor = UIColor(red: 0.69, green: 0.69, blue: 0.69, alpha: 1)
+                drawDiscreteText(c, lensParts, centerX: centerX, baselineY: y + discreteAreaH / 2,
+                                 font: lensFont, textColor: textGray, separatorColor: sepColor, scale: s)
+            }
+        }
     }
     
     // MARK: - Helper Functions
@@ -1030,6 +1467,724 @@ class WatermarkProcessor {
                  dText.draw(at: CGPoint(x: dX, y: dY))
              }
         }
+    }
+
+    // MARK: - buildFrameComposite helper
+
+    /// Composites `source` photo into a PNG frame template.
+    /// Photo is center-cropped to match the frame's photo-area aspect ratio,
+    /// then drawn at (pL,pT)-(pR,pB) inside the scaled template.
+    /// `drawExtra(ctx, realScale)` is called after compositing for additional text/logos.
+    private static func buildFrameComposite(
+        _ source: UIImage,
+        frameName: String, tmplW: Int, tmplH: Int,
+        pL: Int, pT: Int, pR: Int, pB: Int,
+        drawExtra: (CGContext, CGFloat) -> Void = { _, _ in }
+    ) -> UIImage? {
+        guard let frameImg = loadVivoLogo(frameName) else { return nil }
+        guard let srcCG = source.cgImage else { return nil }
+
+        let photoW = CGFloat(pR - pL); let photoH = CGFloat(pB - pT)
+        let photoAR = photoW / photoH
+        let srcW = CGFloat(srcCG.width); let srcH = CGFloat(srcCG.height)
+        let srcAR = srcW / srcH
+
+        // Center-crop source to match frame photo-area aspect ratio
+        let srcCropRect: CGRect
+        if srcAR > photoAR + 0.01 {
+            let cropW = srcH * photoAR
+            srcCropRect = CGRect(x: (srcW - cropW) / 2, y: 0, width: cropW, height: srcH)
+        } else if srcAR < photoAR - 0.01 {
+            let cropH = srcW / photoAR
+            srcCropRect = CGRect(x: 0, y: (srcH - cropH) / 2, width: srcW, height: cropH)
+        } else {
+            srcCropRect = CGRect(x: 0, y: 0, width: srcW, height: srcH)
+        }
+
+        let realScale = srcCropRect.width / photoW
+        let outW = round(CGFloat(tmplW) * realScale)
+        let outH = round(CGFloat(tmplH) * realScale)
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: outW, height: outH), format: format).image { ctx in
+            let c = ctx.cgContext
+
+            // Draw frame baseboard (scaled to fill output)
+            frameImg.draw(in: CGRect(x: 0, y: 0, width: outW, height: outH))
+
+            // Draw cropped photo into frame's photo area
+            let dstRect = CGRect(
+                x: round(CGFloat(pL) * realScale), y: round(CGFloat(pT) * realScale),
+                width: round(CGFloat(pR - pL) * realScale), height: round(CGFloat(pB - pT) * realScale)
+            )
+            // Crop source to srcCropRect and draw into dstRect
+            if let croppedCG = srcCG.cropping(to: srcCropRect) {
+                // CoreGraphics Y-axis is flipped vs UIKit; draw via UIImage to avoid transform mess
+                let cropped = UIImage(cgImage: croppedCG)
+                // Draw frame ON TOP of photo so frame borders overlay photo
+                // First: photo, then frame overlay
+                // Actually we already drew frame above. Re-draw photo below frame:
+                // Redo: clear and draw photo first, then frame.
+                c.clear(CGRect(x: 0, y: 0, width: outW, height: outH))
+                cropped.draw(in: dstRect)
+                frameImg.draw(in: CGRect(x: 0, y: 0, width: outW, height: outH))
+            }
+
+            drawExtra(c, realScale)
+        }
+    }
+
+    // MARK: - Missing Vivo bar variants
+
+    /// Helper: draw two lines of right-aligned info text in the bar
+    private static func vivoDrawRightInfo(_ ctx: CGContext, imgW: CGFloat, barCY: CGFloat,
+                                           rightX: CGFloat,
+                                           lensText: String, timeText: String, locText: String,
+                                           infoFont: UIFont, timeFont: UIFont, dp: CGFloat) {
+        let hasInfo = !lensText.isEmpty
+        let hasTime = !timeText.isEmpty
+        let hasLoc  = !locText.isEmpty
+        let hasBottom = hasTime || hasLoc
+
+        func drawRight(_ str: String, font: UIFont, y: CGFloat) {
+            let attrs: [NSAttributedString.Key: Any] = [.font: font,
+                .foregroundColor: (font == infoFont ? VIVO_3A_STD : VIVO_TIME_GRAY)]
+            let as1 = NSAttributedString(string: str, attributes: attrs)
+            as1.draw(at: CGPoint(x: rightX - as1.size().width, y: y))
+        }
+
+        if hasInfo && hasBottom {
+            let infoH = infoFont.lineHeight; let botH = timeFont.lineHeight
+            let lineGap = 2.3 * dp; let stackH = infoH + lineGap + botH
+            let topY = barCY - stackH / 2
+            drawRight(lensText, font: infoFont, y: topY)
+            let botY = topY + infoH + lineGap
+            let botStr: String
+            if hasTime && hasLoc {
+                let attrs: [NSAttributedString.Key: Any] = [.font: timeFont, .foregroundColor: VIVO_TIME_GRAY]
+                let locAs = NSAttributedString(string: locText, attributes: attrs)
+                locAs.draw(at: CGPoint(x: rightX - locAs.size().width, y: botY))
+                let gap = 4.0 * dp
+                let timeAs = NSAttributedString(string: timeText, attributes: attrs)
+                timeAs.draw(at: CGPoint(x: rightX - locAs.size().width - gap - timeAs.size().width, y: botY))
+                return
+            } else {
+                botStr = hasTime ? timeText : locText
+            }
+            drawRight(botStr, font: timeFont, y: botY)
+        } else if hasInfo {
+            drawRight(lensText, font: infoFont, y: barCY - infoFont.lineHeight / 2)
+        } else if hasBottom {
+            let str = hasTime ? timeText : locText
+            drawRight(str, font: timeFont, y: barCY - timeFont.lineHeight / 2)
+        }
+    }
+
+    /// Tint a UIImage to black (for white-on-transparent logos)
+    private static func tintBlack(_ img: UIImage) -> UIImage {
+        let format = UIGraphicsImageRendererFormat(); format.scale = img.scale; format.opaque = false
+        return UIGraphicsImageRenderer(size: img.size, format: format).image { ctx in
+            let c = ctx.cgContext
+            c.translateBy(x: 0, y: img.size.height); c.scaleBy(x: 1, y: -1)
+            if let cg = img.cgImage {
+                c.clip(to: CGRect(origin: .zero, size: img.size), mask: cg)
+                c.setFillColor(UIColor.black.cgColor)
+                c.fill(CGRect(origin: .zero, size: img.size))
+            }
+        }
+    }
+
+    private static func applyVivoIqoo(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let shortSide = min(imgW, imgH)
+        let barHF = max(shortSide * VIVO_BAR_RATIO, 80.0)
+        let barH = round(barHF); let dp = barHF / VIVO_BAR_DP
+        let totalH = imgH + barH
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: imgW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            image.draw(in: CGRect(x: 0, y: 0, width: imgW, height: imgH))
+            c.setFillColor(UIColor.white.cgColor)
+            c.fill(CGRect(x: 0, y: imgH, width: imgW, height: barH))
+
+            let barCY = imgH + barHF / 2
+            let marginL = 16.0 * dp; let marginR = 14.0 * dp
+            var curX = marginL
+
+            // iQOO logo (white, tinted black)
+            if let raw = loadVivoLogo("iqoo_logo_special_white.png") ?? loadVivoLogo("iqoo_logo_wm_xml.png") {
+                let logo = tintBlack(raw)
+                let lH = 12.3 * dp; let lW = lH * logo.size.width / logo.size.height
+                logo.draw(in: CGRect(x: curX, y: barCY - lH / 2, width: lW, height: lH))
+                curX += lW + 3.5 * dp
+            }
+            // Device name
+            if let dev = config.deviceName, !dev.isEmpty {
+                let font = getVivoFont("VivoSimpleBold", size: 15.3 * dp)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: dev, attributes: attrs)
+                as1.draw(at: CGPoint(x: curX, y: barCY - as1.size().height / 2))
+            }
+            let rightX = imgW - marginR
+            let infoFont = getVivoFont("VivoSansExp", size: 9.7 * dp)
+            let timeFont = getVivoFont("VivoSansExp", size: 7.5 * dp)
+            vivoDrawRightInfo(c, imgW: imgW, barCY: barCY, rightX: rightX,
+                               lensText: config.lensInfo ?? "", timeText: config.timeText ?? "",
+                               locText: config.locationText ?? "",
+                               infoFont: infoFont, timeFont: timeFont, dp: dp)
+        }
+    }
+
+    private static func applyVivoZeissV1(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let shortSide = min(imgW, imgH)
+        let barHF = max(shortSide * VIVO_BAR_RATIO, 80.0)
+        let barH = round(barHF); let dp = barHF / VIVO_BAR_DP
+        let totalH = imgH + barH
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: imgW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            image.draw(in: CGRect(x: 0, y: 0, width: imgW, height: imgH))
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: imgH, width: imgW, height: barH))
+
+            let barCY = imgH + barHF / 2
+            let marginL = 11.0 * dp; let marginR = 11.0 * dp
+            var curX = marginL
+
+            // vivo logo tinted black
+            if let raw = loadVivoLogo("vivo_logo.png") {
+                let logo = tintBlack(raw)
+                let lH = 11.0 * dp; let lW = lH * logo.size.width / logo.size.height
+                logo.draw(in: CGRect(x: curX, y: barCY - lH / 2, width: lW, height: lH))
+                curX += lW + 1.0 * dp
+            }
+            // Device name
+            let dev = config.deviceName ?? ""
+            if !dev.isEmpty {
+                let font = getVivoFont("VivoRegular", size: 14.0 * dp)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: dev, attributes: attrs)
+                as1.draw(at: CGPoint(x: curX, y: barCY - as1.size().height / 2))
+                curX += as1.size().width + 7.0 * dp
+            }
+            // Thin divider
+            let divW = max(1.0, 0.3 * dp)
+            c.setFillColor(UIColor.black.cgColor)
+            c.fill(CGRect(x: curX, y: barCY - 5.0 * dp, width: divW, height: 10.0 * dp))
+            curX += divW + 2.0 * dp
+            // ZEISS logo
+            if let zeiss = loadVivoLogo("zeiss_logo.png") {
+                let zH = 38.0 * dp; let zW = 38.0 * dp
+                zeiss.draw(in: CGRect(x: curX, y: barCY - zH / 2, width: zW, height: zH))
+            }
+            let rightX = imgW - marginR
+            let infoFont = getVivoFont("RobotoBold", size: 9.0 * dp)
+            let timeFont = getVivoFont("RobotoBold", size: 7.0 * dp)
+            vivoDrawRightInfo(c, imgW: imgW, barCY: barCY, rightX: rightX,
+                               lensText: config.lensInfo ?? "", timeText: config.timeText ?? "",
+                               locText: config.locationText ?? "",
+                               infoFont: infoFont, timeFont: timeFont, dp: dp)
+        }
+    }
+
+    private static func applyVivoZeissSonnar(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let shortSide = min(imgW, imgH)
+        let barHF = max(shortSide * VIVO_BAR_RATIO, 80.0)
+        let barH = round(barHF); let dp = barHF / VIVO_BAR_DP
+        let totalH = imgH + barH
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: imgW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            image.draw(in: CGRect(x: 0, y: 0, width: imgW, height: imgH))
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: imgH, width: imgW, height: barH))
+
+            let barCY = imgH + barHF / 2
+            let marginL = 3.0 * dp; let marginR = 13.0 * dp
+            var curX = marginL
+
+            // Large ZEISS logo on left
+            if let zeiss = loadVivoLogo("zeiss_logo.png") {
+                let zH = 46.0 * dp; let zW = zH * zeiss.size.width / zeiss.size.height
+                zeiss.draw(in: CGRect(x: curX, y: barCY - zH / 2, width: zW, height: zH))
+                curX = max(curX + zW, 50.0 * dp)
+            } else { curX = 50.0 * dp }
+
+            let dev = config.deviceName ?? ""
+            let zeissFont = getVivoFont("ZeissBold", size: 14.0 * dp)
+            let modelRowY = barCY - 8.0 * dp
+            if !dev.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: zeissFont, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: dev, attributes: attrs)
+                as1.draw(at: CGPoint(x: curX, y: modelRowY - as1.size().height / 2))
+                let mw = as1.size().width
+                let divX = curX + mw + 5.0 * dp; let divW = max(1.0, 2.0 * dp)
+                c.setFillColor(UIColor.black.cgColor)
+                c.fill(CGRect(x: divX, y: modelRowY - 4.5 * dp, width: divW, height: 9.0 * dp))
+                let zeissAs = NSAttributedString(string: "ZEISS", attributes: attrs)
+                zeissAs.draw(at: CGPoint(x: divX + divW + 5.0 * dp, y: modelRowY - zeissAs.size().height / 2))
+            }
+            let lens = config.lensInfo ?? ""
+            if !lens.isEmpty {
+                let threeFont = getVivoFont("VivoCamera", size: 8.0 * dp)
+                let attrs: [NSAttributedString.Key: Any] = [.font: threeFont, .foregroundColor: VIVO_TIME_GRAY]
+                let as2 = NSAttributedString(string: lens, attributes: attrs)
+                let threeY = barCY + 8.0 * dp
+                as2.draw(at: CGPoint(x: curX, y: threeY - as2.size().height / 2))
+            }
+            // Right: time + location
+            let rightX = imgW - marginR
+            let timeText = config.timeText ?? ""; let locText = config.locationText ?? ""
+            let dateFont = getVivoFont("VivoSansExp", size: 12.0 * dp)
+            let locFont = getVivoFont("VivoSansExp", size: 8.0 * dp)
+            let dateColor = UIColor(red: 0.165, green: 0.220, blue: 0.267, alpha: 1)
+            if !timeText.isEmpty && !locText.isEmpty {
+                let dH = dateFont.lineHeight; let lH = locFont.lineHeight; let gap = 3.0 * dp
+                let topY = barCY - (dH + gap + lH) / 2
+                let dAttrs: [NSAttributedString.Key: Any] = [.font: dateFont, .foregroundColor: dateColor]
+                let dAs = NSAttributedString(string: timeText, attributes: dAttrs)
+                dAs.draw(at: CGPoint(x: rightX - dAs.size().width, y: topY))
+                let lAttrs: [NSAttributedString.Key: Any] = [.font: locFont, .foregroundColor: VIVO_TIME_GRAY]
+                let lAs = NSAttributedString(string: locText, attributes: lAttrs)
+                lAs.draw(at: CGPoint(x: rightX - lAs.size().width, y: topY + dH + gap))
+            } else if !timeText.isEmpty {
+                let dAttrs: [NSAttributedString.Key: Any] = [.font: dateFont, .foregroundColor: dateColor]
+                let dAs = NSAttributedString(string: timeText, attributes: dAttrs)
+                dAs.draw(at: CGPoint(x: rightX - dAs.size().width, y: barCY - dAs.size().height / 2))
+            } else if !locText.isEmpty {
+                let lAttrs: [NSAttributedString.Key: Any] = [.font: locFont, .foregroundColor: VIVO_TIME_GRAY]
+                let lAs = NSAttributedString(string: locText, attributes: lAttrs)
+                lAs.draw(at: CGPoint(x: rightX - lAs.size().width, y: barCY - lAs.size().height / 2))
+            }
+        }
+    }
+
+    private static func applyVivoZeissHumanity(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let shortSide = min(imgW, imgH)
+        let barHF = max(shortSide * VIVO_BAR_RATIO, 80.0)
+        let barH = round(barHF); let dp = barHF / VIVO_BAR_DP
+        let totalH = imgH + barH
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: imgW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            image.draw(in: CGRect(x: 0, y: 0, width: imgW, height: imgH))
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: imgH, width: imgW, height: barH))
+
+            let barCY = imgH + barHF / 2; let marginL = 22.0 * dp
+            let font = getVivoFont("VivoSansExp", size: 22.6 * dp)
+            let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: VIVO_3A_STD]
+            let dev = config.deviceName ?? ""
+            if !dev.isEmpty {
+                let as1 = NSAttributedString(string: dev, attributes: attrs)
+                let mw = as1.size().width
+                let divW = max(2.0, 4.0 * dp); let divGap = 7.0 * dp
+                as1.draw(at: CGPoint(x: marginL, y: barCY - as1.size().height / 2))
+                let divX = marginL + mw + divGap
+                c.setFillColor(UIColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1).cgColor)
+                c.fill(CGRect(x: divX, y: barCY - 9.5 * dp, width: divW, height: 19.0 * dp))
+                let zeissAs = NSAttributedString(string: "ZEISS", attributes: attrs)
+                zeissAs.draw(at: CGPoint(x: divX + divW + divGap, y: barCY - zeissAs.size().height / 2))
+            } else {
+                let zeissAs = NSAttributedString(string: "ZEISS", attributes: attrs)
+                zeissAs.draw(at: CGPoint(x: marginL, y: barCY - zeissAs.size().height / 2))
+            }
+        }
+    }
+
+    private static func applyVivoIqooV1(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let shortSide = min(imgW, imgH)
+        let barHF = max(shortSide * VIVO_BAR_RATIO, 80.0)
+        let barH = round(barHF); let dp = barHF / VIVO_BAR_DP
+        let totalH = imgH + barH
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: imgW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            image.draw(in: CGRect(x: 0, y: 0, width: imgW, height: imgH))
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: imgH, width: imgW, height: barH))
+
+            let barCY = imgH + barHF / 2
+            let marginL = 13.0 * dp; let marginR = 12.0 * dp
+            var curX = marginL
+
+            if let raw = loadVivoLogo("iqoo_logo.png") {
+                let logo = tintBlack(raw)
+                let lH = 17.0 * dp; let lW = lH * logo.size.width / logo.size.height
+                logo.draw(in: CGRect(x: curX, y: barCY - lH / 2, width: lW, height: lH))
+                curX += lW + 1.0 * dp
+            }
+            let dev = config.deviceName ?? ""
+            if !dev.isEmpty {
+                let font = getVivoFont("IQOOBold", size: 13.0 * dp)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: dev, attributes: attrs)
+                as1.draw(at: CGPoint(x: curX, y: barCY - as1.size().height / 2))
+            }
+            let rightX = imgW - marginR
+            let infoFont = getVivoFont("RobotoBold", size: 10.0 * dp)
+            let timeFont = getVivoFont("RobotoBold", size: 7.0 * dp)
+            vivoDrawRightInfo(c, imgW: imgW, barCY: barCY, rightX: rightX,
+                               lensText: config.lensInfo ?? "", timeText: config.timeText ?? "",
+                               locText: config.locationText ?? "",
+                               infoFont: infoFont, timeFont: timeFont, dp: dp)
+        }
+    }
+
+    private static func applyVivoIqooHumanity(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let shortSide = min(imgW, imgH)
+        let barHF = max(shortSide * VIVO_BAR_RATIO, 80.0)
+        let barH = round(barHF); let dp = barHF / VIVO_BAR_DP
+        let totalH = imgH + barH
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: imgW, height: totalH), format: format).image { ctx in
+            let c = ctx.cgContext
+            image.draw(in: CGRect(x: 0, y: 0, width: imgW, height: imgH))
+            c.setFillColor(UIColor.white.cgColor); c.fill(CGRect(x: 0, y: imgH, width: imgW, height: barH))
+
+            let barCY = imgH + barHF / 2; let marginL = 22.0 * dp
+            let font = getVivoFont("VivoSansExp", size: 22.6 * dp)
+            let dev = config.deviceName ?? "iQOO"
+            let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: VIVO_3A_STD]
+            let as1 = NSAttributedString(string: dev, attributes: attrs)
+            as1.draw(at: CGPoint(x: marginL, y: barCY - as1.size().height / 2))
+        }
+    }
+
+    private static func applyVivoZeissFrame(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let dev = config.deviceName ?? ""; let lens = config.lensInfo ?? ""
+        let result = buildFrameComposite(image, frameName: "zeiss2.png",
+                                          tmplW: 1080, tmplH: 1710, pL: 27, pT: 27, pR: 1053, pB: 1395) { c, rs in
+            let photoW: CGFloat = 1053 - 27; let realScale = rs
+            let cX = round(CGFloat(1080) * realScale / 2)
+            let textCY = round(1552.5 * realScale)
+            let modelFont = getVivoFont("ZeissBold", size: 14.0 * 3.0 * realScale)
+            let threeFont = getVivoFont("VivoCamera", size: 8.0 * 3.0 * realScale)
+            let modelStr = dev.isEmpty ? "ZEISS" : "\(dev)  |  ZEISS"
+            let mAttrs: [NSAttributedString.Key: Any] = [.font: modelFont, .foregroundColor: UIColor.black]
+            let as1 = NSAttributedString(string: modelStr, attributes: mAttrs)
+            let mH = as1.size().height
+            let hasLens = !lens.isEmpty
+            let gap = 2.0 * 3.0 * realScale
+            let totalTextH = mH + (hasLens ? gap + threeFont.lineHeight : 0)
+            let topY = textCY - totalTextH / 2
+            as1.draw(at: CGPoint(x: cX - as1.size().width / 2, y: topY))
+            if hasLens {
+                let lAttrs: [NSAttributedString.Key: Any] = [.font: threeFont, .foregroundColor: VIVO_TIME_GRAY]
+                let as2 = NSAttributedString(string: lens, attributes: lAttrs)
+                as2.draw(at: CGPoint(x: cX - as2.size().width / 2, y: topY + mH + gap))
+            }
+        }
+        return result ?? image
+    }
+
+    private static func applyVivoZeissOverlay(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let isPortrait = imgH >= imgW
+        let frameName = isPortrait ? "zeiss4.png" : "zeiss5_new.png"
+        let shortSide = min(imgW, imgH); let dp = shortSide / 360.0
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        return UIGraphicsImageRenderer(size: CGSize(width: imgW, height: imgH), format: format).image { _ in
+            image.draw(in: CGRect(x: 0, y: 0, width: imgW, height: imgH))
+            // Draw frame overlay
+            if let frame = loadVivoLogo(frameName) {
+                frame.draw(in: CGRect(x: 0, y: 0, width: imgW, height: imgH))
+            }
+            let marginLR = 36.0 * dp; let topY = 21.0 * dp
+            let dev = config.deviceName ?? ""
+            let time = config.timeText ?? ""; let lens = config.lensInfo ?? ""
+
+            let shadow = NSShadow(); shadow.shadowColor = UIColor.black.withAlphaComponent(0.3)
+            shadow.shadowOffset = CGSize(width: 1, height: 1); shadow.shadowBlurRadius = 3
+
+            if !dev.isEmpty {
+                let font = getVivoFont("ZeissBold", size: 12.0 * dp)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.white, .shadow: shadow]
+                let as1 = NSAttributedString(string: dev, attributes: attrs)
+                as1.draw(at: CGPoint(x: marginLR, y: topY))
+            }
+            if !time.isEmpty {
+                let font = getVivoFont("VivoCamera", size: 11.0 * dp)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.white, .shadow: shadow]
+                let as1 = NSAttributedString(string: time, attributes: attrs)
+                as1.draw(at: CGPoint(x: imgW - marginLR - as1.size().width, y: topY))
+            }
+            if !lens.isEmpty {
+                let font = getVivoFont("VivoCamera", size: 11.0 * dp)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.white, .shadow: shadow]
+                let parts = lens.split(separator: " ").map(String.init).filter { !$0.isEmpty }
+                let botY = isPortrait ? imgH - 29.0 * dp : imgH - 19.0 * dp
+                switch parts.count {
+                case 4...:
+                    let as1 = NSAttributedString(string: parts[3], attributes: attrs)
+                    as1.draw(at: CGPoint(x: marginLR, y: botY - font.lineHeight))
+                    let as2 = NSAttributedString(string: parts[1], attributes: attrs)
+                    as2.draw(at: CGPoint(x: imgW / 2 - as2.size().width / 2, y: botY - font.lineHeight))
+                    let as3 = NSAttributedString(string: parts[2], attributes: attrs)
+                    as3.draw(at: CGPoint(x: imgW - marginLR - as3.size().width, y: botY - font.lineHeight))
+                case 3:
+                    let as1 = NSAttributedString(string: parts[0], attributes: attrs)
+                    as1.draw(at: CGPoint(x: marginLR, y: botY - font.lineHeight))
+                    let as2 = NSAttributedString(string: parts[1], attributes: attrs)
+                    as2.draw(at: CGPoint(x: imgW / 2 - as2.size().width / 2, y: botY - font.lineHeight))
+                    let as3 = NSAttributedString(string: parts[2], attributes: attrs)
+                    as3.draw(at: CGPoint(x: imgW - marginLR - as3.size().width, y: botY - font.lineHeight))
+                default:
+                    let as1 = NSAttributedString(string: lens, attributes: attrs)
+                    as1.draw(at: CGPoint(x: imgW / 2 - as1.size().width / 2, y: botY - font.lineHeight))
+                }
+            }
+        }
+    }
+
+    private static func applyVivoZeissCenter(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let dev = config.deviceName ?? ""; let lens = config.lensInfo ?? ""
+        let result = buildFrameComposite(image, frameName: "zeiss6_new.png",
+                                          tmplW: 1080, tmplH: 1476, pL: 279, pT: 300, pR: 801, pB: 996) { c, rs in
+            let outW = round(CGFloat(1080) * rs)
+            let cX = outW / 2; let textCY = round(1236.0 * rs)
+            let modelFont = getVivoFont("ZeissBold", size: 14.0 * 3.0 * rs)
+            let threeFont = getVivoFont("VivoCamera", size: 8.0 * 3.0 * rs)
+            let modelStr = dev.isEmpty ? "ZEISS" : "\(dev)  |  ZEISS"
+            let mAttrs: [NSAttributedString.Key: Any] = [.font: modelFont, .foregroundColor: UIColor.black]
+            let as1 = NSAttributedString(string: modelStr, attributes: mAttrs)
+            let mH = as1.size().height; let hasLens = !lens.isEmpty
+            let gap = 2.0 * 3.0 * rs
+            let totalTextH = mH + (hasLens ? gap + threeFont.lineHeight : 0)
+            let topY = textCY - totalTextH / 2
+            as1.draw(at: CGPoint(x: cX - as1.size().width / 2, y: topY))
+            if hasLens {
+                let lAttrs: [NSAttributedString.Key: Any] = [.font: threeFont, .foregroundColor: VIVO_TIME_GRAY]
+                let as2 = NSAttributedString(string: lens, attributes: lAttrs)
+                as2.draw(at: CGPoint(x: cX - as2.size().width / 2, y: topY + mH + gap))
+            }
+        }
+        return result ?? image
+    }
+
+    private static func applyVivoFrameTime(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let ar = imgW / imgH
+        let (frameName, tmplW, tmplH, pL, pT, pR, pB): (String, Int, Int, Int, Int, Int, Int)
+        if ar > 1.2 {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("vivo3.png", 1596, 1080, 27, 27, 1569, 894)
+        } else if ar < 0.85 {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("vivo2.png", 1080, 1590, 27, 27, 1053, 1395)
+        } else {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("vivo4.png", 1080, 1413, 192, 291, 888, 987)
+        }
+        let dev = config.deviceName ?? ""; let time = config.timeText ?? ""
+        let result = buildFrameComposite(image, frameName: frameName,
+                                          tmplW: tmplW, tmplH: tmplH, pL: pL, pT: pT, pR: pR, pB: pB) { c, rs in
+            let outW = round(CGFloat(tmplW) * rs)
+            let textCY = round((CGFloat(pB) + CGFloat(tmplH)) / 2 * rs)
+            let cX = outW / 2
+            if let logo = loadVivoLogo("vivo_logo_new.png") ?? loadVivoLogo("vivo_logo_wm_xml.png") {
+                let lH = 16.0 * 3.0 * rs; let lW = lH * logo.size.width / logo.size.height
+                let font = getVivoFont("VivoCamera", size: 14.0 * 3.0 * rs)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.black]
+                let devAs = dev.isEmpty ? nil : NSAttributedString(string: dev, attributes: attrs)
+                let devW = devAs?.size().width ?? 0
+                let totalW = lW + devW
+                let sx = cX - totalW / 2
+                logo.draw(in: CGRect(x: sx, y: textCY - lH / 2, width: lW, height: lH))
+                if let da = devAs { da.draw(at: CGPoint(x: sx + lW, y: textCY - da.size().height / 2)) }
+            }
+            if !time.isEmpty {
+                let timeFont = getVivoFont("VivoCamera", size: 10.0 * 3.0 * rs)
+                let timeAttrs: [NSAttributedString.Key: Any] = [.font: timeFont, .foregroundColor: VIVO_TIME_GRAY]
+                let tas = NSAttributedString(string: time, attributes: timeAttrs)
+                tas.draw(at: CGPoint(x: cX - tas.size().width / 2, y: textCY + 12.0 * 3.0 * rs))
+            }
+        }
+        return result ?? image
+    }
+
+    private static func applyVivoIqooFrame(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let dev = config.deviceName ?? ""
+        let result = buildFrameComposite(image, frameName: "vivo5.png",
+                                          tmplW: 1080, tmplH: 1680, pL: 24, pT: 24, pR: 1056, pB: 1380) { c, rs in
+            let outW = round(CGFloat(1080) * rs)
+            let textCY = round((CGFloat(1380) + CGFloat(1680)) / 2 * rs)
+            let cX = outW / 2
+            if let raw = loadVivoLogo("iqoo_logo.png") {
+                let logo = tintBlack(raw)
+                let lH = 24.0 * 3.0 * rs; let lW = lH * logo.size.width / logo.size.height
+                let font = getVivoFont("IQOOBold", size: 14.0 * 3.0 * rs)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.black]
+                let devAs = dev.isEmpty ? nil : NSAttributedString(string: dev, attributes: attrs)
+                let devW = devAs?.size().width ?? 0
+                let totalW = lW + (devW > 0 ? 4.0 * rs + devW : 0)
+                let sx = cX - totalW / 2
+                logo.draw(in: CGRect(x: sx, y: textCY - lH / 2, width: lW, height: lH))
+                if let da = devAs { da.draw(at: CGPoint(x: sx + lW + 4.0 * rs, y: textCY - da.size().height / 2)) }
+            }
+        }
+        return result ?? image
+    }
+
+    private static func applyVivoIqooFrameTime(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let dev = config.deviceName ?? ""; let time = config.timeText ?? ""
+        let result = buildFrameComposite(image, frameName: "vivo5.png",
+                                          tmplW: 1080, tmplH: 1680, pL: 24, pT: 24, pR: 1056, pB: 1380) { c, rs in
+            let outW = round(CGFloat(1080) * rs)
+            let textCY = round((CGFloat(1380) + CGFloat(1680)) / 2 * rs)
+            let cX = outW / 2
+            if let raw = loadVivoLogo("iqoo_logo.png") {
+                let logo = tintBlack(raw)
+                let lH = 24.0 * 3.0 * rs; let lW = lH * logo.size.width / logo.size.height
+                let font = getVivoFont("IQOOBold", size: 14.0 * 3.0 * rs)
+                let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: UIColor.black]
+                let devAs = dev.isEmpty ? nil : NSAttributedString(string: dev, attributes: attrs)
+                let devW = devAs?.size().width ?? 0
+                let totalW = lW + (devW > 0 ? 4.0 * rs + devW : 0)
+                let sx = cX - totalW / 2
+                logo.draw(in: CGRect(x: sx, y: textCY - lH / 2, width: lW, height: lH))
+                if let da = devAs { da.draw(at: CGPoint(x: sx + lW + 4.0 * rs, y: textCY - da.size().height / 2)) }
+            }
+            if !time.isEmpty {
+                let tf = getVivoFont("VivoCamera", size: 10.0 * 3.0 * rs)
+                let ta: [NSAttributedString.Key: Any] = [.font: tf, .foregroundColor: VIVO_TIME_GRAY]
+                let tas = NSAttributedString(string: time, attributes: ta)
+                tas.draw(at: CGPoint(x: cX - tas.size().width / 2, y: textCY + 12.0 * 3.0 * rs))
+            }
+        }
+        return result ?? image
+    }
+
+    private static func applyVivoOS(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let isPortrait = imgH >= imgW
+        let (frameName, tmplW, tmplH, pL, pT, pR, pB): (String, Int, Int, Int, Int, Int, Int)
+        if isPortrait {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("os1.png", 1080, 1620, 162, 153, 918, 1161)
+        } else {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("os2.png", 1350, 1056, 51, 51, 1299, 753)
+        }
+        let lens = config.lensInfo ?? ""; let loc = config.locationText ?? ""; let time = config.timeText ?? ""
+        let textColor = UIColor(red: 0.137, green: 0.098, blue: 0.086, alpha: 1)
+        let result = buildFrameComposite(image, frameName: frameName,
+                                          tmplW: tmplW, tmplH: tmplH, pL: pL, pT: pT, pR: pR, pB: pB) { c, rs in
+            let outW = round(CGFloat(tmplW) * rs)
+            let marginL = (isPortrait ? 54.0 : 18.0) * 3.0 * rs
+            let textAreaTop = CGFloat(pB) * rs
+            let areaH = CGFloat(tmplH) * rs - textAreaTop
+            let textCY = textAreaTop + areaH * 0.45
+
+            let infoFont = getVivoFont("VivoSansExp", size: 12.0 * 3.0 * rs)
+            let subFont = getVivoFont("VivoSansExp", size: 8.0 * 3.0 * rs)
+
+            if !lens.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: infoFont, .foregroundColor: textColor]
+                let as1 = NSAttributedString(string: lens, attributes: attrs)
+                as1.draw(at: CGPoint(x: marginL, y: textCY - infoFont.lineHeight / 2 - 8.0 * rs))
+            }
+            if !loc.isEmpty || !time.isEmpty {
+                let line2Y = textCY + 12.0 * rs
+                var x = marginL
+                let attrs: [NSAttributedString.Key: Any] = [.font: subFont, .foregroundColor: VIVO_TIME_GRAY]
+                if !loc.isEmpty {
+                    let as1 = NSAttributedString(string: loc, attributes: attrs)
+                    as1.draw(at: CGPoint(x: x, y: line2Y - subFont.lineHeight / 2))
+                    x += as1.size().width + 10.0 * rs
+                }
+                if !time.isEmpty {
+                    let as2 = NSAttributedString(string: time, attributes: attrs)
+                    as2.draw(at: CGPoint(x: x, y: line2Y - subFont.lineHeight / 2))
+                }
+            }
+            // Origin OS logo at right
+            if let logo = loadVivoLogo("origin_os_logo.png") {
+                let lH = 24.0 * 3.0 * rs; let lW = lH * logo.size.width / logo.size.height
+                let lX = outW - marginL - lW
+                let lY = textAreaTop + areaH * 0.7 - lH / 2
+                logo.draw(in: CGRect(x: lX, y: lY, width: lW, height: lH))
+            }
+        }
+        return result ?? image
+    }
+
+    private static func applyVivoOSCorner(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let isPortrait = imgH >= imgW
+        let (frameName, tmplW, tmplH, pL, pT, pR, pB): (String, Int, Int, Int, Int, Int, Int)
+        if isPortrait {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("os3.png", 1080, 1590, 153, 165, 927, 1197)
+        } else {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("os4.png", 1461, 1080, 111, 123, 1350, 819)
+        }
+        return buildFrameComposite(image, frameName: frameName,
+                                    tmplW: tmplW, tmplH: tmplH, pL: pL, pT: pT, pR: pR, pB: pB) ?? image
+    }
+
+    private static func applyVivoOSSimple(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let isPortrait = imgH >= imgW
+        let (frameName, tmplW, tmplH, pL, pT, pR, pB): (String, Int, Int, Int, Int, Int, Int)
+        if isPortrait {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("os5.png", 1080, 1614, 36, 36, 1044, 1380)
+        } else {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("os6.png", 1677, 1155, 36, 36, 1641, 939)
+        }
+        return buildFrameComposite(image, frameName: frameName,
+                                    tmplW: tmplW, tmplH: tmplH, pL: pL, pT: pT, pR: pR, pB: pB) ?? image
+    }
+
+    private static func applyVivoEvent(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
+        let imgW = CGFloat(bitmap.width); let imgH = CGFloat(bitmap.height)
+        let isPortrait = imgH >= imgW
+        let (frameName, tmplW, tmplH, pL, pT, pR, pB): (String, Int, Int, Int, Int, Int, Int)
+        if isPortrait {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("event1.webp", 1080, 1620, 0, 0, 1080, 1355)
+        } else {
+            (frameName, tmplW, tmplH, pL, pT, pR, pB) = ("event2.webp", 1350, 1056, 0, 0, 1350, 856)
+        }
+        let dev = config.deviceName ?? ""; let lens = config.lensInfo ?? ""
+        let loc = config.locationText ?? ""; let time = config.timeText ?? ""
+        let result = buildFrameComposite(image, frameName: frameName,
+                                          tmplW: tmplW, tmplH: tmplH, pL: pL, pT: pT, pR: pR, pB: pB) { c, rs in
+            let marginL = 16.0 * 3.0 * rs
+            let textAreaTop = CGFloat(pB) * rs
+            var curY = textAreaTop + 20.0 * 3.0 * rs
+
+            let modelFont = getVivoFont("VivoSansExp", size: 19.0 * 3.0 * rs)
+            let threeFont = getVivoFont("VivoSansExp", size: 7.0 * 3.0 * rs)
+            let locFont = getVivoFont("VivoSansExp", size: 5.0 * 3.0 * rs)
+            let subColor = UIColor(red: 0.373, green: 0.373, blue: 0.373, alpha: 1)
+
+            if !dev.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: modelFont, .foregroundColor: UIColor.black]
+                let as1 = NSAttributedString(string: dev, attributes: attrs)
+                as1.draw(at: CGPoint(x: marginL + 10.0 * 3.0 * rs, y: curY))
+                curY += modelFont.lineHeight + 2.0 * 3.0 * rs
+            }
+            if !lens.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: threeFont, .foregroundColor: subColor]
+                let as1 = NSAttributedString(string: lens, attributes: attrs)
+                as1.draw(at: CGPoint(x: marginL, y: curY)); curY += threeFont.lineHeight + 1.0 * 3.0 * rs
+            }
+            if !loc.isEmpty || !time.isEmpty {
+                let attrs: [NSAttributedString.Key: Any] = [.font: locFont, .foregroundColor: subColor]
+                var x = marginL
+                if !loc.isEmpty {
+                    let as1 = NSAttributedString(string: loc, attributes: attrs)
+                    as1.draw(at: CGPoint(x: x, y: curY)); x += as1.size().width + 3.0 * 3.0 * rs
+                }
+                if !time.isEmpty {
+                    let as2 = NSAttributedString(string: time, attributes: attrs)
+                    as2.draw(at: CGPoint(x: x, y: curY))
+                }
+            }
+        }
+        return result ?? image
     }
 }
 

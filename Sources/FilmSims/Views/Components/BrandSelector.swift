@@ -43,16 +43,19 @@ struct GenreSelector: View {
 struct ChipButton: View {
     let title: String
     let isSelected: Bool
+    var enabled: Bool = true
     let action: () -> Void
-    
+
+    @Environment(\.compactUI) private var compactUI
+
     var body: some View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 12, weight: isSelected ? .medium : .regular))
                 .tracking(0.01)
                 .foregroundColor(isSelected ? Color.chipSelectedText : Color.chipUnselectedText)
-                .padding(.horizontal, 12)
-                .frame(height: 32)
+                .padding(.horizontal, compactUI ? 10 : 12)
+                .frame(height: compactUI ? 28 : 32)
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(isSelected ? Color.chipSelectedBackground : Color.chipUnselectedBackground)
@@ -67,5 +70,6 @@ struct ChipButton: View {
                 .animation(.easeInOut(duration: 0.3), value: isSelected)
         }
         .buttonStyle(.plain)
+        .disabled(!enabled)
     }
 }

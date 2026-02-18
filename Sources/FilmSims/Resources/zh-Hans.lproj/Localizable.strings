@@ -182,3 +182,93 @@
 "label_watermark_lens" = "镜头";
 "label_watermark_time" = "时间";
 "label_watermark_location" = "位置";
+
+/* OnePlus Film category */
+"category_film" = "胶片";
+"lut_film_field" = "田野";
+"lut_film_seaside" = "海边";
+"lut_film_city" = "城市";
+"lut_film_neon" = "霓虹";
+"lut_film_cold_flash" = "冷闪";
+"lut_film_warm_flash" = "暖闪";
+"lut_film_vintage" = "复古";
+"lut_film_clear" = "清晰";
+"lut_film_800t" = "800T";
+
+/* TECNO categories */
+"category_a_series" = "A系列";
+"category_b_series" = "B系列";
+"category_c_series" = "C系列";
+"category_ai_camera" = "AI相机";
+"category_filters" = "滤镜";
+"category_india_filters" = "印度滤镜";
+"category_misc" = "其他";
+"category_night_mode" = "夜间模式";
+"category_street_photo" = "街拍";
+"category_custom" = "自定义";
+
+/* Grain style */
+"label_grain_style" = "Grain Style";
+"grain_style_xiaomi" = "Xiaomi";
+"grain_style_oneplus" = "OnePlus";
+
+/* Watermark style names - Honor */
+"watermark_frame" = "Frame";
+"watermark_text" = "Text";
+"watermark_frame_yg" = "Frame YG";
+"watermark_text_yg" = "Text YG";
+
+/* Watermark style names - Meizu */
+"meizu_norm" = "Norm";
+"meizu_pro" = "Pro";
+"meizu_z1" = "Z1";
+"meizu_z2" = "Z2";
+"meizu_z3" = "Z3";
+"meizu_z4" = "Z4";
+"meizu_z5" = "Z5";
+"meizu_z6" = "Z6";
+"meizu_z7" = "Z7";
+
+/* Watermark style names - vivo */
+"vivo_zeiss" = "ZEISS";
+"vivo_classic" = "Classic";
+"vivo_pro" = "Pro";
+"vivo_iqoo" = "iQOO";
+"vivo_zeiss_v1" = "ZEISS v1";
+"vivo_zeiss_sonnar" = "Sonnar";
+"vivo_zeiss_humanity" = "Humanity ZEISS";
+"vivo_iqoo_v1" = "iQOO v1";
+"vivo_iqoo_humanity" = "Humanity iQOO";
+"vivo_zeiss_frame" = "ZEISS Frame";
+"vivo_zeiss_overlay" = "ZEISS Overlay";
+"vivo_zeiss_center" = "ZEISS Center";
+"vivo_frame" = "vivo Frame";
+"vivo_frame_time" = "vivo Frame+Time";
+"vivo_iqoo_frame" = "iQOO Frame";
+"vivo_iqoo_frame_time" = "iQOO Frame+Time";
+"vivo_os" = "OriginOS";
+"vivo_os_corner" = "OS Corner";
+"vivo_os_simple" = "OS Simple";
+"vivo_event" = "Event";
+"vivo_zeiss_0" = "ZEISS 0";
+"vivo_zeiss_1" = "ZEISS 1";
+"vivo_zeiss_2" = "ZEISS 2";
+"vivo_zeiss_3" = "ZEISS 3";
+"vivo_zeiss_4" = "ZEISS 4";
+"vivo_zeiss_5" = "ZEISS 5";
+"vivo_zeiss_6" = "ZEISS 6";
+"vivo_zeiss_7" = "ZEISS 7";
+"vivo_zeiss_8" = "ZEISS 8";
+"vivo_iqoo_4" = "iQOO 4";
+"vivo_common_iqoo4" = "Common iQOO4";
+"vivo_1" = "vivo 1";
+"vivo_2" = "vivo 2";
+"vivo_3" = "vivo 3";
+"vivo_4" = "vivo 4";
+"vivo_5" = "vivo 5";
+
+/* Watermark style names - TECNO */
+"tecno_1" = "Mode 1";
+"tecno_2" = "Mode 2";
+"tecno_3" = "Mode 3";
+"tecno_4" = "Mode 4";
