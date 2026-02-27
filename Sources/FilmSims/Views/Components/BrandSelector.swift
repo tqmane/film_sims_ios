@@ -8,7 +8,7 @@ struct BrandSelector: View {
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 ForEach(brands) { brand in
                     let isFree = freeBrands.isEmpty || freeBrands.contains(brand.name) || isProUser
                     ChipButton(
@@ -22,6 +22,7 @@ struct BrandSelector: View {
                     }
                 }
             }
+            .padding(.bottom, 12)
         }
     }
 }
@@ -32,7 +33,7 @@ struct GenreSelector: View {
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 ForEach(categories) { category in
                     ChipButton(
                         title: category.displayName,
@@ -42,6 +43,7 @@ struct GenreSelector: View {
                     }
                 }
             }
+            .padding(.bottom, 12)
         }
     }
 }
@@ -52,42 +54,34 @@ struct ChipButton: View {
     var enabled: Bool = true
     let action: () -> Void
 
-    @Environment(\.compactUI) private var compactUI
-
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 12, weight: isSelected ? .medium : .regular))
+                // Android: 13sp, medium selected / normal unselected
+                .font(.system(size: 13, weight: isSelected ? .medium : .regular))
                 .tracking(0.01)
-                .foregroundColor(isSelected ? Color.chipSelectedText : Color.chipUnselectedText)
-                .padding(.horizontal, compactUI ? 10 : 12)
-                .frame(height: compactUI ? 28 : 32)
+                // Android: ChipSelectedText = #0C0C10, TextMediumEmphasis = 0xD8FFFFFF
+                .foregroundColor(isSelected ? Color.chipSelectedText : Color.textSecondary)
+                // Android: horizontal padding 16dp, height 36dp, corner 20dp
+                .padding(.horizontal, 16)
+                .frame(height: 36)
                 .background(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(isSelected ? Color.chipSelectedBackground : Color.chipUnselectedBackground)
+                    // Android: selected = ChipSelected (#FFAB60), unselected = 0x1CFFFFFF
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(isSelected ? Color.chipSelectedBackground : Color(white: 1, opacity: 0.11))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    // Android: border 1dp, selected = AccentPrimary 50%, unselected = 0x10FFFFFF
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .stroke(
-                            isSelected ? Color.accentDark : Color.glassBorderAndroid,
-                            lineWidth: 1.5
+                            isSelected ? Color.accentPrimary.opacity(0.5) : Color(white: 1, opacity: 0.0627),
+                            lineWidth: 1
                         )
                 )
                 .animation(.easeInOut(duration: 0.3), value: isSelected)
         }
-        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.95, bounceTo: 1.02))
+        .buttonStyle(.plain)
         .disabled(!enabled)
-    }
-}
-
-// MARK: - Spring Button Style Note: Redefining here purely so BrandSelector can use it since it is used as a standalone module
-private struct BouncyButtonStyle: ButtonStyle {
-    let scaleDownTo: CGFloat
-    let bounceTo: CGFloat
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? scaleDownTo : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0), value: configuration.isPressed)
+        .opacity(enabled ? 1 : 0.45)
     }
 }

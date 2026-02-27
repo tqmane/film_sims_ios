@@ -6,11 +6,12 @@ struct LiquidSectionHeader: View {
     let text: String
 
     var body: some View {
+        // Android: 11.5sp, SemiBold, letterSpacing 0.15sp, padding bottom 10dp
         Text(text.uppercased())
-            .font(.system(size: 11, weight: .medium))
+            .font(.system(size: 11.5, weight: .semibold))
             .foregroundColor(.accentPrimary)
-            .tracking(0.12)
-            .padding(.bottom, 8)
+            .tracking(0.15)
+            .padding(.bottom, 10)
     }
 }
 

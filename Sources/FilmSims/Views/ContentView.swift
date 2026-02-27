@@ -13,7 +13,6 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            let isCompact = geometry.size.height <= 700
             ZStack {
                 LivingBackground()
 
@@ -49,18 +48,21 @@ struct ContentView: View {
                     // Bottom Area: Adjust Panel + Control Panel (matches Android Column layout)
                     if !isImmersiveMode && viewModel.originalImage != nil {
                         VStack(spacing: 0) {
-                            // Adjust Panel (slides in from bottom, matches Android LiquidAdjustPanel)
+                            // Adjust Panel - Android uses expandVertically(Bottom) + fadeIn
                             if showAdjustPanel && viewModel.currentLut != nil {
                                 adjustPanel
                                     .transition(.asymmetric(
-                                        insertion: .push(from: .bottom).combined(with: .opacity),
-                                        removal: .push(from: .top).combined(with: .opacity)
+                                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                                        removal: .move(edge: .bottom).combined(with: .opacity)
                                     ))
                             }
 
-                            // Glass Control Panel (Camera/Style/Presets only, matches Android GlassControlPanel)
+                            // Glass Control Panel - Android uses slideInVertically + fadeIn(tween300)
                             controlPanel
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .bottom).combined(with: .opacity),
+                                    removal: .move(edge: .bottom).combined(with: .opacity)
+                                ))
                         }
                         .padding(.bottom, max(8, geometry.safeAreaInsets.bottom))
                     }
@@ -70,71 +72,69 @@ struct ContentView: View {
                 .zIndex(10)
             }
         }
-        .environment(\.compactUI, {
-            UIScreen.main.bounds.height <= 700
-        }())
         .animation(.easeInOut(duration: 0.3), value: isImmersiveMode)
         .animation(.easeInOut(duration: 0.25), value: showAdjustPanel)
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView(viewModel: viewModel)
         }
     }
-    
-    @Environment(\.compactUI) private var compactUI
 
-    // MARK: - Top Bar
+    // MARK: - Top Bar (matches Android LiquidTopBar exactly)
     private var topBar: some View {
         HStack(alignment: .center) {
-            // App Title
+            // App Title — Android: 26sp SemiBold, subtitle 11.5sp Medium tracking 0.15sp
             VStack(alignment: .leading, spacing: 2) {
                 Text("FilmSims")
-                    .font(.system(size: compactUI ? 20 : 24, weight: .medium))
+                    .font(.system(size: 26, weight: .semibold))
                     .foregroundColor(.textPrimary)
                 
-                Text(L10n.tr("subtitle_film_simulator"))
-                    .font(.system(size: 11, weight: .medium))
+                Text(L10n.tr("subtitle_film_simulator").uppercased())
+                    .font(.system(size: 11.5, weight: .medium))
                     .foregroundColor(.accentPrimary)
-                    .tracking(0.1)
-                    .textCase(.uppercase)
+                    .tracking(0.15)
                     .padding(.top, 3)
             }
             
             Spacer()
             
-            // Action Buttons
+            // Action Buttons (Android: round buttons + LiquidButton)
             HStack(spacing: 8) {
                 // Change Photo Button
                 PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
                     Image(systemName: "plus")
-                        .font(.system(size: compactUI ? 14 : 16, weight: .medium))
+                        .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.textPrimary)
-                        .frame(width: compactUI ? 36 : 42, height: compactUI ? 36 : 42)
+                        .frame(width: 42, height: 42)
                         .background(AndroidRoundGlassBackground())
                 }
                 
                 // Settings Button
                 Button(action: { isSettingsPresented = true }) {
                     Image(systemName: "gearshape")
-                        .font(.system(size: compactUI ? 14 : 16, weight: .medium))
+                        .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.textPrimary)
-                        .frame(width: compactUI ? 36 : 42, height: compactUI ? 36 : 42)
+                        .frame(width: 42, height: 42)
                         .background(AndroidRoundGlassBackground())
                 }
+                .padding(.trailing, 4)
                 
-                // Save Button
-                LiquidButton(action: { viewModel.saveImage() }, height: compactUI ? 36 : 44) {
-                    Text(L10n.tr("save"))
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
+                // Save Button — Android: width=94dp, save icon (15dp) + "Save" text (14sp SemiBold)
+                LiquidButton(action: { viewModel.saveImage() }, height: 44) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "square.and.arrow.down")
+                            .font(.system(size: 15, weight: .semibold))
+                        Text(L10n.tr("save"))
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
                 }
-                .frame(width: compactUI ? 72 : 80)
+                .frame(width: 94)
             }
         }
+        // Android: padding horizontal=24, vertical=16
         .padding(.horizontal, 24)
-        .padding(.vertical, compactUI ? 16 : 24)
-        .background(
-            AndroidTopShadow()
-        )
+        .padding(.vertical, 16)
+        .background(AndroidTopShadow())
     }
     
     // MARK: - Placeholder View
@@ -200,9 +200,21 @@ struct ContentView: View {
         }
     }
     
-    // MARK: - Control Panel (matches Android GlassControlPanel: Camera/Style/Presets ONLY)
+    // MARK: - Control Panel (matches Android GlassBottomSheet: top=10, bottom=16, h=18, topCorners=22dp)
     private var controlPanel: some View {
         VStack(spacing: 0) {
+            // Drag handle (Android: padding bottom=14dp between handle and first section)
+            if !(showAdjustPanel && viewModel.currentLut != nil) {
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(Color.white.opacity(0.5))
+                    .frame(width: 44, height: 4.5)
+                    .padding(.top, 10)
+                    .padding(.bottom, 14)
+            } else {
+                // squareTop=true still has top=10dp padding
+                Spacer().frame(height: 10)
+            }
+
             // Camera Brands Section
             VStack(alignment: .leading, spacing: 0) {
                 LiquidSectionHeader(text: L10n.tr("header_camera"))
@@ -214,7 +226,6 @@ struct ContentView: View {
                     freeBrands: freeBrands
                 )
             }
-            .padding(.bottom, 10)
             
             // Style Section
             VStack(alignment: .leading, spacing: 0) {
@@ -225,7 +236,6 @@ struct ContentView: View {
                     selectedCategory: $viewModel.selectedCategory
                 )
             }
-            .padding(.bottom, 10)
             
             // Presets Section
             VStack(alignment: .leading, spacing: 0) {
@@ -242,11 +252,11 @@ struct ContentView: View {
                 )
             }
         }
-        .padding(.horizontal, compactUI ? 12 : 16)
-        .padding(.top, compactUI ? 12 : 16)
-        .padding(.bottom, compactUI ? 14 : 20)
+        // Android GlassBottomSheet: padding bottom=16, horizontal=18 (top handled by drag handle)
+        .padding(.horizontal, 18)
+        .padding(.bottom, 16)
         .background(
-            AndroidControlPanelBackground(topRadius: showAdjustPanel && viewModel.currentLut != nil ? 0 : 20)
+            AndroidControlPanelBackground(topRadius: showAdjustPanel && viewModel.currentLut != nil ? 0 : 22)
         )
     }
 

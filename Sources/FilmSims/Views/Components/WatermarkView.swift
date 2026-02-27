@@ -106,11 +106,11 @@ struct WatermarkView: View {
         let showTime   = hasStyle && !noTimeStyles.contains(style)
 
         VStack(alignment: .leading, spacing: 0) {
-            // Section header "WATERMARK"
+            // Section header "WATERMARK" — Android: 11sp, medium, letterSpacing 0.18, paddingBottom 4
             Text(L10n.tr("header_watermark").uppercased())
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.accentPrimary)
-                .tracking(0.15)
+                .tracking(0.18)
                 .padding(.bottom, 4)
 
             // Brand row
@@ -125,7 +125,7 @@ struct WatermarkView: View {
                     .foregroundColor(.textSecondary)
                     .padding(.trailing, 12)
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: 8) {
                         ForEach(["None", "Honor", "Meizu", "Vivo", "TECNO"], id: \.self) { brand in
                             let labelKey = brand == "None" ? "brand_none"
                                         : brand == "Vivo" ? "brand_vivo"
@@ -151,7 +151,7 @@ struct WatermarkView: View {
                         .foregroundColor(.textSecondary)
                         .padding(.trailing, 12)
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 8) {
                             ForEach(availableStyles, id: \.0) { (key, wStyle) in
                                 ChipButton(
                                     title: L10n.tr(key),
@@ -208,12 +208,16 @@ struct WatermarkInputRow: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            Spacer().frame(width: 30)
+            // Android: padding start=32dp
+            Spacer().frame(width: 32)
+            // Android: label weight(0.25f) of total
             Text(label)
                 .font(.system(size: 12))
                 .foregroundColor(.textTertiary)
-                .frame(width: 56, alignment: .leading)
+                .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
+                .layoutPriority(0.25)
             Spacer().frame(width: 8)
+            // Android: input weight(0.75f), height 40dp
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(Color.glassSurfaceDark)
@@ -221,15 +225,15 @@ struct WatermarkInputRow: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .stroke(Color.glassBorderAndroid, lineWidth: 1)
                     )
-                    .frame(height: 34)
-                TextField("", text: $text)
+                    .frame(height: 40)
+                TextField("—", text: $text)
                     .font(.system(size: 11))
                     .foregroundColor(.textPrimary)
                     .padding(.horizontal, 8)
             }
+            .layoutPriority(0.75)
         }
-        .padding(.top, 4)
-        .padding(.bottom, 4)
+        .padding(.vertical, 4)
     }
 }
 

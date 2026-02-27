@@ -470,7 +470,14 @@ class LutRepository {
             }
         }
         
-        return brands.sorted { $0.displayName < $1.displayName }
+        return brands.sorted { a, b in
+            // Free brands (TECNO, Nothing, Nubia) come first, then premium brands alphabetically
+            let freeBrands: Set<String> = ["TECNO", "Nothing", "Nubia"]
+            let aFree = freeBrands.contains(a.name)
+            let bFree = freeBrands.contains(b.name)
+            if aFree != bFree { return aFree }
+            return a.displayName < b.displayName
+        }
     }
     
     private func createLutItems(

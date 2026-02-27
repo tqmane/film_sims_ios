@@ -38,9 +38,9 @@ extension Color {
     static let accentTertiary = Color(hex: "#6200EE")
     
     // Text Colors (matches Android LiquidColors exactly)
-    static let textPrimary = Color(hex: "#F0F0F0")        // Android TextHighEmphasis 0xFFF0F0F0
-    static let textSecondary = Color.white.opacity(0.847) // Android TextMediumEmphasis 0xD8FFFFFF
-    static let textTertiary = Color.white.opacity(0.502)  // Android TextLowEmphasis 0x80FFFFFF
+    static let textPrimary = Color(hex: "#F2F2F5")        // Android TextHighEmphasis 0xFFF2F2F5
+    static let textSecondary = Color.white.opacity(0.733) // Android TextMediumEmphasis 0xBBFFFFFF
+    static let textTertiary = Color.white.opacity(0.439)  // Android TextLowEmphasis 0x70FFFFFF
     static let textDisabled = Color.white.opacity(0.25)
     
     // Utility Colors
@@ -52,8 +52,8 @@ extension Color {
     // Selection State Colors (matches Android LiquidColors)
     static let chipSelectedBackground = Color(hex: "#FFAB60")
     static let chipSelectedText = Color(hex: "#0C0C10")    // Android ChipSelectedText 0xFF0C0C10
-    static let chipUnselectedBackground = Color.white.opacity(0.157) // 0x28FFFFFF
-    static let chipUnselectedText = Color.white.opacity(0.847) // 0xD8FFFFFF
+    static let chipUnselectedBackground = Color.white.opacity(0.11)  // 0x1CFFFFFF (was 0x28FFFFFF)
+    static let chipUnselectedText = Color.white.opacity(0.733) // TextMediumEmphasis 0xBBFFFFFF
     
     // Hex initializer
     init(hex: String) {

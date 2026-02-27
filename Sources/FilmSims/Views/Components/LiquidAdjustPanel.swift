@@ -7,8 +7,6 @@ struct LiquidAdjustPanel: View {
     @ObservedObject private var proRepo = ProUserRepository.shared
     @State private var selectedTab: AdjustTab = .intensity
 
-    @Environment(\.compactUI) private var compactUI
-
     enum AdjustTab: String, CaseIterable {
         case intensity
         case grain
@@ -16,11 +14,11 @@ struct LiquidAdjustPanel: View {
     }
 
     var body: some View {
+        // Android LiquidAdjustPanel: topCorners 24dp, padding top=14/bottom=10/h=18
         VStack(spacing: 0) {
-            // Tab bar (matches Android pill-style tab row)
+            // Tab bar (matches Android LiquidTabBar)
             tabBar
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+                .padding(.bottom, 14)
 
             // Tab content
             Group {
@@ -33,48 +31,57 @@ struct LiquidAdjustPanel: View {
                     watermarkContent
                 }
             }
-            .padding(.horizontal, compactUI ? 12 : 16)
-            .padding(.bottom, compactUI ? 8 : 12)
         }
+        .padding(.top, 14)
+        .padding(.bottom, 10)
+        .padding(.horizontal, 18)
         .background(
-            AndroidControlPanelBackground(topRadius: 20)
+            // Android: SurfaceMedium 95% → SurfaceDark 97%, topCorners 24dp
+            AndroidControlPanelBackground(topRadius: 24)
         )
     }
 
-    // MARK: - Tab Bar (matches Android's pill-style AdjustTab row)
+    // MARK: - Tab Bar (matches Android LiquidTabBar exactly)
     private var tabBar: some View {
         HStack(spacing: 0) {
             ForEach(AdjustTab.allCases, id: \.self) { tab in
+                let isSelected = selectedTab == tab
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedTab = tab
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        if tab == .watermark && !proRepo.isProUser {
+                            // Show toast-like effect but don't switch tab
+                        } else {
+                            selectedTab = tab
+                        }
                     }
                 } label: {
+                    // Android: NOT uppercase, 13sp, SemiBold when selected / Normal when not
                     Text(tabLabel(for: tab))
-                        .font(.system(size: 12, weight: .semibold))
-                        .tracking(0.5)
-                        .textCase(.uppercase)
-                        .foregroundColor(selectedTab == tab ? .white : .textTertiary)
+                        .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                        .tracking(0.01)
+                        .foregroundColor(isSelected ? Color(hex: "#0C0C10") : .textTertiary)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        // Android: tab vertical padding 11dp, corner 18dp
+                        .padding(.vertical, 11)
                         .background(
-                            Group {
-                                if selectedTab == tab {
-                                    Capsule()
-                                        .fill(Color.accentPrimary)
-                                }
-                            }
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .fill(isSelected ? Color.accentPrimary : Color.clear)
                         )
+                        .animation(.easeInOut(duration: 0.25), value: isSelected)
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(3)
+        // Android: RoundedRectangle(22dp), background 0x12FFFFFF, border 0x10FFFFFF, inner padding 4dp
+        .padding(4)
         .background(
-            Capsule()
-                .fill(Color.white.opacity(0.06))
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Color(white: 1, opacity: 0.071)) // 0x12FFFFFF
+                .overlay(
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .stroke(Color(white: 1, opacity: 0.0627), lineWidth: 1) // 0x10FFFFFF
+                )
         )
-        .padding(.horizontal, compactUI ? 12 : 16)
     }
 
     private func tabLabel(for tab: AdjustTab) -> String {
@@ -98,66 +105,65 @@ struct LiquidAdjustPanel: View {
                 Spacer().frame(width: 10)
 
                 Text(L10n.tr("label_intensity"))
-                    .font(.system(size: 12))
+                    .font(.system(size: 14))
                     .foregroundColor(.textSecondary)
 
                 Spacer()
 
                 Text("\(Int(viewModel.intensity * 100))%")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.textPrimary)
-                    .frame(width: 40, alignment: .trailing)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.accentPrimary)
+                    .frame(width: 46, alignment: .trailing)
             }
-            .padding(.vertical, 6)
+            .padding(.vertical, 8)
 
             LiquidSlider(value: $viewModel.intensity)
+                .padding(.bottom, 4)
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, 4)
     }
 
-    // MARK: - Grain Tab Content
+    // MARK: - Grain Tab Content (matches Android LiquidGrainControls)
     private var grainContent: some View {
         VStack(spacing: 0) {
-            // Row 1: icon + label + percent + toggle
+            // Row 1: icon + label + percent + switch (Android: icon 20dp, font 14sp)
             HStack(spacing: 0) {
                 Image(systemName: "circle.grid.3x3.fill")
-                    .font(.system(size: 18))
+                    .font(.system(size: 20))
                     .foregroundColor(viewModel.grainEnabled ? .accentPrimary : .textTertiary)
-                    .frame(width: 18)
+                    .frame(width: 20)
                 Spacer().frame(width: 12)
                 Text(L10n.tr("label_film_grain"))
-                    .font(.system(size: 13))
+                    .font(.system(size: 14))
                     .foregroundColor(.textSecondary)
                 Spacer()
                 Text("\(Int(viewModel.grainIntensity * 100))%")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(viewModel.grainEnabled ? .accentPrimary : .textTertiary)
-                    .frame(width: 42, alignment: .trailing)
+                    .frame(width: 46, alignment: .trailing)
                     .padding(.trailing, 8)
                 Toggle("", isOn: $viewModel.grainEnabled)
                     .labelsHidden()
                     .tint(.accentPrimary)
-                    .frame(width: 24, height: 24)
-                    .scaleEffect(0.8)
             }
             .padding(.vertical, 8)
 
             // Row 2: intensity slider
             LiquidSlider(value: $viewModel.grainIntensity, enabled: viewModel.grainEnabled)
-                .padding(.bottom, 12)
+                .padding(.bottom, 14)
 
-            // Row 3: grain style selector
+            // Row 3: grain style selector (Android: icon 20dp, font 14sp, spacedBy 8dp)
             HStack(spacing: 0) {
                 Image(systemName: "circle.grid.3x3.fill")
-                    .font(.system(size: 18))
+                    .font(.system(size: 20))
                     .foregroundColor(.accentSecondary)
-                    .frame(width: 18)
+                    .frame(width: 20)
                 Spacer().frame(width: 12)
                 Text(L10n.tr("label_grain_style"))
-                    .font(.system(size: 13))
+                    .font(.system(size: 14))
                     .foregroundColor(.textSecondary)
                     .padding(.trailing, 12)
-                HStack(spacing: 6) {
+                HStack(spacing: 8) {
                     ForEach(["Xiaomi", "OnePlus"], id: \.self) { style in
                         ChipButton(
                             title: L10n.tr("grain_style_\(style.lowercased())"),
@@ -175,7 +181,7 @@ struct LiquidAdjustPanel: View {
             .padding(.vertical, 8)
             .opacity(viewModel.grainEnabled ? 1 : 0.4)
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, 4)
     }
 
     // MARK: - Watermark Tab Content
@@ -197,6 +203,6 @@ struct LiquidAdjustPanel: View {
                 .padding(.vertical, 24)
             }
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, 4)
     }
 }
