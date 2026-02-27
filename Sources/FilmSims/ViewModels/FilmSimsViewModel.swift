@@ -11,6 +11,7 @@ class FilmSimsViewModel: ObservableObject {
     @Published var originalImage: UIImage?
     @Published var processedImage: UIImage?
     @Published var thumbnailImage: UIImage?
+    @Published var imageLoadCount: Int = 0
     
     @Published var selectedPhotoItem: PhotosPickerItem? {
         didSet {
@@ -224,6 +225,7 @@ class FilmSimsViewModel: ObservableObject {
                 if let uiImage = UIImage(data: data) {
                     originalImage = uiImage
                     processedImage = uiImage
+                    imageLoadCount += 1
                     
                     // Create thumbnail for LUT previews
                     let maxDim: CGFloat = 256

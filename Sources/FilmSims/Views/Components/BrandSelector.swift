@@ -5,10 +5,11 @@ struct BrandSelector: View {
     @Binding var selectedBrand: LutBrand?
     var isProUser: Bool = true
     var freeBrands: Set<String> = []
-    
+    @Environment(\.layoutMetrics) private var metrics
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: metrics.chipSpacing) {
                 ForEach(brands) { brand in
                     let isFree = freeBrands.isEmpty || freeBrands.contains(brand.name) || isProUser
                     ChipButton(
@@ -22,7 +23,7 @@ struct BrandSelector: View {
                     }
                 }
             }
-            .padding(.bottom, 12)
+            .padding(.bottom, metrics.chipRowPadBottom)
         }
     }
 }
@@ -30,10 +31,11 @@ struct BrandSelector: View {
 struct GenreSelector: View {
     let categories: [LutCategory]
     @Binding var selectedCategory: LutCategory?
-    
+    @Environment(\.layoutMetrics) private var metrics
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: metrics.chipSpacing) {
                 ForEach(categories) { category in
                     ChipButton(
                         title: category.displayName,
@@ -43,7 +45,7 @@ struct GenreSelector: View {
                     }
                 }
             }
-            .padding(.bottom, 12)
+            .padding(.bottom, metrics.chipRowPadBottom)
         }
     }
 }
@@ -53,26 +55,22 @@ struct ChipButton: View {
     let isSelected: Bool
     var enabled: Bool = true
     let action: () -> Void
+    @Environment(\.layoutMetrics) private var metrics
 
     var body: some View {
         Button(action: action) {
             Text(title)
-                // Android: 13sp, medium selected / normal unselected
-                .font(.system(size: 13, weight: isSelected ? .medium : .regular))
+                .font(.system(size: metrics.chipFontSize, weight: isSelected ? .medium : .regular))
                 .tracking(0.01)
-                // Android: ChipSelectedText = #0C0C10, TextMediumEmphasis = 0xD8FFFFFF
                 .foregroundColor(isSelected ? Color.chipSelectedText : Color.textSecondary)
-                // Android: horizontal padding 16dp, height 36dp, corner 20dp
-                .padding(.horizontal, 16)
-                .frame(height: 36)
+                .padding(.horizontal, metrics.chipHPad)
+                .frame(height: metrics.chipHeight)
                 .background(
-                    // Android: selected = ChipSelected (#FFAB60), unselected = 0x1CFFFFFF
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    RoundedRectangle(cornerRadius: metrics.chipCorner, style: .continuous)
                         .fill(isSelected ? Color.chipSelectedBackground : Color(white: 1, opacity: 0.11))
                 )
                 .overlay(
-                    // Android: border 1dp, selected = AccentPrimary 50%, unselected = 0x10FFFFFF
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    RoundedRectangle(cornerRadius: metrics.chipCorner, style: .continuous)
                         .stroke(
                             isSelected ? Color.accentPrimary.opacity(0.5) : Color(white: 1, opacity: 0.0627),
                             lineWidth: 1

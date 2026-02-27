@@ -4,14 +4,14 @@ import SwiftUI
 
 struct LiquidSectionHeader: View {
     let text: String
+    @Environment(\.layoutMetrics) private var metrics
 
     var body: some View {
-        // Android: 11.5sp, SemiBold, letterSpacing 0.15sp, padding bottom 10dp
         Text(text.uppercased())
-            .font(.system(size: 11.5, weight: .semibold))
+            .font(.system(size: metrics.headerFontSize, weight: .semibold))
             .foregroundColor(.accentPrimary)
             .tracking(0.15)
-            .padding(.bottom, 10)
+            .padding(.bottom, metrics.headerBottomPad)
     }
 }
 

@@ -6,11 +6,11 @@ struct LutPresetSelector: View {
     let sourceThumbnail: UIImage?
     @ObservedObject var viewModel: FilmSimsViewModel
     var onLutReselected: (() -> Void)? = nil
+    @Environment(\.layoutMetrics) private var metrics
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            // Android: LazyRow spacedBy(6dp), height 130dp
-            HStack(spacing: 6) {
+            HStack(spacing: metrics.cardSize > 80 ? 6 : 4) {
                 ForEach(luts) { lut in
                     LutPresetCard(
                         lut: lut,
@@ -28,8 +28,7 @@ struct LutPresetSelector: View {
             }
             .padding(.vertical, 2)
         }
-        // Android: row height 130dp
-        .frame(height: 130)
+        .frame(height: metrics.lutRowHeight)
     }
 }
 
@@ -74,13 +73,14 @@ struct LutPresetCard: View {
     let thumbnail: UIImage?
     @ObservedObject var viewModel: FilmSimsViewModel
     let action: () -> Void
+    @Environment(\.layoutMetrics) private var metrics
 
     @State private var previewImage: UIImage?
     @State private var isLoading = true
     @State private var loadTask: Task<Void, Never>?
 
-    // Android LiquidLutCard: 94dp size, corner 12dp, border 2.5dp
-    private let cardSize: CGFloat = 94
+    private var cardSize: CGFloat { metrics.cardSize }
+    private var adjustHintHeight: CGFloat { max(20, cardSize * 0.29) }
 
     var body: some View {
         Button(action: action) {
@@ -102,23 +102,23 @@ struct LutPresetCard: View {
                         }
                     }
                     .frame(width: cardSize, height: cardSize)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    // Shimmer overlay during loading (Android: 0.15→0.35/700ms)
+                    .clipShape(RoundedRectangle(cornerRadius: metrics.cardCorner, style: .continuous))
                     .modifier(ShimmerModifier(active: isLoading))
 
-                    // Adjust hint overlay (Android: bottom 28dp, gradient transparent→black 60%)
+                    // Adjust hint overlay
                     if isSelected {
                         VStack(spacing: 2) {
-                            // Sliders icon + "adjustments" label
                             Image(systemName: "slider.horizontal.3")
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(.system(size: max(8, cardSize * 0.12), weight: .semibold))
                                 .foregroundColor(.white)
-                            Text(L10n.tr("adjustments"))
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.white.opacity(0.8))
+                            if cardSize >= 80 {
+                                Text(L10n.tr("adjustments"))
+                                    .font(.system(size: max(7, cardSize * 0.096), weight: .medium))
+                                    .foregroundColor(.white.opacity(0.8))
+                            }
                         }
                         .frame(maxWidth: .infinity)
-                        .frame(height: 28)
+                        .frame(height: adjustHintHeight)
                         .background(
                             LinearGradient(
                                 colors: [Color.clear, Color.black.opacity(0.6)],
@@ -129,8 +129,8 @@ struct LutPresetCard: View {
                         .clipShape(
                             .rect(
                                 topLeadingRadius: 0,
-                                bottomLeadingRadius: 12,
-                                bottomTrailingRadius: 12,
+                                bottomLeadingRadius: metrics.cardCorner,
+                                bottomTrailingRadius: metrics.cardCorner,
                                 topTrailingRadius: 0,
                                 style: .continuous
                             )
@@ -139,14 +139,14 @@ struct LutPresetCard: View {
 
                     // Selection border
                     if isSelected {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        RoundedRectangle(cornerRadius: metrics.cardCorner, style: .continuous)
                             .stroke(Color.accentPrimary, lineWidth: 2.5)
                             .frame(width: cardSize, height: cardSize)
                     }
 
                     // Selection glow
                     if isSelected {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        RoundedRectangle(cornerRadius: metrics.cardCorner, style: .continuous)
                             .fill(
                                 RadialGradient(
                                     colors: [Color.accentPrimary.opacity(0.18), Color.clear],
@@ -159,10 +159,9 @@ struct LutPresetCard: View {
                     }
                 }
 
-                // Android: text 10sp, minLines=2/maxLines=2, lineHeight 12sp, padTop=6dp/padBottom=2dp
                 Text(lut.name)
-                    .font(.system(size: 10))
-                    .lineSpacing(2) // lineHeight 12sp = 10sp + 2sp leading
+                    .font(.system(size: metrics.cardTextSize))
+                    .lineSpacing(2)
                     .foregroundColor(isSelected ? .textPrimary : .textTertiary)
                     .tracking(0.01)
                     .multilineTextAlignment(.center)
@@ -172,7 +171,6 @@ struct LutPresetCard: View {
                     .padding(.top, 6)
                     .padding(.bottom, 2)
             }
-            // Android: card padding start=2dp, end=6dp, top=2dp, bottom=2dp
             .padding(.leading, 2)
             .padding(.trailing, 6)
             .padding(.vertical, 2)

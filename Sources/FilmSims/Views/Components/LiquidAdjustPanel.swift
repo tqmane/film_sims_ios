@@ -6,6 +6,7 @@ struct LiquidAdjustPanel: View {
     @ObservedObject var viewModel: FilmSimsViewModel
     @ObservedObject private var proRepo = ProUserRepository.shared
     @State private var selectedTab: AdjustTab = .intensity
+    @Environment(\.layoutMetrics) private var metrics
 
     enum AdjustTab: String, CaseIterable {
         case intensity
@@ -14,11 +15,10 @@ struct LiquidAdjustPanel: View {
     }
 
     var body: some View {
-        // Android LiquidAdjustPanel: topCorners 24dp, padding top=14/bottom=10/h=18
         VStack(spacing: 0) {
             // Tab bar (matches Android LiquidTabBar)
             tabBar
-                .padding(.bottom, 14)
+                .padding(.bottom, metrics.adjustTabTopPad)
 
             // Tab content
             Group {
@@ -32,12 +32,11 @@ struct LiquidAdjustPanel: View {
                 }
             }
         }
-        .padding(.top, 14)
+        .padding(.top, metrics.adjustTabTopPad)
         .padding(.bottom, 10)
-        .padding(.horizontal, 18)
+        .padding(.horizontal, metrics.adjustHPad)
         .background(
-            // Android: SurfaceMedium 95% → SurfaceDark 97%, topCorners 24dp
-            AndroidControlPanelBackground(topRadius: 24)
+            AndroidControlPanelBackground(topRadius: metrics.adjustPanelCorner)
         )
     }
 
@@ -55,14 +54,12 @@ struct LiquidAdjustPanel: View {
                         }
                     }
                 } label: {
-                    // Android: NOT uppercase, 13sp, SemiBold when selected / Normal when not
                     Text(tabLabel(for: tab))
-                        .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                        .font(.system(size: metrics.adjustTabFontSize, weight: isSelected ? .semibold : .regular))
                         .tracking(0.01)
                         .foregroundColor(isSelected ? Color(hex: "#0C0C10") : .textTertiary)
                         .frame(maxWidth: .infinity)
-                        // Android: tab vertical padding 11dp, corner 18dp
-                        .padding(.vertical, 11)
+                        .padding(.vertical, metrics.adjustTabVPad)
                         .background(
                             RoundedRectangle(cornerRadius: 18, style: .continuous)
                                 .fill(isSelected ? Color.accentPrimary : Color.clear)
@@ -72,14 +69,13 @@ struct LiquidAdjustPanel: View {
                 .buttonStyle(.plain)
             }
         }
-        // Android: RoundedRectangle(22dp), background 0x12FFFFFF, border 0x10FFFFFF, inner padding 4dp
         .padding(4)
         .background(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .fill(Color(white: 1, opacity: 0.071)) // 0x12FFFFFF
+                .fill(Color(white: 1, opacity: 0.071))
                 .overlay(
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .stroke(Color(white: 1, opacity: 0.0627), lineWidth: 1) // 0x10FFFFFF
+                        .stroke(Color(white: 1, opacity: 0.0627), lineWidth: 1)
                 )
         )
     }

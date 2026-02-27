@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ZoomableImageView: View {
     let image: UIImage?
+    /// When this toggles to `true`, the view resets to centered position (immersive/fullscreen mode).
+    var isImmersive: Bool = false
     var onTap: (() -> Void)?
     var onLongPressStart: (() -> Void)?
     var onLongPressEnd: (() -> Void)?
@@ -30,7 +32,6 @@ struct ZoomableImageView: View {
     var body: some View {
         GeometryReader { geometry in
             if let image = image {
-                let natural = naturalFitSize(for: image, in: geometry.size)
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -95,6 +96,15 @@ struct ZoomableImageView: View {
                                 }
                             }
                     )
+                    .onChange(of: isImmersive) { _, newValue in
+                        // Auto-center when entering fullscreen immersive mode
+                        if newValue {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                offset = .zero
+                                lastOffset = .zero
+                            }
+                        }
+                    }
             } else {
                 Color.clear
             }
