@@ -70,3 +70,91 @@ private extension CGFloat {
         Swift.min(Swift.max(self, 0), 1)
     }
 }
+
+// MARK: - LiquidButton
+struct LiquidButton<Content: View>: View {
+    let action: () -> Void
+    var height: CGFloat
+    let content: Content
+
+    @State private var isPressed = false
+
+    init(action: @escaping () -> Void, height: CGFloat = 56, @ViewBuilder content: () -> Content) {
+        self.action = action
+        self.height = height
+        self.content = content()
+    }
+
+    var body: some View {
+        Button(action: action) {
+            content
+                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(height: height) // Android LiquidDimensions.ButtonHeight = 56.dp by default
+                .background(
+                    LinearGradient(
+                        colors: [.accentStart, .accentEnd],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        }
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.9, bounceTo: 1.05))
+    }
+}
+
+// MARK: - LiquidRoundButton
+struct LiquidRoundButton: View {
+    let systemName: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 22))
+                .foregroundColor(.white) // Using white since it's glass
+                .frame(width: 42, height: 42)
+                .background(Color.glassSurface)
+                .clipShape(Circle())
+                .overlay(Circle().stroke(Color.glassBorderAndroid, lineWidth: 1))
+        }
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.85, bounceTo: 1.0))
+    }
+}
+
+// MARK: - LiquidChip
+struct LiquidChip: View {
+    let text: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(text)
+                .font(.system(size: 14, weight: isSelected ? .medium : .regular))
+                .foregroundColor(isSelected ? Color(white: 0.05) : Color(white: 0.9)) // TextMediumEmphasis approximation
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(isSelected ? Color.accentPrimary : Color.glassSurface)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(isSelected ? Color.accentPrimary.opacity(0.8) : Color.glassBorderAndroid, lineWidth: 1)
+                )
+        }
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.95, bounceTo: 1.02))
+    }
+}
+
+// MARK: - Spring Button Style
+private struct BouncyButtonStyle: ButtonStyle {
+    let scaleDownTo: CGFloat
+    let bounceTo: CGFloat
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scaleDownTo : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0), value: configuration.isPressed)
+    }
+}
+

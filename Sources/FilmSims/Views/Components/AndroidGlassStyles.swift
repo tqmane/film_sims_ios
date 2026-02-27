@@ -18,11 +18,12 @@ struct RoundedCornerShape: Shape {
 
 struct AndroidTopShadow: View {
     var body: some View {
+        // Matches Android LiquidTopBar gradient: dark at top → transparent at bottom
         LinearGradient(
             stops: [
-                .init(color: .black.opacity(0.0), location: 0.0),
-                .init(color: .black.opacity(0.314), location: 0.55),
-                .init(color: .black.opacity(0.902), location: 1.0),
+                .init(color: Color(red: 0.02, green: 0.02, blue: 0.03).opacity(0.75), location: 0.0),
+                .init(color: Color(red: 0.047, green: 0.047, blue: 0.067).opacity(0.5), location: 0.5),
+                .init(color: .clear, location: 1.0),
             ],
             startPoint: .top,
             endPoint: .bottom

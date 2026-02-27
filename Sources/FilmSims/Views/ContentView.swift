@@ -3,10 +3,13 @@ import PhotosUI
 
 struct ContentView: View {
     @StateObject private var viewModel = FilmSimsViewModel()
+    @ObservedObject private var proRepo = ProUserRepository.shared
     @State private var isSettingsPresented = false
     @State private var isShowingOriginal = false
     @State private var isImmersiveMode = false
-    @State private var isAdjustmentPanelExpanded = true
+    @State private var showAdjustPanel = false
+
+    private let freeBrands: Set<String> = ["TECNO", "Nothing", "Nubia"]
     
     var body: some View {
         GeometryReader { geometry in
@@ -25,6 +28,14 @@ struct ContentView: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .zIndex(0)
 
+                // Dismiss adjust panel on background tap (matches Android)
+                if showAdjustPanel {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture { showAdjustPanel = false }
+                        .zIndex(5)
+                }
+
                 // UI overlay layer (top bar + bottom controls)
                 VStack(spacing: 0) {
                     if !isImmersiveMode {
@@ -35,10 +46,23 @@ struct ContentView: View {
 
                     Spacer(minLength: 0)
 
-                    if !isImmersiveMode {
-                        controlPanel
-                            .padding(.bottom, max(8, geometry.safeAreaInsets.bottom))
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    // Bottom Area: Adjust Panel + Control Panel (matches Android Column layout)
+                    if !isImmersiveMode && viewModel.originalImage != nil {
+                        VStack(spacing: 0) {
+                            // Adjust Panel (slides in from bottom, matches Android LiquidAdjustPanel)
+                            if showAdjustPanel && viewModel.currentLut != nil {
+                                adjustPanel
+                                    .transition(.asymmetric(
+                                        insertion: .push(from: .bottom).combined(with: .opacity),
+                                        removal: .push(from: .top).combined(with: .opacity)
+                                    ))
+                            }
+
+                            // Glass Control Panel (Camera/Style/Presets only, matches Android GlassControlPanel)
+                            controlPanel
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+                        .padding(.bottom, max(8, geometry.safeAreaInsets.bottom))
                     }
                 }
                 .padding(.horizontal, 0)
@@ -47,10 +71,10 @@ struct ContentView: View {
             }
         }
         .environment(\.compactUI, {
-            // We need a way to inject compactUI from geometry; use screen bounds as proxy.
             UIScreen.main.bounds.height <= 700
         }())
         .animation(.easeInOut(duration: 0.3), value: isImmersiveMode)
+        .animation(.easeInOut(duration: 0.25), value: showAdjustPanel)
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView(viewModel: viewModel)
         }
@@ -98,14 +122,12 @@ struct ContentView: View {
                 }
                 
                 // Save Button
-                Button(action: { viewModel.saveImage() }) {
+                LiquidButton(action: { viewModel.saveImage() }, height: compactUI ? 36 : 44) {
                     Text(L10n.tr("save"))
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(.white)
-                        .frame(width: compactUI ? 72 : 80, height: compactUI ? 36 : 44)
-                        .background(AndroidAccentGradientButtonBackground(cornerRadius: 24))
-                        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 }
+                .frame(width: compactUI ? 72 : 80)
             }
         }
         .padding(.horizontal, 24)
@@ -178,26 +200,18 @@ struct ContentView: View {
         }
     }
     
-    // MARK: - Control Panel
+    // MARK: - Control Panel (matches Android GlassControlPanel: Camera/Style/Presets ONLY)
     private var controlPanel: some View {
         VStack(spacing: 0) {
-            // Adjustments header + grain controls (collapsible)
-            if viewModel.originalImage != nil {
-                adjustmentHeader
-
-                if isAdjustmentPanelExpanded {
-                    grainControls
-                    watermarkControls
-                }
-            }
-            
             // Camera Brands Section
             VStack(alignment: .leading, spacing: 0) {
                 LiquidSectionHeader(text: L10n.tr("header_camera"))
                 
                 BrandSelector(
                     brands: viewModel.brands,
-                    selectedBrand: $viewModel.selectedBrand
+                    selectedBrand: $viewModel.selectedBrand,
+                    isProUser: proRepo.isProUser,
+                    freeBrands: freeBrands
                 )
             }
             .padding(.bottom, 10)
@@ -213,11 +227,6 @@ struct ContentView: View {
             }
             .padding(.bottom, 10)
             
-            // Quick Intensity Slider
-            if viewModel.currentLut != nil {
-                intensitySlider
-            }
-            
             // Presets Section
             VStack(alignment: .leading, spacing: 0) {
                 LiquidSectionHeader(text: L10n.tr("header_presets"))
@@ -226,7 +235,10 @@ struct ContentView: View {
                     luts: viewModel.currentLuts,
                     selectedLut: $viewModel.currentLut,
                     sourceThumbnail: viewModel.thumbnailImage,
-                    viewModel: viewModel
+                    viewModel: viewModel,
+                    onLutReselected: {
+                        withAnimation { showAdjustPanel.toggle() }
+                    }
                 )
             }
         }
@@ -234,136 +246,12 @@ struct ContentView: View {
         .padding(.top, compactUI ? 12 : 16)
         .padding(.bottom, compactUI ? 14 : 20)
         .background(
-            AndroidControlPanelBackground(topRadius: 20)
+            AndroidControlPanelBackground(topRadius: showAdjustPanel && viewModel.currentLut != nil ? 0 : 20)
         )
     }
 
-    // MARK: - Adjustment Header
-    private var adjustmentHeader: some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                isAdjustmentPanelExpanded.toggle()
-            }
-        } label: {
-            HStack(spacing: 10) {
-                Text(L10n.tr("header_grain"))
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.accentPrimary)
-                    .tracking(0.15)
-                    .textCase(.uppercase)
-
-                Spacer()
-
-                Image(systemName: isAdjustmentPanelExpanded ? "chevron.down" : "chevron.up")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.textTertiary)
-                    .rotationEffect(.degrees(isAdjustmentPanelExpanded ? 180 : 0))
-            }
-            .padding(.vertical, 14)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-    
-    // MARK: - Grain Controls
-    private var grainControls: some View {
-        VStack(spacing: 0) {
-            // Row 1: icon + label + percent + checkbox
-            HStack(spacing: 0) {
-                Image(systemName: "circle.grid.3x3.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(viewModel.grainEnabled ? .accentPrimary : .textTertiary)
-                    .frame(width: 18)
-                Spacer().frame(width: 12)
-                Text(L10n.tr("label_film_grain"))
-                    .font(.system(size: 13))
-                    .foregroundColor(.textSecondary)
-                Spacer()
-                Text("\(Int(viewModel.grainIntensity * 100))%")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(viewModel.grainEnabled ? .accentPrimary : .textTertiary)
-                    .frame(width: 42, alignment: .trailing)
-                    .padding(.trailing, 8)
-                Toggle("", isOn: $viewModel.grainEnabled)
-                    .labelsHidden()
-                    .tint(.accentPrimary)
-                    .frame(width: 24, height: 24)
-                    .scaleEffect(0.8)
-            }
-            .padding(.vertical, 8)
-
-            // Row 2: intensity slider
-            LiquidSlider(value: $viewModel.grainIntensity, enabled: viewModel.grainEnabled)
-                .padding(.bottom, 12)
-
-            // Row 3: grain style selector (Xiaomi / OnePlus)
-            HStack(spacing: 0) {
-                Image(systemName: "circle.grid.3x3.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(.accentSecondary)
-                    .frame(width: 18)
-                Spacer().frame(width: 12)
-                Text(L10n.tr("label_grain_style"))
-                    .font(.system(size: 13))
-                    .foregroundColor(.textSecondary)
-                    .padding(.trailing, 12)
-                HStack(spacing: 6) {
-                    ForEach(["Xiaomi", "OnePlus"], id: \.self) { style in
-                        ChipButton(
-                            title: L10n.tr("grain_style_\(style.lowercased())"),
-                            isSelected: viewModel.grainStyle == style,
-                            enabled: viewModel.grainEnabled
-                        ) {
-                            if viewModel.grainEnabled {
-                                viewModel.grainStyle = style
-                            }
-                        }
-                    }
-                }
-                Spacer()
-            }
-            .padding(.vertical, 8)
-            .opacity(viewModel.grainEnabled ? 1 : 0.4)
-
-            // Divider before watermark section
-            Divider()
-                .background(Color.white.opacity(0.063))
-                .padding(.vertical, 8)
-        }
-        .padding(.bottom, 8)
-    }
-    
-    // MARK: - Watermark Controls
-    private var watermarkControls: some View {
-        WatermarkView(viewModel: viewModel)
-            .padding(.bottom, 16)
-    }
-    
-    // MARK: - Intensity Slider
-    private var intensitySlider: some View {
-        VStack(spacing: 6) {
-            HStack {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 16))
-                    .foregroundColor(.accentPrimary)
-
-                Spacer().frame(width: 10)
-
-                Text(L10n.tr("label_intensity"))
-                    .font(.system(size: 12))
-                    .foregroundColor(.textSecondary)
-                
-                Spacer()
-                
-                Text("\(Int(viewModel.intensity * 100))%")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.textPrimary)
-                    .frame(width: 40, alignment: .trailing)
-            }
-            .padding(.vertical, 6)
-
-            LiquidSlider(value: $viewModel.intensity)
-        }
-        .padding(.bottom, 14)
+    // MARK: - Adjust Panel (matches Android LiquidAdjustPanel with 3 tabs)
+    private var adjustPanel: some View {
+        LiquidAdjustPanel(viewModel: viewModel)
     }
 }

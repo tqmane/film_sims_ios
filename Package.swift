@@ -15,9 +15,19 @@ let package = Package(
             targets: ["FilmSims"]
         ),
     ],
+    dependencies: [
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.0.0"),
+        .package(url: "https://github.com/google/GoogleSignIn-iOS.git", from: "8.0.0"),
+    ],
     targets: [
         .target(
             name: "FilmSims",
+            dependencies: [
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
+                .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
+                .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS"),
+            ],
             path: "Sources/FilmSims",
             resources: [
                 // Use explicit rules to avoid SwiftPM flattening the LUT directory structure.
@@ -35,6 +45,7 @@ let package = Package(
                 .process("Resources/ru.lproj"),
                 .copy("Resources/film_grain.png"),
                 .copy("Resources/film_grain_oneplus.png"),
+                .copy("Resources/GoogleService-Info.plist"),
                 .copy("Resources/luts"),
                 .copy("Resources/watermark"),
             ]

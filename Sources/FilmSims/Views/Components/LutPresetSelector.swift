@@ -5,6 +5,7 @@ struct LutPresetSelector: View {
     @Binding var selectedLut: LutItem?
     let sourceThumbnail: UIImage?
     @ObservedObject var viewModel: FilmSimsViewModel
+    var onLutReselected: (() -> Void)? = nil
 
     @Environment(\.compactUI) private var compactUI
 
@@ -18,7 +19,12 @@ struct LutPresetSelector: View {
                         thumbnail: sourceThumbnail,
                         viewModel: viewModel
                     ) {
-                        selectedLut = lut
+                        if selectedLut == lut {
+                            // Tapping already-selected LUT toggles adjust panel (matches Android)
+                            onLutReselected?()
+                        } else {
+                            selectedLut = lut
+                        }
                     }
                 }
             }

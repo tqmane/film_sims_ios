@@ -2,12 +2,25 @@ import Foundation
 import UIKit
 
 class CubeLUTParser {
-    
+
+    /// Load asset data, trying .enc (encrypted) first then plain (matches Android AssetUtil.openAsset).
+    private static func loadAssetData(atPath path: String) -> Data? {
+        // Try encrypted version first
+        let encPath = path + ".enc"
+        if let encData = FileManager.default.contents(atPath: encPath) {
+            let decrypted = AssetDecryptor.decryptData(encData)
+            return decrypted
+        }
+        // Fallback to plain
+        return FileManager.default.contents(atPath: path)
+    }
+
     static func parse(assetPath: String) -> CubeLUT? {
         let lowercasePath = assetPath.lowercased()
         let pathExtension = URL(fileURLWithPath: assetPath).pathExtension.lowercased()
         
-        if lowercasePath.hasSuffix(".png") {
+        if lowercasePath.hasSuffix(".png") || lowercasePath.hasSuffix(".sel") {
+            // Samsung .sel files are PNG-format 3D LUTs (matches Android)
             return parsePngLut(assetPath: assetPath)
         } else if lowercasePath.hasSuffix(".webp") || lowercasePath.hasSuffix(".jpg") || lowercasePath.hasSuffix(".jpeg") {
             // iOS cannot decode WebP via UIImage on all OS versions without additional decoders.
@@ -27,7 +40,7 @@ class CubeLUTParser {
     
     // MARK: - Binary LUT Parser
     private static func parseBinLut(assetPath: String) -> CubeLUT? {
-        guard let data = FileManager.default.contents(atPath: assetPath) else {
+        guard let data = loadAssetData(atPath: assetPath) else {
             return nil
         }
         
@@ -249,8 +262,16 @@ class CubeLUTParser {
     
     // MARK: - PNG LUT Parser (HALD format)
     private static func parsePngLut(assetPath: String) -> CubeLUT? {
-        guard let image = UIImage(contentsOfFile: assetPath),
-              let cgImage = image.cgImage else {
+        // Try encrypted first, then plain file
+        let image: UIImage?
+        let encPath = assetPath + ".enc"
+        if let encData = FileManager.default.contents(atPath: encPath) {
+            let decrypted = AssetDecryptor.decryptData(encData)
+            image = UIImage(data: decrypted)
+        } else {
+            image = UIImage(contentsOfFile: assetPath)
+        }
+        guard let image, let cgImage = image.cgImage else {
             return nil
         }
         
@@ -421,7 +442,13 @@ class CubeLUTParser {
     
     // MARK: - Cube File Parser
     private static func parseCubeLut(assetPath: String) -> CubeLUT? {
-        guard let content = try? String(contentsOfFile: assetPath, encoding: .utf8) else {
+        let content: String?
+        if let data = loadAssetData(atPath: assetPath) {
+            content = String(data: data, encoding: .utf8)
+        } else {
+            content = nil
+        }
+        guard let content else {
             return nil
         }
         

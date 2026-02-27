@@ -51,6 +51,13 @@
 "category_special_effects" = "特殊効果";
 "category_vivid_natural" = "ビビッド・ナチュラル";
 "category_warm_vintage" = "ウォーム・ヴィンテージ";
+/* Xiaomi Android categories */
+"category_xiaomi_effect" = "エフェクト";
+"category_xiaomi_film" = "フィルム";
+"category_xiaomi_leica" = "ライカスタイル";
+"category_xiaomi_normal" = "ノーマル";
+"category_xiaomi_portrait" = "ポートレート";
+"category_xiaomi_video" = "ビデオ";
 
 /* LUT Categories - Nothing/Common */
 "category_all" = "すべて";
@@ -88,7 +95,7 @@
 "label_pick_image" = "画像を選択";
 "desc_pick_image" = "写真を選んでフィルム調を適用します";
 "btn_open_gallery" = "ギャラリーを開く";
-"header_grain" = "グレイン";
+"header_grain" = "エフェクト";
 "label_film_grain" = "フィルムグレイン";
 "header_camera" = "カメラ";
 "header_style" = "スタイル";
@@ -99,8 +106,25 @@
 "btn_change" = "変更";
 "label_quality" = "画質";
 "btn_close" = "閉じる";
+"export_success" = "書き出し成功";
+"export_error" = "書き出し中にエラーが発生しました";
+
+/* Compose UI / Tab labels */
+"adjustments" = "調整";
+"grain" = "グレイン";
+"watermark" = "ウォーターマーク";
+"watermark_select_brand" = "ブランドを選択してスタイルを表示";
+"device_name" = "デバイス名";
+"time" = "時刻";
+"location" = "位置情報";
+"lens_info" = "レンズ情報";
 
 /* Leica FOTOS LUT names */
+"brand_leica_fotos" = "Leica FOTOS";
+"lut_fotos_bleach" = "ブリーチ";
+"lut_fotos_blue" = "ブルー";
+"lut_fotos_brass" = "ブラス";
+"lut_fotos_chrome" = "クローム";
 "lut_fotos_classic" = "クラシック";
 "lut_fotos_contemporary" = "コンテンポラリー";
 "lut_fotos_eternal" = "エターナル";
@@ -152,6 +176,21 @@
 "category_general" = "一般";
 "category_classic_filter" = "クラシックフィルター";
 "category_filter_manager" = "フィルターマネージャー";
+"category_ai_filters" = "AIフィルター";
+
+/* Vivo categories */
+"category_camera_filters" = "カメラフィルター";
+"category_editor_filters" = "編集フィルター";
+"category_movie" = "ムービー";
+"category_portrait_style" = "ポートレートスタイル";
+"category_portrait_multistyle" = "ポートレートマルチスタイル";
+"category_collage_filters" = "コラージュフィルター";
+"category_night_style" = "夜景スタイル";
+"category_superzoom" = "超望遠";
+
+/* Samsung categories */
+"category_samsung_myfilter" = "マイフィルター";
+"category_samsung_preload_effect" = "プリロードエフェクト";
 
 /* Meizu LUT names */
 "lut_meizu_warm" = "ウォーム";
@@ -272,4 +311,21 @@
 "tecno_2" = "Mode 2";
 "tecno_3" = "Mode 3";
 "tecno_4" = "Mode 4";
+
+/* Account / Auth */
+"label_account" = "アカウント";
+"sign_in_description" = "Appleでサインインしてライセンス機能を解放";
+"btn_sign_in" = "Appleでサインイン";
+"btn_sign_out" = "サインアウト";
+"label_pro" = "ライセンス";
+
+/* Pro restrictions */
+"pro_brand_locked" = "ライセンス機能: このブランドのロックを解除するにはサインインしてください";
+"pro_watermark_locked" = "ライセンス機能: ウォーターマークのロックを解除するにはサインインしてください";
+"pro_quality_limit" = "ライセンス機能: 60%%以上の画質にはライセンスが必要です";
+"label_license_permanent" = "永久ライセンス";
+"label_license_version_mismatch" = "ライセンスはバージョン %@ までに限定されています！";
+
 "label_grain_style" = "グレインスタイル";
+"quality_limit_notice" = "ライセンス機能: 無料ユーザーは最大60%%まで";
+"btn_sign_in_google" = "Googleでサインイン";

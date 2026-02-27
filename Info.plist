@@ -3,10 +3,19 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.8</string>
+    <string>1.1.2</string>
     <key>CFBundleVersion</key>
-    <string>108</string>
+    <string>15</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>FilmSims needs access to save processed photos to your library.</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>com.googleusercontent.apps.566024328587-7btab5rqapkdq9i59fmp68phn4qesrjc</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

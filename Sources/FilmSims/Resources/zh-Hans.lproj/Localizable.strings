@@ -88,7 +88,7 @@
 "label_pick_image" = "Pick Image";
 "desc_pick_image" = "Pick a photo to apply film simulations";
 "btn_open_gallery" = "Open Gallery";
-"header_grain" = "Grain";
+"header_grain" = "效果";
 "label_film_grain" = "Film Grain";
 "header_camera" = "Camera";
 "header_style" = "Style";
@@ -99,6 +99,25 @@
 "btn_change" = "Change";
 "label_quality" = "Quality";
 "btn_close" = "Close";
+"export_success" = "导出成功";
+"export_error" = "导出时出错";
+"adjustments" = "调整";
+"grain" = "颗粒";
+"watermark" = "水印";
+"watermark_select_brand" = "选择品牌以查看样式";
+"device_name" = "设备名称";
+"time" = "时间";
+"location" = "位置";
+"lens_info" = "镜头信息";
+"brand_leica_fotos" = "Leica FOTOS";
+"label_account" = "帐户";
+"sign_in_description" = "使用Apple登录以解锁许可功能";
+"btn_sign_in" = "使用Apple登录";
+"btn_sign_out" = "退出登录";
+"label_pro" = "许可证";
+"pro_brand_locked" = "许可功能：请登录以解锁此品牌";
+"pro_watermark_locked" = "许可功能：请登录以解锁水印";
+"pro_quality_limit" = "许可功能：60%%以上的质量需要许可证";
 
 /* Leica FOTOS LUT names */
 "lut_fotos_classic" = "经典";
@@ -272,3 +291,5 @@
 "tecno_2" = "Mode 2";
 "tecno_3" = "Mode 3";
 "tecno_4" = "Mode 4";
+"quality_limit_notice" = "License feature: Max quality 60%% for free users";
+"btn_sign_in_google" = "Sign in with Google";

@@ -187,25 +187,50 @@ class WatermarkProcessor {
              return applyVivoOSSimple(baseImage, bitmap: bitmap, config: config)
         case .vivoEvent:
              return applyVivoEvent(baseImage, bitmap: bitmap, config: config)
-        // Config-driven styles — nearest equivalent fallback
-        case .vivoZeiss0, .vivoZeiss1, .vivoZeiss2, .vivoZeiss3,
-             .vivoZeiss4, .vivoZeiss5, .vivoZeiss6, .vivoZeiss7, .vivoZeiss8:
-             return applyVivoZeiss(baseImage, bitmap: bitmap, config: config)
-        case .vivoIqoo4, .vivoCommonIqoo4:
-             return applyVivoIqoo(baseImage, bitmap: bitmap, config: config)
-        case .vivo1, .vivo2, .vivo3, .vivo4, .vivo5:
-             return applyVivoPro(baseImage, bitmap: bitmap, config: config)
-        case .vivoFrame:
-             return applyVivoFrame(baseImage, bitmap: bitmap, config: config)
-        case .tecno1:
-             return applyTecnoWatermark(baseImage, bitmap: bitmap, config: config, mode: 1)
-        case .tecno2:
-             return applyTecnoWatermark(baseImage, bitmap: bitmap, config: config, mode: 2)
-        case .tecno3:
-             return applyTecnoWatermark(baseImage, bitmap: bitmap, config: config, mode: 3)
-        case .tecno4:
-             return applyTecnoWatermark(baseImage, bitmap: bitmap, config: config, mode: 4)
+        // Config-driven styles
+        case .vivoZeiss0: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/zeiss0.txt")
+        case .vivoZeiss1: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/zeiss1.txt")
+        case .vivoZeiss2: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/zeiss2.txt")
+        case .vivoZeiss3: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/zeiss3.txt")
+        case .vivoZeiss4: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/zeiss4.txt")
+        case .vivoZeiss5: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/zeiss5.txt")
+        case .vivoZeiss6: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/zeiss6.txt")
+        case .vivoZeiss7: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/zeiss7.txt")
+        case .vivoZeiss8: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/zeiss8.txt")
+        
+        case .vivoIqoo4: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/iqoo4.txt")
+        case .vivoCommonIqoo4: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/common_iqoo4.txt")
+        
+        case .vivo1: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/vivo1.txt")
+        case .vivo2: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/vivo2.txt")
+        case .vivo3: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/vivo3.txt")
+        case .vivo4: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/vivo4.txt")
+        case .vivo5: return applyDynamicVivo(baseImage, config: config, templatePath: "vivo_watermark_full2/assets/zeiss_editors/vivo5.txt")
+        case .vivoFrame: return applyVivoFrame(baseImage, bitmap: bitmap, config: config)
+        
+        case .tecno1: return applyDynamicTecno(baseImage, config: config, modeName: "MODE_1")
+        case .tecno2: return applyDynamicTecno(baseImage, config: config, modeName: "MODE_2")
+        case .tecno3: return applyDynamicTecno(baseImage, config: config, modeName: "MODE_3")
+        case .tecno4: return applyDynamicTecno(baseImage, config: config, modeName: "MODE_4")
         }
+    }
+    
+    private static func applyDynamicVivo(_ image: UIImage, config: WatermarkConfig, templatePath: String) -> UIImage {
+        let renderConfig = VivoRenderConfig(deviceName: config.deviceName, timeText: config.timeText, locationText: config.locationText, lensInfo: config.lensInfo)
+        if let template = VivoWatermarkConfigParser.shared.parseConfig(assetPath: templatePath) {
+            return ZeissWatermarkRenderer.shared.render(source: image, template: template, config: renderConfig)
+        }
+        return image
+    }
+
+    private static func applyDynamicTecno(_ image: UIImage, config: WatermarkConfig, modeName: String) -> UIImage {
+        let isLandscape = image.size.width > image.size.height
+        let renderConfig = TecnoRenderConfig(deviceName: config.deviceName, timeText: config.timeText, locationText: config.locationText, lensInfo: config.lensInfo, brandName: "TECNO")
+        let parser = TecnoWatermarkConfigParser()
+        if let template = parser.parseConfig() {
+            return TecnoWatermarkRenderer.shared.render(source: image, template: template, modeName: modeName, isLandscape: isLandscape, config: renderConfig)
+        }
+        return image
     }
 
     private static func normalizeOrientation(_ image: UIImage) -> UIImage {

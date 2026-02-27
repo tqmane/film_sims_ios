@@ -88,7 +88,7 @@
 "label_pick_image" = "Pick Image";
 "desc_pick_image" = "Pick a photo to apply film simulations";
 "btn_open_gallery" = "Open Gallery";
-"header_grain" = "Grain";
+"header_grain" = "التأثيرات";
 "label_film_grain" = "Film Grain";
 "header_camera" = "Camera";
 "header_style" = "Style";
@@ -99,6 +99,25 @@
 "btn_change" = "Change";
 "label_quality" = "Quality";
 "btn_close" = "Close";
+"export_success" = "تم التصدير بنجاح";
+"export_error" = "خطأ أثناء التصدير";
+"adjustments" = "تعديلات";
+"grain" = "تأثير";
+"watermark" = "علامة مائية";
+"watermark_select_brand" = "اختر علامة تجارية لعرض الأنماط";
+"device_name" = "اسم الجهاز";
+"time" = "الوقت";
+"location" = "الموقع";
+"lens_info" = "معلومات العدسة";
+"brand_leica_fotos" = "Leica FOTOS";
+"label_account" = "حساب";
+"sign_in_description" = "قم بتسجيل الدخول باستخدام Apple لفتح ميزات الترخيص";
+"btn_sign_in" = "تسجيل الدخول بواسطة Apple";
+"btn_sign_out" = "تسجيل خروج";
+"label_pro" = "ترخيص";
+"pro_brand_locked" = "ميزة مرخصة: قم بتسجيل الدخول لفتح هذه العلامة التجارية";
+"pro_watermark_locked" = "ميزة مرخصة: قم بتسجيل الدخول لفتح العلامة المائية";
+"pro_quality_limit" = "ميزة مرخصة: الجودة فوق ٦٠٪ تتطلب ترخيصًا";
 
 /* Leica FOTOS LUT names */
 "lut_fotos_classic" = "Classic";
@@ -273,3 +292,5 @@
 "tecno_2" = "Mode 2";
 "tecno_3" = "Mode 3";
 "tecno_4" = "Mode 4";
+"quality_limit_notice" = "License feature: Max quality 60%% for free users";
+"btn_sign_in_google" = "Sign in with Google";

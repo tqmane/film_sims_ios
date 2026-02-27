@@ -3,16 +3,22 @@ import SwiftUI
 struct BrandSelector: View {
     let brands: [LutBrand]
     @Binding var selectedBrand: LutBrand?
+    var isProUser: Bool = true
+    var freeBrands: Set<String> = []
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 6) {
                 ForEach(brands) { brand in
+                    let isFree = freeBrands.isEmpty || freeBrands.contains(brand.name) || isProUser
                     ChipButton(
-                        title: brand.displayName,
-                        isSelected: selectedBrand == brand
+                        title: isFree ? brand.displayName : "\(brand.displayName) 🔒",
+                        isSelected: selectedBrand == brand,
+                        enabled: isFree
                     ) {
-                        selectedBrand = brand
+                        if isFree {
+                            selectedBrand = brand
+                        }
                     }
                 }
             }
@@ -69,7 +75,19 @@ struct ChipButton: View {
                 )
                 .animation(.easeInOut(duration: 0.3), value: isSelected)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.95, bounceTo: 1.02))
         .disabled(!enabled)
+    }
+}
+
+// MARK: - Spring Button Style Note: Redefining here purely so BrandSelector can use it since it is used as a standalone module
+private struct BouncyButtonStyle: ButtonStyle {
+    let scaleDownTo: CGFloat
+    let bounceTo: CGFloat
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scaleDownTo : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0), value: configuration.isPressed)
     }
 }

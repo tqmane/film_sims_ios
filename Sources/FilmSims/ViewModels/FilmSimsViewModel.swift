@@ -196,14 +196,21 @@ class FilmSimsViewModel: ObservableObject {
     
     // MARK: - Settings
     private func loadSettings() {
-        let defaults = UserDefaults.standard
-        saveQuality = defaults.integer(forKey: "save_quality")
-        if saveQuality == 0 { saveQuality = 100 }
+        let settings = SettingsManager.shared
+        saveQuality = settings.saveQuality
+        intensity = settings.lastIntensity
+        grainEnabled = settings.lastGrainEnabled
+        grainIntensity = settings.lastGrainIntensity
+        grainStyle = settings.lastGrainStyle
     }
     
     func saveSettings() {
-        let defaults = UserDefaults.standard
-        defaults.set(saveQuality, forKey: "save_quality")
+        let settings = SettingsManager.shared
+        settings.saveQuality = saveQuality
+        settings.lastIntensity = intensity
+        settings.lastGrainEnabled = grainEnabled
+        settings.lastGrainIntensity = grainIntensity
+        settings.lastGrainStyle = grainStyle
     }
     
     // MARK: - Image Loading
@@ -303,6 +310,12 @@ class FilmSimsViewModel: ObservableObject {
     func applyCurrentLut() async {
         guard let originalImage = originalImage else { return }
 
+        // Security check (matches Android applyLut: SecurityManager.isEnvironmentTrusted())
+        guard SecurityManager.shared.isEnvironmentTrusted() else {
+            processedImage = originalImage
+            return
+        }
+
         if Task.isCancelled { return }
 
         // Scale down for preview to keep UI responsive.
@@ -347,6 +360,7 @@ class FilmSimsViewModel: ObservableObject {
     }
 
     private func scheduleApply() {
+        saveSettings()
         applyTask?.cancel()
         applyTask = Task { [weak self] in
             guard let self else { return }
@@ -649,7 +663,9 @@ class FilmSimsViewModel: ObservableObject {
     }
     
     private func saveToPhotoLibrary(_ image: UIImage) {
-        let compressionQuality = CGFloat(saveQuality) / 100.0
+        // Cap quality at 60% for non-pro users (matches Android)
+        let effectiveQuality = ProUserRepository.shared.isProUser ? saveQuality : min(saveQuality, 60)
+        let compressionQuality = CGFloat(effectiveQuality) / 100.0
         let metadataSourceData = originalImageData
 
         guard let data = makeJPEGDataPreservingMetadata(

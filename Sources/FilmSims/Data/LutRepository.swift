@@ -5,7 +5,8 @@ class LutRepository {
     static let shared = LutRepository()
     
     // Keep parity with Android supported formats.
-    private let lutExtensions = [".cube", ".png", ".bin", ".webp", ".jpg", ".jpeg"]
+    private let lutExtensions = [".cube", ".png", ".bin", ".webp", ".jpg", ".jpeg", ".sel",
+                                  ".cube.enc", ".png.enc", ".bin.enc", ".webp.enc", ".jpg.enc", ".jpeg.enc", ".sel.enc"]
     
     private init() {}
     
@@ -73,6 +74,17 @@ class LutRepository {
         case "Night_mode": return L10n.tr("category_night_mode")
         case "Street_photo": return L10n.tr("category_street_photo")
         case "Custom": return L10n.tr("category_custom")
+        // Xiaomi Android categories
+        case "effect": return L10n.tr("category_xiaomi_effect")
+        case "film": return L10n.tr("category_xiaomi_film")
+        case "leica": return L10n.tr("category_xiaomi_leica")
+        case "normal": return L10n.tr("category_xiaomi_normal")
+        case "portrait": return L10n.tr("category_xiaomi_portrait")
+        case "video": return L10n.tr("category_xiaomi_video")
+        // Samsung categories
+        case "myfilter": return L10n.tr("category_samsung_myfilter")
+        case "preload_effect": return L10n.tr("category_samsung_preload_effect")
+        case "Log": return "Log"
         // Common/Nothing
         case "_all": return L10n.tr("category_all")
         default:
@@ -85,7 +97,7 @@ class LutRepository {
     private func getBrandDisplayName(_ brandName: String) -> String {
         switch brandName {
         case "Leica_lux": return L10n.tr("brand_leica_lux")
-        case "Leica_FOTOS": return "Leica FOTOS"
+        case "Leica_FOTOS": return L10n.tr("brand_leica_fotos")
         case "Honor": return "Honor"
         case "Huawei": return "Huawei"
         case "Meizu": return "Meizu"
@@ -293,6 +305,38 @@ class LutRepository {
         }
         return name.replacingOccurrences(of: "_", with: " ")
     }
+
+    // Matches Android LutRepository.getSamsungFilterName
+    private func getSamsungFilterName(_ fileName: String, categoryName: String) -> String {
+        var name: String
+        switch categoryName {
+        case "preload_effect":
+            // Strip long package prefix: com.samsung.android.provider.filterprovider.
+            name = fileName
+            let prefix = "com.samsung.android.provider.filterprovider."
+            if name.hasPrefix(prefix) {
+                name = String(name.dropFirst(prefix.count))
+            }
+        case "Log":
+            name = fileName
+            let prefix = "SamsungLog_to_"
+            if name.hasPrefix(prefix) {
+                name = String(name.dropFirst(prefix.count))
+            }
+        default:
+            name = fileName
+        }
+        return name.replacingOccurrences(of: "_", with: " ")
+            .split(separator: " ")
+            .map { word in
+                var w = String(word)
+                if let first = w.first, first.isLowercase {
+                    w = first.uppercased() + w.dropFirst()
+                }
+                return w
+            }
+            .joined(separator: " ")
+    }
     
     // MARK: - Load LUT Brands
     func getLutBrands() -> [LutBrand] {
@@ -327,6 +371,7 @@ class LutRepository {
             let isNubia = brandName == "Nubia"
             let isVivo = brandName == "Vivo"
             let isTecno = brandName == "TECNO"
+            let isSamsung = brandName == "Samsung"
             
             // Check for flat structure (LUT files directly in brand folder)
             let directLutFiles = contents.filter { name in
@@ -355,7 +400,8 @@ class LutRepository {
                     isMeizu: isMeizu,
                     isNubia: isNubia,
                     isVivo: isVivo,
-                    isTecno: isTecno
+                    isTecno: isTecno,
+                    isSamsung: isSamsung
                 )
                 
                 categories.append(LutCategory(
@@ -402,7 +448,8 @@ class LutRepository {
                     isMeizu: isMeizu,
                     isNubia: isNubia,
                     isVivo: isVivo,
-                    isTecno: isTecno
+                    isTecno: isTecno,
+                    isSamsung: isSamsung
                 )
                 
                 if !lutItems.isEmpty {
@@ -437,7 +484,8 @@ class LutRepository {
         isMeizu: Bool,
         isNubia: Bool,
         isVivo: Bool,
-        isTecno: Bool = false
+        isTecno: Bool = false,
+        isSamsung: Bool = false
     ) -> [LutItem] {
         let isFilm = (brandName == "OnePlus" && categoryName == "Film")
         
@@ -459,9 +507,15 @@ class LutRepository {
         var items: [LutItem] = []
         
         for (baseName, variants) in groupedFiles {
-            // Select best file: .bin -> .cube -> .png
-            let selectedFile = variants.first { $0.lowercased().hasSuffix(".bin") }
+            // Select best file: .bin -> .cube -> .sel -> .png (prefer .enc variants)
+            let selectedFile = variants.first { $0.lowercased().hasSuffix(".bin.enc") }
+                ?? variants.first { $0.lowercased().hasSuffix(".bin") }
+                ?? variants.first { $0.lowercased().hasSuffix(".cube.enc") }
                 ?? variants.first { $0.lowercased().hasSuffix(".cube") }
+                ?? variants.first { $0.lowercased().hasSuffix(".sel.enc") }
+                ?? variants.first { $0.lowercased().hasSuffix(".sel") }
+                ?? variants.first { $0.lowercased().hasSuffix(".png.enc") }
+                ?? variants.first { $0.lowercased().hasSuffix(".png") }
                 ?? variants.first!
             
             let displayName: String
@@ -479,13 +533,20 @@ class LutRepository {
                 displayName = getVivoFilterName(baseName)
             } else if isTecno {
                 displayName = getTecnoFilterName(baseName, categoryName: categoryName)
+            } else if isSamsung {
+                displayName = getSamsungFilterName(baseName, categoryName: categoryName)
             } else if isFilm {
                 displayName = getFilmLutName(baseName.lowercased())
             } else {
                 displayName = baseName.replacingOccurrences(of: "_", with: " ")
             }
             
-            let assetPath = (basePath as NSString).appendingPathComponent(selectedFile)
+            // Strip .enc suffix from path — CubeLUTParser tries .enc automatically
+            var resolvedFile = selectedFile
+            if resolvedFile.lowercased().hasSuffix(".enc") {
+                resolvedFile = String(resolvedFile.dropLast(4))
+            }
+            let assetPath = (basePath as NSString).appendingPathComponent(resolvedFile)
             
             items.append(LutItem(
                 name: displayName,

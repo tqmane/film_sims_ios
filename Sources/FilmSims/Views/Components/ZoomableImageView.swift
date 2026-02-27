@@ -25,17 +25,7 @@ struct ZoomableImageView: View {
         }
     }
 
-    // Clamp `proposedOffset` so the scaled image doesn't drift beyond the frame boundary.
-    private func clampOffset(_ proposed: CGSize, scale: CGFloat, naturalSize: CGSize, in frame: CGSize) -> CGSize {
-        let scaledW = naturalSize.width  * scale
-        let scaledH = naturalSize.height * scale
-        let maxX = max(0, (scaledW - frame.width)  / 2)
-        let maxY = max(0, (scaledH - frame.height) / 2)
-        return CGSize(
-            width:  min(max(proposed.width,  -maxX), maxX),
-            height: min(max(proposed.height, -maxY), maxY)
-        )
-    }
+    // Removed clampOffset to allow free panning
 
     var body: some View {
         GeometryReader { geometry in
@@ -53,26 +43,18 @@ struct ZoomableImageView: View {
                             MagnificationGesture()
                                 .onChanged { value in
                                     let newScale = lastScale * value
-                                    scale = min(max(newScale, 0.3), 10.0)
+                                    scale = min(max(newScale, 0.1), 10.0)
                                 }
                                 .onEnded { _ in
                                     lastScale = scale
-                                    let clamped = clampOffset(offset, scale: scale, naturalSize: natural, in: geometry.size)
-                                    if clamped != offset {
-                                        withAnimation(.spring()) { offset = clamped }
-                                        lastOffset = clamped
-                                    } else {
-                                        lastOffset = offset
-                                    }
                                 },
                             // Drag (pan)
                             DragGesture()
                                 .onChanged { value in
-                                    let proposed = CGSize(
+                                    offset = CGSize(
                                         width:  lastOffset.width  + value.translation.width,
                                         height: lastOffset.height + value.translation.height
                                     )
-                                    offset = clampOffset(proposed, scale: scale, naturalSize: natural, in: geometry.size)
                                 }
                                 .onEnded { _ in
                                     lastOffset = offset

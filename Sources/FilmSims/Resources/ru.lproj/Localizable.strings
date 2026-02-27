@@ -88,7 +88,7 @@
 "label_pick_image" = "Pick Image";
 "desc_pick_image" = "Pick a photo to apply film simulations";
 "btn_open_gallery" = "Open Gallery";
-"header_grain" = "Grain";
+"header_grain" = "Эффекты";
 "label_film_grain" = "Film Grain";
 "header_camera" = "Camera";
 "header_style" = "Style";
@@ -99,6 +99,25 @@
 "btn_change" = "Change";
 "label_quality" = "Quality";
 "btn_close" = "Close";
+"export_success" = "Успешно экспортировано";
+"export_error" = "Ошибка при экспорте";
+"adjustments" = "Настройки";
+"grain" = "Зерно";
+"watermark" = "Водяной знак";
+"watermark_select_brand" = "Выберите бренд для просмотра стилей";
+"device_name" = "Имя устройства";
+"time" = "Время";
+"location" = "Местоположение";
+"lens_info" = "Инфо об объективе";
+"brand_leica_fotos" = "Leica FOTOS";
+"label_account" = "Аккаунт";
+"sign_in_description" = "Войдите через Apple, чтобы разблокировать функции Лицензии";
+"btn_sign_in" = "Войти через Apple";
+"btn_sign_out" = "Выйти";
+"label_pro" = "ЛИЦЕНЗИЯ";
+"pro_brand_locked" = "Лицензионная функция: Войдите, чтобы разблокировать этот бренд";
+"pro_watermark_locked" = "Лицензионная функция: Войдите, чтобы разблокировать водяной знак";
+"pro_quality_limit" = "Лицензионная функция: Качество выше 60%% требует лицензию";
 
 /* Leica FOTOS LUT names */
 "lut_fotos_classic" = "Classic";
@@ -273,3 +292,5 @@
 "tecno_2" = "Mode 2";
 "tecno_3" = "Mode 3";
 "tecno_4" = "Mode 4";
+"quality_limit_notice" = "License feature: Max quality 60%% for free users";
+"btn_sign_in_google" = "Sign in with Google";

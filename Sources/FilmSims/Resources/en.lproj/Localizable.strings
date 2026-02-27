@@ -51,6 +51,13 @@
 "category_special_effects" = "Special Effects";
 "category_vivid_natural" = "Vivid-Natural";
 "category_warm_vintage" = "Warm-Vintage";
+/* Xiaomi Android categories */
+"category_xiaomi_effect" = "Effects";
+"category_xiaomi_film" = "Film";
+"category_xiaomi_leica" = "Leica Style";
+"category_xiaomi_normal" = "Normal";
+"category_xiaomi_portrait" = "Portrait";
+"category_xiaomi_video" = "Video";
 
 /* LUT Categories - Nothing/Common */
 "category_all" = "All";
@@ -88,7 +95,7 @@
 "label_pick_image" = "Pick Image";
 "desc_pick_image" = "Pick a photo to apply film simulations";
 "btn_open_gallery" = "Open Gallery";
-"header_grain" = "Grain";
+"header_grain" = "Effects";
 "label_film_grain" = "Film Grain";
 "header_camera" = "Camera";
 "header_style" = "Style";
@@ -99,8 +106,25 @@
 "btn_change" = "Change";
 "label_quality" = "Quality";
 "btn_close" = "Close";
+"export_success" = "Exported successfully";
+"export_error" = "Error during export";
+
+/* Compose UI / Tab labels (matching Android) */
+"adjustments" = "Adjustments";
+"grain" = "Grain";
+"watermark" = "Watermark";
+"watermark_select_brand" = "Select a brand to see watermark styles";
+"device_name" = "Device Name";
+"time" = "Time";
+"location" = "Location";
+"lens_info" = "Lens Info";
 
 /* Leica FOTOS LUT names */
+"brand_leica_fotos" = "Leica FOTOS";
+"lut_fotos_bleach" = "Bleach";
+"lut_fotos_blue" = "Blue";
+"lut_fotos_brass" = "Brass";
+"lut_fotos_chrome" = "Chrome";
 "lut_fotos_classic" = "Classic";
 "lut_fotos_contemporary" = "Contemporary";
 "lut_fotos_eternal" = "Eternal";
@@ -152,6 +176,21 @@
 "category_general" = "General";
 "category_classic_filter" = "Classic Filter";
 "category_filter_manager" = "Filter Manager";
+"category_ai_filters" = "AI Filters";
+
+/* Vivo categories */
+"category_camera_filters" = "Camera Filters";
+"category_editor_filters" = "Editor Filters";
+"category_movie" = "Movie";
+"category_portrait_style" = "Portrait Style";
+"category_portrait_multistyle" = "Portrait Multi-Style";
+"category_collage_filters" = "Collage Filters";
+"category_night_style" = "Night Style";
+"category_superzoom" = "Superzoom";
+
+/* Samsung categories */
+"category_samsung_myfilter" = "My Filter";
+"category_samsung_preload_effect" = "Preloaded Effects";
 
 /* Meizu LUT names */
 "lut_meizu_warm" = "Warm";
@@ -272,3 +311,19 @@
 "tecno_2" = "Mode 2";
 "tecno_3" = "Mode 3";
 "tecno_4" = "Mode 4";
+
+/* Account / Auth */
+"label_account" = "Account";
+"sign_in_description" = "Sign in with Apple to unlock License features";
+"btn_sign_in" = "Sign in with Apple";
+"btn_sign_out" = "Sign Out";
+"label_pro" = "LICENSE";
+
+/* Pro restrictions */
+"pro_brand_locked" = "License feature: Sign in to unlock this brand";
+"pro_watermark_locked" = "License feature: Sign in to unlock watermarks";
+"pro_quality_limit" = "License feature: Quality above 60%% requires License";
+"label_license_permanent" = "Permanent License";
+"label_license_version_mismatch" = "Your license is limited to version %@!";
+"quality_limit_notice" = "License feature: Max quality 60%% for free users";
+"btn_sign_in_google" = "Sign in with Google";

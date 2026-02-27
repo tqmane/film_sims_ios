@@ -88,7 +88,7 @@
 "label_pick_image" = "Pick Image";
 "desc_pick_image" = "Pick a photo to apply film simulations";
 "btn_open_gallery" = "Open Gallery";
-"header_grain" = "Grain";
+"header_grain" = "Efeitos";
 "label_film_grain" = "Film Grain";
 "header_camera" = "Camera";
 "header_style" = "Style";
@@ -99,6 +99,25 @@
 "btn_change" = "Change";
 "label_quality" = "Quality";
 "btn_close" = "Close";
+"export_success" = "Exportado com sucesso";
+"export_error" = "Erro durante a exportação";
+"adjustments" = "Ajustes";
+"grain" = "Grão";
+"watermark" = "Marca d'água";
+"watermark_select_brand" = "Selecione uma marca para ver os estilos";
+"device_name" = "Nome do dispositivo";
+"time" = "Hora";
+"location" = "Localização";
+"lens_info" = "Informações da Lente";
+"brand_leica_fotos" = "Leica FOTOS";
+"label_account" = "Conta";
+"sign_in_description" = "Faça login com Apple para desbloquear recursos de Licença";
+"btn_sign_in" = "Fazer login com Apple";
+"btn_sign_out" = "Sair";
+"label_pro" = "LICENÇA";
+"pro_brand_locked" = "Recurso licenciado: Faça login para desbloquear esta marca";
+"pro_watermark_locked" = "Recurso licenciado: Faça login para desbloquear a marca d'água";
+"pro_quality_limit" = "Recurso licenciado: Qualidade acima de 60%% requer uma licença";
 
 /* Leica FOTOS LUT names */
 "lut_fotos_classic" = "Classic";
@@ -273,3 +292,5 @@
 "tecno_2" = "Mode 2";
 "tecno_3" = "Mode 3";
 "tecno_4" = "Mode 4";
+"quality_limit_notice" = "License feature: Max quality 60%% for free users";
+"btn_sign_in_google" = "Sign in with Google";
