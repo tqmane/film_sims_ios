@@ -296,7 +296,7 @@ class CubeLUTParser {
         }
 
         // Strip format A: width = N², height = N  (e.g. 1024×32, 256×16, 4096×64)
-        // pixel(r + g*N, b) → output(r,g,b)
+        // Standard: pixel(B*N+R, G) → output(r,g,b); Meizu: pixel(G*N+B, R) → output(r,g,b)
         if height >= 8, height <= 128, width == height * height {
             return parseStripLutA(cgImage: cgImage, lutSize: height)
         }
@@ -310,23 +310,47 @@ class CubeLUTParser {
         return nil
     }
 
-    // Format A: row=B, col=R+G*N
+    // Format A: horizontal strip — auto-detects axis convention by sampling px[row=0, col=lutSize-1].
+    // Standard (Vivo etc.): Tile=B, X=R, Y=G → dominant Red in sample → row=G, col=B*N+R
+    // Meizu classicFilter: Tile=G, X=B, Y=R → dominant Blue in sample → row=R, col=G*N+B
     private static func parseStripLutA(cgImage: CGImage, lutSize: Int) -> CubeLUT? {
         guard let rgba = decodeToRGBA8(cgImage: cgImage) else { return nil }
         let pointer = rgba.bytes
         let bytesPerPixel = 4
         let bytesPerRow = rgba.bytesPerRow
 
+        // Sample pixel at (row=0, col=lutSize-1) to detect convention
+        let sampleOff = (lutSize - 1) * bytesPerPixel
+        let sR = pointer[sampleOff]
+        let sG = pointer[sampleOff + 1]
+        let sB = pointer[sampleOff + 2]
+        let isMeizuConvention = sB > sR && sB > sG
+
         var dataList: [Float] = []
         dataList.reserveCapacity(lutSize * lutSize * lutSize * 3)
 
-        for b in 0..<lutSize {
-            for g in 0..<lutSize {
-                for r in 0..<lutSize {
-                    let offset = b * bytesPerRow + (r + g * lutSize) * bytesPerPixel
-                    dataList.append(Float(pointer[offset])     / 255.0)
-                    dataList.append(Float(pointer[offset + 1]) / 255.0)
-                    dataList.append(Float(pointer[offset + 2]) / 255.0)
+        if isMeizuConvention {
+            // Meizu classicFilter: Tile=G, X=B, Y=R  →  col=G*N+B, row=R
+            for b in 0..<lutSize {
+                for g in 0..<lutSize {
+                    for r in 0..<lutSize {
+                        let offset = r * bytesPerRow + (g * lutSize + b) * bytesPerPixel
+                        dataList.append(Float(pointer[offset])     / 255.0)
+                        dataList.append(Float(pointer[offset + 1]) / 255.0)
+                        dataList.append(Float(pointer[offset + 2]) / 255.0)
+                    }
+                }
+            }
+        } else {
+            // Standard: Tile=B, X=R, Y=G  →  col=B*N+R, row=G
+            for b in 0..<lutSize {
+                for g in 0..<lutSize {
+                    for r in 0..<lutSize {
+                        let offset = g * bytesPerRow + (b * lutSize + r) * bytesPerPixel
+                        dataList.append(Float(pointer[offset])     / 255.0)
+                        dataList.append(Float(pointer[offset + 1]) / 255.0)
+                        dataList.append(Float(pointer[offset + 2]) / 255.0)
+                    }
                 }
             }
         }
