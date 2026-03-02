@@ -113,15 +113,15 @@ struct WatermarkView: View {
                 .tracking(0.18)
                 .padding(.bottom, 4)
 
-            // Brand row
+            // Brand row (Android: icon 20dp, label 14sp, chips 8dp spacing)
             HStack(spacing: 0) {
                 Image(systemName: "seal.fill")
-                    .font(.system(size: 16))
+                    .font(.system(size: 18))
                     .foregroundColor(.accentSecondary)
-                    .frame(width: 18)
+                    .frame(width: 20)
                 Spacer().frame(width: 12)
                 Text(L10n.tr("label_watermark_brand"))
-                    .font(.system(size: 13))
+                    .font(.system(size: 14))
                     .foregroundColor(.textSecondary)
                     .padding(.trailing, 12)
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -147,7 +147,7 @@ struct WatermarkView: View {
                 HStack(spacing: 0) {
                     Spacer().frame(width: 30)
                     Text(L10n.tr("label_watermark_style"))
-                        .font(.system(size: 13))
+                        .font(.system(size: 14))
                         .foregroundColor(.textSecondary)
                         .padding(.trailing, 12)
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -201,7 +201,7 @@ struct WatermarkView: View {
     }
 }
 
-// MARK: - Input row matching Android LiquidWatermarkInputRow
+// MARK: - Input row matching Android LiquidTextField
 struct WatermarkInputRow: View {
     let label: String
     @Binding var text: String
@@ -210,26 +210,27 @@ struct WatermarkInputRow: View {
         HStack(spacing: 0) {
             // Android: padding start=32dp
             Spacer().frame(width: 32)
-            // Android: label weight(0.25f) of total
+            // Android: label weight(0.25f), 13sp, LowEmphasis
             Text(label)
-                .font(.system(size: 12))
+                .font(.system(size: 13))
                 .foregroundColor(.textTertiary)
+                .lineLimit(1)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                 .layoutPriority(0.25)
             Spacer().frame(width: 8)
-            // Android: input weight(0.75f), height 40dp
+            // Android: input weight(0.75f), height 40dp, corner 12dp, bg 0x10FFFFFF, border 0x18FFFFFF
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.glassSurfaceDark)
+                    .fill(Color.white.opacity(0.063)) // 0x10FFFFFF
                     .overlay(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(Color.glassBorderAndroid, lineWidth: 1)
+                            .stroke(Color.white.opacity(0.094), lineWidth: 1) // 0x18FFFFFF
                     )
                     .frame(height: 40)
                 TextField("—", text: $text)
-                    .font(.system(size: 11))
+                    .font(.system(size: 13))
                     .foregroundColor(.textPrimary)
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 10)
             }
             .layoutPriority(0.75)
         }

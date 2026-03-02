@@ -26,6 +26,7 @@ struct LutPresetSelector: View {
                     }
                 }
             }
+            .padding(.horizontal, metrics.scrollContentInset)
             .padding(.vertical, 2)
         }
         .frame(height: metrics.lutRowHeight)
@@ -105,15 +106,15 @@ struct LutPresetCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: metrics.cardCorner, style: .continuous))
                     .modifier(ShimmerModifier(active: isLoading))
 
-                    // Adjust hint overlay
+                    // Adjust hint overlay (Android: 28dp height, 13dp icon, 8sp text)
                     if isSelected {
-                        VStack(spacing: 2) {
+                        VStack(spacing: 1) {
                             Image(systemName: "slider.horizontal.3")
-                                .font(.system(size: max(8, cardSize * 0.12), weight: .semibold))
+                                .font(.system(size: max(9, cardSize * 0.138), weight: .medium))
                                 .foregroundColor(.white)
                             if cardSize >= 80 {
                                 Text(L10n.tr("adjustments"))
-                                    .font(.system(size: max(7, cardSize * 0.096), weight: .medium))
+                                    .font(.system(size: max(6, cardSize * 0.085), weight: .medium))
                                     .foregroundColor(.white.opacity(0.8))
                             }
                         }
@@ -171,8 +172,7 @@ struct LutPresetCard: View {
                     .padding(.top, 6)
                     .padding(.bottom, 2)
             }
-            .padding(.leading, 2)
-            .padding(.trailing, 6)
+            .padding(.horizontal, 3)
             .padding(.vertical, 2)
         }
         .buttonStyle(.plain)

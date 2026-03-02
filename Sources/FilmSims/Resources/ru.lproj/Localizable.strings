@@ -111,8 +111,8 @@
 "lens_info" = "Инфо об объективе";
 "brand_leica_fotos" = "Leica FOTOS";
 "label_account" = "Аккаунт";
-"sign_in_description" = "Войдите через Apple, чтобы разблокировать функции Лицензии";
-"btn_sign_in" = "Войти через Apple";
+"sign_in_description" = "Войдите через Google, чтобы разблокировать функции Лицензии";
+"btn_sign_in" = "Войти через Google";
 "btn_sign_out" = "Выйти";
 "label_pro" = "ЛИЦЕНЗИЯ";
 "pro_brand_locked" = "Лицензионная функция: Войдите, чтобы разблокировать этот бренд";
@@ -294,3 +294,5 @@
 "tecno_4" = "Mode 4";
 "quality_limit_notice" = "License feature: Max quality 60%% for free users";
 "btn_sign_in_google" = "Sign in with Google";
+"category_xiaomi_leica_m3" = "Leica M3";
+"category_xiaomi_leica_m9" = "Leica M9";

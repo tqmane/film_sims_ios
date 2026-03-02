@@ -23,6 +23,7 @@ struct BrandSelector: View {
                     }
                 }
             }
+            .padding(.horizontal, metrics.scrollContentInset)
             .padding(.bottom, metrics.chipRowPadBottom)
         }
     }
@@ -45,6 +46,7 @@ struct GenreSelector: View {
                     }
                 }
             }
+            .padding(.horizontal, metrics.scrollContentInset)
             .padding(.bottom, metrics.chipRowPadBottom)
         }
     }

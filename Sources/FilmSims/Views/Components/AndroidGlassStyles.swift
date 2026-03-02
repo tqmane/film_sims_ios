@@ -34,24 +34,12 @@ struct AndroidTopShadow: View {
 struct AndroidRoundGlassBackground: View {
     var body: some View {
         ZStack {
+            // Android LiquidRoundButton: bg = 0x12FFFFFF, border = 0x14FFFFFF
             Circle()
-                .fill(Color.glassSurface) // 0x20FFFFFF
+                .fill(Color.white.opacity(0.071)) // 0x12FFFFFF
 
             Circle()
-                .fill(
-                    RadialGradient(
-                        stops: [
-                            .init(color: Color.glassSurfaceDark, location: 0.0), // 0x15FFFFFF
-                            .init(color: Color.white.opacity(0.0), location: 1.0),
-                        ],
-                        center: UnitPoint(x: 0.5, y: 0.35),
-                        startRadius: 0,
-                        endRadius: 24
-                    )
-                )
-
-            Circle()
-                .stroke(Color.glassBorderAndroid, lineWidth: 1) // 0x18FFFFFF
+                .stroke(Color.white.opacity(0.078), lineWidth: 1) // 0x14FFFFFF
         }
     }
 }
@@ -132,17 +120,13 @@ struct AndroidControlPanelBackground: View {
 
     var body: some View {
         ZStack {
-            // Main glass background - matches Android LiquidColors.SurfaceDark (0xFF050508) at alpha 0.85 = 0xD9050508
-            RoundedCornerShape(radius: topRadius, corners: [.topLeft, .topRight])
-                .fill(Color(hex: "#050508").opacity(0.85))
-
-            // Inner gradient for depth (bottom gets slightly lighter)
+            // Android GlassBottomSheet: SurfaceMedium(0.95) → SurfaceDark(0.97)
             RoundedCornerShape(radius: topRadius, corners: [.topLeft, .topRight])
                 .fill(
                     LinearGradient(
                         stops: [
-                            .init(color: Color.clear, location: 0.0),
-                            .init(color: Color.white.opacity(0.024), location: 1.0), // #06FFFFFF
+                            .init(color: Color(hex: "#141419").opacity(0.95), location: 0.0), // SurfaceMedium
+                            .init(color: Color(hex: "#0C0C11").opacity(0.97), location: 1.0), // SurfaceDark
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -174,7 +158,7 @@ struct AndroidControlPanelBackground: View {
                         LinearGradient(
                             stops: [
                                 .init(color: Color.white.opacity(0.0), location: 0.0),
-                                .init(color: Color.white.opacity(0.094), location: 0.5), // #18FFFFFF
+                                .init(color: Color.white.opacity(0.157), location: 0.5), // 0x28FFFFFF
                                 .init(color: Color.white.opacity(0.0), location: 1.0),
                             ],
                             startPoint: .leading,

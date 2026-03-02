@@ -81,6 +81,8 @@ class LutRepository {
         case "normal": return L10n.tr("category_xiaomi_normal")
         case "portrait": return L10n.tr("category_xiaomi_portrait")
         case "video": return L10n.tr("category_xiaomi_video")
+        case "leica_m3": return L10n.tr("category_xiaomi_leica_m3")
+        case "leica_m9": return L10n.tr("category_xiaomi_leica_m9")
         // Samsung categories
         case "myfilter": return L10n.tr("category_samsung_myfilter")
         case "preload_effect": return L10n.tr("category_samsung_preload_effect")
@@ -306,6 +308,43 @@ class LutRepository {
         return name.replacingOccurrences(of: "_", with: " ")
     }
 
+    // MARK: - Xiaomi Leica M9 Filter Names
+    private func getXiaomiM9LutName(_ fileName: String) -> String {
+        let lower = fileName.lowercased()
+        switch lower {
+        case "m9_warm_low_light": return "Warm Low Light"
+        case "m9_tungsten_a": return "Tungsten A"
+        case "m9_tungsten_b": return "Tungsten B"
+        case "m9_studio_mixed": return "Studio Mixed"
+        case "m9_fluorescent": return "Fluorescent"
+        case "m9_warm_neutral": return "Warm Neutral"
+        case "m9_cool_daylight": return "Cool Daylight"
+        default:
+            return fileName.replacingOccurrences(of: "_", with: " ")
+                .split(separator: " ")
+                .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+                .joined(separator: " ")
+        }
+    }
+
+    // MARK: - Xiaomi Leica M3 Filter Names
+    private func getXiaomiM3LutName(_ fileName: String) -> String {
+        let lower = fileName.lowercased()
+        switch lower {
+        case "leica_monopan": return "Monopan"
+        case "m3_mono_cool_daylight": return "M3 Cool Daylight"
+        case "m3_mono_daylight_outdoor": return "M3 Daylight Outdoor"
+        case "m3_mono_mixed_light": return "M3 Mixed Light"
+        case "m3_mono_tungsten_indoor": return "M3 Tungsten Indoor"
+        case "m3_mono_warm_tungsten_classic": return "M3 Warm Tungsten"
+        default:
+            return fileName.replacingOccurrences(of: "_", with: " ")
+                .split(separator: " ")
+                .map { $0.prefix(1).uppercased() + $0.dropFirst() }
+                .joined(separator: " ")
+        }
+    }
+
     // Matches Android LutRepository.getSamsungFilterName
     private func getSamsungFilterName(_ fileName: String, categoryName: String) -> String {
         var name: String
@@ -495,6 +534,8 @@ class LutRepository {
         isSamsung: Bool = false
     ) -> [LutItem] {
         let isFilm = (brandName == "OnePlus" && categoryName == "Film")
+        let isXiaomiM9 = (brandName == "Xiaomi" && categoryName == "leica_m9")
+        let isXiaomiM3 = (brandName == "Xiaomi" && categoryName == "leica_m3")
         
         // Group by basename to handle duplicates
         var groupedFiles: [String: [String]] = [:]
@@ -542,6 +583,10 @@ class LutRepository {
                 displayName = getTecnoFilterName(baseName, categoryName: categoryName)
             } else if isSamsung {
                 displayName = getSamsungFilterName(baseName, categoryName: categoryName)
+            } else if isXiaomiM9 {
+                displayName = getXiaomiM9LutName(baseName)
+            } else if isXiaomiM3 {
+                displayName = getXiaomiM3LutName(baseName)
             } else if isFilm {
                 displayName = getFilmLutName(baseName.lowercased())
             } else {

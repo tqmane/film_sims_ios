@@ -50,6 +50,9 @@ struct LayoutMetrics: Sendable {
     let usesSidebar: Bool
     let sidebarWidth: CGFloat
 
+    // Content insets for scroll containers (chips/cards start with breathing room)
+    let scrollContentInset: CGFloat
+
     // MARK: - Factory
     static func from(size: CGSize, horizontalSizeClass: UserInterfaceSizeClass?) -> LayoutMetrics {
         let w = size.width
@@ -70,7 +73,8 @@ struct LayoutMetrics: Sendable {
                 saveButtonWidth: 110, saveButtonHeight: 50, topBarVPad: 18, topBarHPad: 28,
                 adjustTabVPad: 13, adjustHPad: 28, adjustTabFontSize: 14,
                 adjustTabTopPad: 16, adjustPanelCorner: 28,
-                usesSidebar: useSidebar, sidebarWidth: useSidebar ? min(w * 0.42, 400) : 0
+                usesSidebar: useSidebar, sidebarWidth: useSidebar ? min(w * 0.42, 400) : 0,
+                scrollContentInset: 0
             )
         } else if isCompact {
             return LayoutMetrics(
@@ -80,11 +84,12 @@ struct LayoutMetrics: Sendable {
                 cardSize: 68, lutRowHeight: 94, cardTextSize: 9, cardCorner: 10,
                 panelHPad: 12, panelBottomPad: 8, dragHandlePad: 8, panelTopRadius: 16,
                 headerFontSize: 10, headerBottomPad: 7,
-                titleFontSize: 20, subtitleFontSize: 10, actionButtonSize: 34,
-                saveButtonWidth: 76, saveButtonHeight: 36, topBarVPad: 8, topBarHPad: 16,
+                titleFontSize: 20, subtitleFontSize: 10, actionButtonSize: 36,
+                saveButtonWidth: 76, saveButtonHeight: 38, topBarVPad: 8, topBarHPad: 16,
                 adjustTabVPad: 7, adjustHPad: 12, adjustTabFontSize: 11,
                 adjustTabTopPad: 10, adjustPanelCorner: 18,
-                usesSidebar: false, sidebarWidth: 0
+                usesSidebar: false, sidebarWidth: 0,
+                scrollContentInset: 12
             )
         } else {
             return LayoutMetrics(
@@ -94,11 +99,12 @@ struct LayoutMetrics: Sendable {
                 cardSize: 94, lutRowHeight: 130, cardTextSize: 10, cardCorner: 12,
                 panelHPad: 18, panelBottomPad: 16, dragHandlePad: 14, panelTopRadius: 22,
                 headerFontSize: 11.5, headerBottomPad: 10,
-                titleFontSize: 26, subtitleFontSize: 11.5, actionButtonSize: 42,
-                saveButtonWidth: 94, saveButtonHeight: 44, topBarVPad: 16, topBarHPad: 24,
+                titleFontSize: 26, subtitleFontSize: 11.5, actionButtonSize: 46,
+                saveButtonWidth: 94, saveButtonHeight: 48, topBarVPad: 16, topBarHPad: 24,
                 adjustTabVPad: 11, adjustHPad: 18, adjustTabFontSize: 13,
                 adjustTabTopPad: 14, adjustPanelCorner: 24,
-                usesSidebar: false, sidebarWidth: 0
+                usesSidebar: false, sidebarWidth: 0,
+                scrollContentInset: 18
             )
         }
     }

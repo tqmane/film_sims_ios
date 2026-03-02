@@ -58,6 +58,8 @@
 "category_xiaomi_normal" = "ノーマル";
 "category_xiaomi_portrait" = "ポートレート";
 "category_xiaomi_video" = "ビデオ";
+"category_xiaomi_leica_m3" = "Leica M3";
+"category_xiaomi_leica_m9" = "Leica M9";
 
 /* LUT Categories - Nothing/Common */
 "category_all" = "すべて";
@@ -314,8 +316,8 @@
 
 /* Account / Auth */
 "label_account" = "アカウント";
-"sign_in_description" = "Appleでサインインしてライセンス機能を解放";
-"btn_sign_in" = "Appleでサインイン";
+"sign_in_description" = "Googleでログインしてライセンス機能を有効化";
+"btn_sign_in" = "Googleでログイン";
 "btn_sign_out" = "サインアウト";
 "label_pro" = "ライセンス";
 

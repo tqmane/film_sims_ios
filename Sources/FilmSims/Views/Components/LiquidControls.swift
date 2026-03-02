@@ -98,9 +98,13 @@ struct LiquidButton<Content: View>: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(Color.white.opacity(0.145), lineWidth: 1)
+                )
         }
-        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.9, bounceTo: 1.05))
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.92))
     }
 }
 
@@ -119,7 +123,7 @@ struct LiquidRoundButton: View {
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.glassBorderAndroid, lineWidth: 1))
         }
-        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.85, bounceTo: 1.0))
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.88))
     }
 }
 
@@ -143,19 +147,18 @@ struct LiquidChip: View {
                         .stroke(isSelected ? Color.accentPrimary.opacity(0.8) : Color.glassBorderAndroid, lineWidth: 1)
                 )
         }
-        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.95, bounceTo: 1.02))
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.95))
     }
 }
 
-// MARK: - Spring Button Style
-private struct BouncyButtonStyle: ButtonStyle {
+// MARK: - Spring Button Style (matches Android LiquidMotion.SpringSpec: LowBouncy, StiffnessLow)
+struct BouncyButtonStyle: ButtonStyle {
     let scaleDownTo: CGFloat
-    let bounceTo: CGFloat
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? scaleDownTo : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0), value: configuration.isPressed)
+            .animation(.spring(response: 0.45, dampingFraction: 0.55, blendDuration: 0), value: configuration.isPressed)
     }
 }
 

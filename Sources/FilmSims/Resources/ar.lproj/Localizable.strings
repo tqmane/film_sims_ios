@@ -111,8 +111,8 @@
 "lens_info" = "معلومات العدسة";
 "brand_leica_fotos" = "Leica FOTOS";
 "label_account" = "حساب";
-"sign_in_description" = "قم بتسجيل الدخول باستخدام Apple لفتح ميزات الترخيص";
-"btn_sign_in" = "تسجيل الدخول بواسطة Apple";
+"sign_in_description" = "قم بتسجيل الدخول باستخدام Google لفتح ميزات الترخيص";
+"btn_sign_in" = "تسجيل الدخول بواسطة Google";
 "btn_sign_out" = "تسجيل خروج";
 "label_pro" = "ترخيص";
 "pro_brand_locked" = "ميزة مرخصة: قم بتسجيل الدخول لفتح هذه العلامة التجارية";
@@ -294,3 +294,5 @@
 "tecno_4" = "Mode 4";
 "quality_limit_notice" = "License feature: Max quality 60%% for free users";
 "btn_sign_in_google" = "Sign in with Google";
+"category_xiaomi_leica_m3" = "Leica M3";
+"category_xiaomi_leica_m9" = "Leica M9";

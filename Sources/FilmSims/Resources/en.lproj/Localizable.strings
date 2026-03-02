@@ -58,6 +58,8 @@
 "category_xiaomi_normal" = "Normal";
 "category_xiaomi_portrait" = "Portrait";
 "category_xiaomi_video" = "Video";
+"category_xiaomi_leica_m3" = "Leica M3";
+"category_xiaomi_leica_m9" = "Leica M9";
 
 /* LUT Categories - Nothing/Common */
 "category_all" = "All";
@@ -314,8 +316,8 @@
 
 /* Account / Auth */
 "label_account" = "Account";
-"sign_in_description" = "Sign in with Apple to unlock License features";
-"btn_sign_in" = "Sign in with Apple";
+"sign_in_description" = "Sign in with Google to unlock License features";
+"btn_sign_in" = "Sign in with Google";
 "btn_sign_out" = "Sign Out";
 "label_pro" = "LICENSE";
 

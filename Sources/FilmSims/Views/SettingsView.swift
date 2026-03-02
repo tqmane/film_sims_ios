@@ -16,7 +16,7 @@ struct SettingsView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 // Android SettingsDialog background: 1A1A22 → 0A0A10
                 LinearGradient(

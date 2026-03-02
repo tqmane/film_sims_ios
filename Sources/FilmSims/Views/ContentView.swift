@@ -135,40 +135,50 @@ struct ContentView: View {
     // MARK: - iPad Sidebar Panel
     @ViewBuilder
     private func sidebarPanel(metrics: LayoutMetrics) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                if showAdjustPanel && viewModel.currentLut != nil {
-                    LiquidAdjustPanel(viewModel: viewModel)
-                        .padding(.bottom, 16)
-                }
+        VStack(spacing: 0) {
+            // Subtle divider at the left edge
+            Rectangle()
+                .fill(Color.white.opacity(0.06))
+                .frame(maxHeight: .infinity)
+                .frame(width: 1)
+                .overlay(alignment: .trailing) {
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 0) {
+                            if showAdjustPanel && viewModel.currentLut != nil {
+                                LiquidAdjustPanel(viewModel: viewModel)
+                                    .padding(.bottom, 16)
+                            }
 
-                LiquidSectionHeader(text: L10n.tr("header_camera"))
-                BrandSelector(
-                    brands: viewModel.brands,
-                    selectedBrand: $viewModel.selectedBrand,
-                    isProUser: proRepo.isProUser,
-                    freeBrands: freeBrands
-                )
+                            LiquidSectionHeader(text: L10n.tr("header_camera"))
+                            BrandSelector(
+                                brands: viewModel.brands,
+                                selectedBrand: $viewModel.selectedBrand,
+                                isProUser: proRepo.isProUser,
+                                freeBrands: freeBrands
+                            )
 
-                LiquidSectionHeader(text: L10n.tr("header_style"))
-                GenreSelector(
-                    categories: viewModel.currentCategories,
-                    selectedCategory: $viewModel.selectedCategory
-                )
+                            LiquidSectionHeader(text: L10n.tr("header_style"))
+                            GenreSelector(
+                                categories: viewModel.currentCategories,
+                                selectedCategory: $viewModel.selectedCategory
+                            )
 
-                LiquidSectionHeader(text: L10n.tr("header_presets"))
-                LutPresetSelector(
-                    luts: viewModel.currentLuts,
-                    selectedLut: $viewModel.currentLut,
-                    sourceThumbnail: viewModel.thumbnailImage,
-                    viewModel: viewModel,
-                    onLutReselected: {
-                        withAnimation { showAdjustPanel.toggle() }
+                            LiquidSectionHeader(text: L10n.tr("header_presets"))
+                            LutPresetSelector(
+                                luts: viewModel.currentLuts,
+                                selectedLut: $viewModel.currentLut,
+                                sourceThumbnail: viewModel.thumbnailImage,
+                                viewModel: viewModel,
+                                onLutReselected: {
+                                    withAnimation { showAdjustPanel.toggle() }
+                                }
+                            )
+                        }
+                        .padding(.horizontal, metrics.panelHPad)
+                        .padding(.vertical, 16)
                     }
-                )
-            }
-            .padding(.horizontal, metrics.panelHPad)
-            .padding(.vertical, 16)
+                    .frame(width: metrics.sidebarWidth - 1)
+                }
         }
         .background(
             LinearGradient(
@@ -187,6 +197,7 @@ struct ContentView: View {
                 Text("FilmSims")
                     .font(.system(size: metrics.titleFontSize, weight: .semibold))
                     .foregroundColor(.textPrimary)
+                    .tracking(0.005)
 
                 Text(L10n.tr("subtitle_film_simulator").uppercased())
                     .font(.system(size: metrics.subtitleFontSize, weight: .medium))
@@ -200,7 +211,7 @@ struct ContentView: View {
             HStack(spacing: 8) {
                 PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
                     Image(systemName: "plus")
-                        .font(.system(size: metrics.category == .compact ? 13 : 16, weight: .medium))
+                        .font(.system(size: metrics.category == .compact ? 15 : 19, weight: .medium))
                         .foregroundColor(.textPrimary)
                         .frame(width: metrics.actionButtonSize, height: metrics.actionButtonSize)
                         .background(AndroidRoundGlassBackground())
@@ -208,7 +219,7 @@ struct ContentView: View {
 
                 Button(action: { isSettingsPresented = true }) {
                     Image(systemName: "gearshape")
-                        .font(.system(size: metrics.category == .compact ? 13 : 16, weight: .medium))
+                        .font(.system(size: metrics.category == .compact ? 15 : 19, weight: .medium))
                         .foregroundColor(.textPrimary)
                         .frame(width: metrics.actionButtonSize, height: metrics.actionButtonSize)
                         .background(AndroidRoundGlassBackground())
