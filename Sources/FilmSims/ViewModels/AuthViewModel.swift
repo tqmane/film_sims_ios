@@ -7,6 +7,10 @@ import GoogleSignIn
 /// Handles Google Sign-In via Firebase Auth and pro status checking.
 @MainActor
 final class AuthViewModel: ObservableObject {
+    /// Shared singleton — initialised on app launch so `restoreSession()` runs
+    /// before any view appears and pro status is populated without opening Settings.
+    static let shared = AuthViewModel()
+
     @Published var isSignedIn: Bool = false
     @Published var isLoading: Bool = false
     @Published var userName: String? = nil

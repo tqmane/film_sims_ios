@@ -14,6 +14,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             // Fallback: try main bundle (e.g. when running via Xcode)
             FirebaseApp.configure()
         }
+        // Force early initialisation of the AuthViewModel singleton so that
+        // restoreSession() — and the Firestore pro-licence check — runs at
+        // launch rather than waiting for the Settings sheet to open.
+        _ = AuthViewModel.shared
         return true
     }
 

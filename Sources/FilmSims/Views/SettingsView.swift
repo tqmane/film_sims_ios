@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var viewModel: FilmSimsViewModel
-    @StateObject private var authViewModel = AuthViewModel()
+    @ObservedObject private var authViewModel = AuthViewModel.shared
     @ObservedObject private var proRepo = ProUserRepository.shared
     @Environment(\.dismiss) private var dismiss
 
