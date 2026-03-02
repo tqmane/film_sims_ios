@@ -248,118 +248,207 @@ class WatermarkProcessor {
     
     // MARK: - Honor Watermarks
     
+    // Helper: draw text left-aligned at a given Android-style baseline position
+    // iOS draw(at:) uses top-left; baseline = topY + font.ascender
+    private static func drawTextAtBaseline(_ text: String, x: CGFloat, baselineY: CGFloat,
+                                           font: UIFont, color: UIColor,
+                                           shadowBlur: CGFloat = 0, shadowOffset: CGSize = .zero, shadowColor: UIColor? = nil) {
+        var attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
+        if let sh = shadowColor, shadowBlur > 0 {
+            let shadow = NSShadow()
+            shadow.shadowBlurRadius = shadowBlur
+            shadow.shadowOffset = shadowOffset
+            shadow.shadowColor = sh
+            attrs[.shadow] = shadow
+        }
+        NSAttributedString(string: text, attributes: attrs).draw(at: CGPoint(x: x, y: baselineY - font.ascender))
+    }
+
+    // Helper: draw text right-aligned at a given Android-style baseline position
+    private static func drawTextRightAtBaseline(_ text: String, rightX: CGFloat, baselineY: CGFloat,
+                                                font: UIFont, color: UIColor,
+                                                shadowBlur: CGFloat = 0, shadowOffset: CGSize = .zero, shadowColor: UIColor? = nil) {
+        var attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color]
+        if let sh = shadowColor, shadowBlur > 0 {
+            let shadow = NSShadow()
+            shadow.shadowBlurRadius = shadowBlur
+            shadow.shadowOffset = shadowOffset
+            shadow.shadowColor = sh
+            attrs[.shadow] = shadow
+        }
+        let textWidth = (text as NSString).size(withAttributes: attrs).width
+        NSAttributedString(string: text, attributes: attrs).draw(at: CGPoint(x: rightX - textWidth, y: baselineY - font.ascender))
+    }
+
+    // Helper: vertically center text (Android-style) within an element box, returns baseline Y
+    private static func centerBaseline(elementTop: CGFloat, elementBottom: CGFloat, font: UIFont) -> CGFloat {
+        let centerY = (elementTop + elementBottom) / 2
+        // Android: baseline = centerY - (ascent + descent)/2
+        // UIFont: ascender is positive, descender is negative
+        // Equivalent: baseline = centerY - (ascender + descender)/2 * (-1 in iOS sign convention)
+        // Actually: textCenter = baseline - (ascender + descender)/2
+        //           => baseline = centerY + (ascender + descender)/2
+        // But UIFont.ascender > 0, UIFont.descender < 0
+        // ascender + descender = (above) + (below) = positive - |descender|
+        // => baseline = centerY + (ascender + descender) / 2
+        return centerY + (font.ascender + font.descender) / 2
+    }
+
     private static func applyFrameWatermark(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
         let imgWidth = bitmap.width
         let imgHeight = bitmap.height
         let scale = CGFloat(imgWidth) / BASE_WIDTH
-        
+
         let borderHeight = Int(FRAME_BORDER_HEIGHT * scale)
         let totalHeight = imgHeight + borderHeight
-        
-        // Create output bitmap (use 1.0 scale so our pixel-based layout matches output pixels)
+
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1.0
         format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: imgWidth, height: totalHeight), format: format)
         return renderer.image { context in
             let ctx = context.cgContext
-            
-            // Draw original image
+
             image.draw(in: CGRect(x: 0, y: 0, width: imgWidth, height: imgHeight))
-        
-            // Draw white border
+
+            // White border
             ctx.setFillColor(UIColor.white.cgColor)
             ctx.fill(CGRect(x: 0, y: imgHeight, width: imgWidth, height: borderHeight))
-        
-        // Load Honor logo
-        let logoBitmap = loadHonorLogo("FrameWatermark")
-        
-        let isWideLayout = imgWidth > Int(2680 * scale)
-        
-        // Template dimensions
-        let marginRight: CGFloat = 192
-        let logoHeight: CGFloat = 388
-        let logoMarginGap: CGFloat = 88
-        
-        let lensFontSize: CGFloat
-        let lensBaseline: CGFloat
-        let secondaryFontSize: CGFloat
-        let secondaryBaseline: CGFloat
-        
-        if isWideLayout {
-            lensFontSize = 120; lensBaseline = 126
-            secondaryFontSize = 93; secondaryBaseline = 110
-        } else {
-            lensFontSize = 136; lensBaseline = 126
-            secondaryFontSize = 104; secondaryBaseline = 110
-        }
-        
-        // Create fonts
-        let lensFont = getHonorFont(size: lensFontSize * scale, weight: 400)
-        let secondaryFont = getHonorFont(size: secondaryFontSize * scale, weight: 300)
-        
-        // Prepare text
-        let lensText = config.lensInfo ?? ""
-        let timeText = config.timeText ?? ""
-        let locText = config.locationText ?? ""
-        
-        let hasLens = !lensText.isEmpty
-        let hasTime = !timeText.isEmpty
-        let hasLoc = !locText.isEmpty
-        let hasSecondary = hasTime || hasLoc
-        let hasLogo = logoBitmap != nil
-        
-        // Draw text and logo
-        let borderTop = CGFloat(imgHeight)
-        let scaledMarginRight = marginRight * scale
-        
-        if hasLogo && (hasLens || hasSecondary) {
-            // Logo + text layout
-            if let logo = logoBitmap {
-                let scaledLogoHeight = logoHeight * scale
-                let logoScale = scaledLogoHeight / CGFloat(logo.height)
-                let logoDrawWidth = CGFloat(logo.width) * logoScale
-                
-                let logoX = CGFloat(imgWidth) - scaledMarginRight - logoDrawWidth
-                let logoY = borderTop + (CGFloat(borderHeight) - scaledLogoHeight) / 2
-                
-                ctx.draw(logo, in: CGRect(x: logoX, y: logoY, width: logoDrawWidth, height: scaledLogoHeight))
+
+            let logoBitmap = loadHonorLogo("FrameWatermark")
+            let isWide = imgWidth > Int(2680 * scale)
+
+            // Template dimensions (at BASE_WIDTH=6144)
+            let marginRight: CGFloat = 192
+            let logoHeight: CGFloat = 388
+            let logoMarginGap: CGFloat = 88
+            let timeLocGap: CGFloat = 46
+
+            let lensFontSize: CGFloat
+            let lensBaseline: CGFloat
+            let lensBlockHeight: CGFloat
+            let lensTopMargin: CGFloat
+            let secondaryFontSize: CGFloat
+            let secondaryBaseline: CGFloat
+            let secondaryTopMargin: CGFloat
+            let lensOnlyFontSize: CGFloat
+            let lensOnlyBaseline: CGFloat
+
+            if isWide {
+                lensFontSize = 120; lensBaseline = 126; lensBlockHeight = 140; lensTopMargin = 192
+                secondaryFontSize = 93; secondaryBaseline = 110; secondaryTopMargin = 24
+                lensOnlyFontSize = 116; lensOnlyBaseline = 123
+            } else {
+                lensFontSize = 136; lensBaseline = 126; lensBlockHeight = 159; lensTopMargin = 201
+                secondaryFontSize = 104; secondaryBaseline = 110; secondaryTopMargin = 4
+                lensOnlyFontSize = 150; lensOnlyBaseline = 159
             }
-        }
-        
-        // Draw lens info text
-        if hasLens {
-            let attrs: [NSAttributedString.Key: Any] = [
-                .font: lensFont,
-                .foregroundColor: UIColor.black
-            ]
-            let attrString = NSAttributedString(string: lensText, attributes: attrs)
-            let textY = borderTop + (CGFloat(borderHeight) - lensFontSize * scale) / 2
-            attrString.draw(at: CGPoint(x: scaledMarginRight, y: textY))
-        }
-        
-        // Draw time and location text
-        if hasSecondary {
-            let attrs: [NSAttributedString.Key: Any] = [
-                .font: secondaryFont,
-                .foregroundColor: UIColor(white: 0.6, alpha: 1.0)
-            ]
-            let secondaryText = [timeText, locText].filter { !$0.isEmpty }.joined(separator: "  ")
-            let attrString = NSAttributedString(string: secondaryText, attributes: attrs)
-            let textY = borderTop + CGFloat(borderHeight) - secondaryFontSize * scale - 50 * scale
-            attrString.draw(at: CGPoint(x: scaledMarginRight, y: textY))
-        }
-        
-        // Draw device name
-        if let deviceName = config.deviceName, !deviceName.isEmpty {
-            let deviceFont = getHonorFont(size: 140 * scale, weight: 400)
-            let attrs: [NSAttributedString.Key: Any] = [
-                .font: deviceFont,
-                .foregroundColor: UIColor.black
-            ]
-            let attrString = NSAttributedString(string: deviceName, attributes: attrs)
-                let textY = borderTop + 100 * scale
-                attrString.draw(at: CGPoint(x: scaledMarginRight, y: textY))
+
+            let lensFont = getHonorFont(size: lensFontSize * scale, weight: 400)
+            let secondaryFont = getHonorFont(size: secondaryFontSize * scale, weight: 300)
+            let secondaryColor = UIColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1) // #999999
+
+            let lensText  = config.lensInfo ?? ""
+            let timeText  = config.timeText ?? ""
+            let locText   = config.locationText ?? ""
+            let hasLens   = !lensText.isEmpty
+            let hasTime   = !timeText.isEmpty
+            let hasLoc    = !locText.isEmpty
+            let hasSecondary = hasTime || hasLoc
+            let hasLogo   = logoBitmap != nil
+
+            let borderTop = CGFloat(imgHeight)
+            let totalHeightF = CGFloat(totalHeight)
+            let scaledMarginRight = marginRight * scale
+
+            // Measure text widths for layout
+            let lensAttrs: [NSAttributedString.Key: Any] = [.font: lensFont]
+            let secAttrs: [NSAttributedString.Key: Any] = [.font: secondaryFont]
+            let lensWidth   = hasLens ? (lensText as NSString).size(withAttributes: lensAttrs).width : 0
+            let timeWidth   = hasTime ? (timeText as NSString).size(withAttributes: secAttrs).width : 0
+            let gapWidth    = (hasTime && hasLoc) ? timeLocGap * scale : 0
+            let locWidth    = hasLoc ? (locText as NSString).size(withAttributes: secAttrs).width : 0
+            let secWidth    = timeWidth + gapWidth + locWidth
+            let textBlockW  = max(lensWidth, secWidth)
+
+            if hasLogo && (hasLens || hasSecondary) {
+                // Logo + text column, right-aligned
+                let textBlockRight = CGFloat(imgWidth) - scaledMarginRight
+                let textBlockLeft  = textBlockRight - textBlockW
+
+                if let logo = logoBitmap {
+                    let scaledLogoH = logoHeight * scale
+                    let logoScale   = scaledLogoH / CGFloat(logo.height)
+                    let logoDrawW   = CGFloat(logo.width) * logoScale
+                    let logoX       = textBlockLeft - (logoMarginGap * scale) - logoDrawW
+                    let logoY       = borderTop + (CGFloat(borderHeight) - scaledLogoH) / 2
+                    ctx.draw(logo, in: CGRect(x: logoX, y: logoY, width: logoDrawW, height: scaledLogoH))
+                }
+
+                if hasLens {
+                    let baselineY = borderTop + lensTopMargin * scale + lensBaseline * scale
+                    drawTextAtBaseline(lensText, x: textBlockLeft, baselineY: baselineY, font: lensFont, color: .black)
+                }
+                if hasSecondary {
+                    let secBaselineY: CGFloat
+                    if hasLens {
+                        secBaselineY = borderTop + lensTopMargin * scale + lensBlockHeight * scale + secondaryTopMargin * scale + secondaryBaseline * scale
+                    } else {
+                        secBaselineY = borderTop + CGFloat(borderHeight) / 2 + secondaryBaseline * scale / 3
+                    }
+                    var curX = textBlockLeft
+                    if hasTime {
+                        drawTextAtBaseline(timeText, x: curX, baselineY: secBaselineY, font: secondaryFont, color: secondaryColor)
+                        curX += timeWidth + gapWidth
+                    }
+                    if hasLoc {
+                        drawTextAtBaseline(locText, x: curX, baselineY: secBaselineY, font: secondaryFont, color: secondaryColor)
+                    }
+                }
+            } else if !hasLogo && hasLens {
+                // Text only, right-aligned
+                let noLogoBottomMargin = (isWide ? 220 : 184) * scale
+                let rightX = CGFloat(imgWidth) - scaledMarginRight
+
+                if hasSecondary {
+                    let lensBaselineY = borderTop + CGFloat(borderHeight) - noLogoBottomMargin - lensBlockHeight * scale - secondaryTopMargin * scale + lensBaseline * scale
+                    drawTextRightAtBaseline(lensText, rightX: rightX, baselineY: lensBaselineY, font: lensFont, color: .black)
+
+                    let secBaselineY = borderTop + CGFloat(borderHeight) - noLogoBottomMargin + secondaryBaseline * scale
+                    var curX = rightX
+                    if hasLoc && hasTime {
+                        drawTextRightAtBaseline(locText, rightX: curX, baselineY: secBaselineY, font: secondaryFont, color: secondaryColor)
+                        curX -= locWidth + gapWidth
+                        drawTextRightAtBaseline(timeText, rightX: curX, baselineY: secBaselineY, font: secondaryFont, color: secondaryColor)
+                    } else if hasTime {
+                        drawTextRightAtBaseline(timeText, rightX: curX, baselineY: secBaselineY, font: secondaryFont, color: secondaryColor)
+                    } else {
+                        drawTextRightAtBaseline(locText, rightX: curX, baselineY: secBaselineY, font: secondaryFont, color: secondaryColor)
+                    }
+                } else {
+                    // Lens only
+                    let lensOnlyFont = getHonorFont(size: lensOnlyFontSize * scale, weight: 400)
+                    let lensOnlyBottomMargin = (isWide ? 263 : 239) * scale
+                    let baselineY = borderTop + CGFloat(borderHeight) - lensOnlyBottomMargin + lensOnlyBaseline * scale
+                    drawTextRightAtBaseline(lensText, rightX: rightX, baselineY: baselineY, font: lensOnlyFont, color: .black)
+                }
+            } else if hasLogo, let logo = logoBitmap {
+                // Logo only
+                let scaledLogoH = logoHeight * scale
+                let logoScale   = scaledLogoH / CGFloat(logo.height)
+                let logoDrawW   = CGFloat(logo.width) * logoScale
+                let logoX       = CGFloat(imgWidth) - scaledMarginRight - logoDrawW
+                let logoY       = borderTop + (CGFloat(borderHeight) - scaledLogoH) / 2
+                ctx.draw(logo, in: CGRect(x: logoX, y: logoY, width: logoDrawW, height: scaledLogoH))
+            }
+
+            // Device name: left side, height=416, margin=[192,0,0,136], weight=800, size=150
+            if let deviceName = config.deviceName, !deviceName.isEmpty {
+                let deviceFont = getHonorFont(size: 150 * scale, weight: 800)
+                let elementTop    = borderTop + 136 * scale
+                let elementBottom = totalHeightF - 136 * scale
+                let baselineY     = centerBaseline(elementTop: elementTop, elementBottom: elementBottom, font: deviceFont)
+                drawTextAtBaseline(deviceName, x: 192 * scale, baselineY: baselineY, font: deviceFont, color: .black)
             }
         }
     }
@@ -368,82 +457,291 @@ class WatermarkProcessor {
         let imgWidth = bitmap.width
         let imgHeight = bitmap.height
         let scale = CGFloat(imgWidth) / BASE_WIDTH
-        
+
         let format = UIGraphicsImageRendererFormat()
         format.scale = 1.0
         format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: imgWidth, height: imgHeight), format: format)
-        return renderer.image { context in
-            let ctx = context.cgContext
-            
-            // Draw original image
+        return renderer.image { _ in
             image.draw(in: CGRect(x: 0, y: 0, width: imgWidth, height: imgHeight))
-        
-        // Text watermark overlays text on the image
-        let fontSize: CGFloat = 120 * scale
-        let margin: CGFloat = 100 * scale
-        
-        let font = getHonorFont(size: fontSize, weight: 400)
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font: font,
-            .foregroundColor: UIColor.white
-        ]
-        
-            // Draw device name
+
+            let isWide = imgWidth > Int(3072 * scale)
+            let timeFontSize: CGFloat
+            let timeBaseline: CGFloat
+            let timeBlockHeight: CGFloat
+            let locationFontSize: CGFloat
+            let locationBaseline: CGFloat
+            let marginBottom: CGFloat
+            let locationMarginTop: CGFloat
+
+            if isWide {
+                timeFontSize = 144; timeBaseline = 134; timeBlockHeight = 169
+                locationFontSize = 128; locationBaseline = 136
+                marginBottom = 152; locationMarginTop = -4
+            } else {
+                timeFontSize = 168; timeBaseline = 156; timeBlockHeight = 197
+                locationFontSize = 152; locationBaseline = 161
+                marginBottom = 112; locationMarginTop = -21
+            }
+
+            let timeText = config.timeText ?? ""
+            let locText  = config.locationText ?? ""
+            let shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 80.0/255.0)
+            let shadowBlur  = 4 * scale
+            let shadowOff   = CGSize(width: scale, height: scale)
+            let rightX      = CGFloat(imgWidth) - 304 * scale
+
+            let timeFont = getHonorFont(size: timeFontSize * scale, weight: 300)
+            let locFont  = getHonorFont(size: locationFontSize * scale, weight: 300)
+
+            if !timeText.isEmpty && !locText.isEmpty {
+                // Location bottom-aligns to marginBottom from image bottom
+                let locBlockBottom = CGFloat(imgHeight) - marginBottom * scale
+                let locBaselineY   = locBlockBottom - locFont.descender  // descender is negative => subtract
+                drawTextRightAtBaseline(locText, rightX: rightX, baselineY: locBaselineY,
+                                        font: locFont, color: .white,
+                                        shadowBlur: shadowBlur, shadowOffset: shadowOff, shadowColor: shadowColor)
+
+                // Time sits above location
+                let timeBlockBottom = locBlockBottom - locFont.capHeight + locationMarginTop * scale
+                let timeBaselineY   = timeBlockBottom - timeFont.descender
+                drawTextRightAtBaseline(timeText, rightX: rightX, baselineY: timeBaselineY,
+                                        font: timeFont, color: .white,
+                                        shadowBlur: shadowBlur, shadowOffset: shadowOff, shadowColor: shadowColor)
+            } else if !timeText.isEmpty {
+                let timeOnlySize: CGFloat = isWide ? 144 : 184
+                let timeOnlyFont = getHonorFont(size: timeOnlySize * scale, weight: 300)
+                let bottomMargin: CGFloat = isWide ? 232 : 192
+                let baselineY = CGFloat(imgHeight) - bottomMargin * scale
+                drawTextRightAtBaseline(timeText, rightX: rightX, baselineY: baselineY,
+                                        font: timeOnlyFont, color: .white,
+                                        shadowBlur: shadowBlur, shadowOffset: shadowOff, shadowColor: shadowColor)
+            } else if !locText.isEmpty {
+                let locOnlySize: CGFloat = isWide ? 140 : 184
+                let locOnlyFont = getHonorFont(size: locOnlySize * scale, weight: 300)
+                let bottomMargin: CGFloat = isWide ? 216 : 192
+                let baselineY = CGFloat(imgHeight) - bottomMargin * scale
+                drawTextRightAtBaseline(locText, rightX: rightX, baselineY: baselineY,
+                                        font: locOnlyFont, color: .white,
+                                        shadowBlur: shadowBlur, shadowOffset: shadowOff, shadowColor: shadowColor)
+            }
+
+            // Device name: left|bottom, height=464, margin=[304,0,0,176], weight=1000, size=140
             if let deviceName = config.deviceName, !deviceName.isEmpty {
-                let attrString = NSAttributedString(string: deviceName, attributes: attrs)
-                let textY = CGFloat(imgHeight) - fontSize - margin
-                attrString.draw(at: CGPoint(x: margin, y: textY))
+                let deviceFont    = getHonorFont(size: 140 * scale, weight: 1000)
+                let elementBottom = CGFloat(imgHeight) - 176 * scale
+                let elementTop    = elementBottom - 464 * scale
+                let baselineY     = centerBaseline(elementTop: elementTop, elementBottom: elementBottom, font: deviceFont)
+                drawTextAtBaseline(deviceName, x: 304 * scale, baselineY: baselineY,
+                                   font: deviceFont, color: .white,
+                                   shadowBlur: shadowBlur, shadowOffset: shadowOff, shadowColor: shadowColor)
             }
         }
     }
     
     private static func applyFrameYGWatermark(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
-        // Similar to frame watermark but with YuGuan specific styling
-        return applyFrameWatermark(image, bitmap: bitmap, config: config)
+        let imgWidth  = bitmap.width
+        let imgHeight = bitmap.height
+        let scale     = CGFloat(imgWidth) / BASE_WIDTH
+
+        let borderHeight  = Int(FRAME_BORDER_HEIGHT * scale)
+        let totalHeight   = imgHeight + borderHeight
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: imgWidth, height: totalHeight), format: format)
+        return renderer.image { context in
+            let ctx = context.cgContext
+            image.draw(in: CGRect(x: 0, y: 0, width: imgWidth, height: imgHeight))
+
+            ctx.setFillColor(UIColor.white.cgColor)
+            ctx.fill(CGRect(x: 0, y: imgHeight, width: imgWidth, height: borderHeight))
+
+            let borderTop   = CGFloat(imgHeight)
+            let totalHeightF = CGFloat(totalHeight)
+
+            // Device name: weight=1000, size=150, left|bottom, height=416, margin=[192,0,0,136]
+            if let deviceName = config.deviceName, !deviceName.isEmpty {
+                let deviceFont    = getHonorFont(size: 150 * scale, weight: 1000)
+                let elementTop    = borderTop + 136 * scale
+                let elementBottom = totalHeightF - 136 * scale
+                let baselineY     = centerBaseline(elementTop: elementTop, elementBottom: elementBottom, font: deviceFont)
+                drawTextAtBaseline(deviceName, x: 192 * scale, baselineY: baselineY, font: deviceFont, color: .black)
+            }
+
+            // YG logo: 672×504 @6144, margin=[0,0,188,92], right|bottom
+            if let ygURL = Bundle.module.resourceURL?.appendingPathComponent("watermark/Honor/FrameWatermarkYG/yg.png"),
+               let ygData = try? Data(contentsOf: ygURL),
+               let ygImg  = UIImage(data: ygData)?.cgImage {
+                let drawW     = 672 * scale
+                let drawH     = 504 * scale
+                let marginR   = 188 * scale
+                let marginB   = 92 * scale
+                let logoX     = CGFloat(imgWidth) - drawW - marginR
+                let logoY     = totalHeightF - drawH - marginB
+                ctx.draw(ygImg, in: CGRect(x: logoX, y: logoY, width: drawW, height: drawH))
+            }
+        }
     }
-    
+
     private static func applyTextYGWatermark(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
-        // Similar to text watermark but with YuGuan specific styling
-        return applyTextWatermark(image, bitmap: bitmap, config: config)
+        let imgWidth  = bitmap.width
+        let imgHeight = bitmap.height
+        let scale     = CGFloat(imgWidth) / BASE_WIDTH
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: imgWidth, height: imgHeight), format: format)
+        return renderer.image { context in
+            let ctx = context.cgContext
+            image.draw(in: CGRect(x: 0, y: 0, width: imgWidth, height: imgHeight))
+
+            let shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 80.0/255.0)
+            let shadowBlur  = 4 * scale
+            let shadowOff   = CGSize(width: scale, height: scale)
+
+            // Device name: weight=1000, size=140, left|bottom, height=464, margin=[304,0,0,176]
+            if let deviceName = config.deviceName, !deviceName.isEmpty {
+                let deviceFont    = getHonorFont(size: 140 * scale, weight: 1000)
+                let elementBottom = CGFloat(imgHeight) - 176 * scale
+                let elementTop    = elementBottom - 464 * scale
+                let baselineY     = centerBaseline(elementTop: elementTop, elementBottom: elementBottom, font: deviceFont)
+                drawTextAtBaseline(deviceName, x: 304 * scale, baselineY: baselineY,
+                                   font: deviceFont, color: .white,
+                                   shadowBlur: shadowBlur, shadowOffset: shadowOff, shadowColor: shadowColor)
+            }
+
+            // YG logo: 672×504 @6144, margin=[0,0,299,86], right|bottom
+            if let ygURL = Bundle.module.resourceURL?.appendingPathComponent("watermark/Honor/TextWatermarkYG/yg.png"),
+               let ygData = try? Data(contentsOf: ygURL),
+               let ygImg  = UIImage(data: ygData)?.cgImage {
+                let drawW   = 672 * scale
+                let drawH   = 504 * scale
+                let marginR = 299 * scale
+                let marginB = 86 * scale
+                let logoX   = CGFloat(imgWidth) - drawW - marginR
+                let logoY   = CGFloat(imgHeight) - drawH - marginB
+                ctx.draw(ygImg, in: CGRect(x: logoX, y: logoY, width: drawW, height: drawH))
+            }
+        }
     }
     
     // MARK: - Meizu Watermarks
     
     private static func applyMeizuNorm(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
-        let imgWidth = bitmap.width
+        // Norm: transparent overlay on image. Scale base = 1530px wide.
+        // Container h=122, marginLR=78, device left (MEIZUCamera-Medium, 44sp),
+        // time right of device (TTForsRegular, 30sp, alpha=0.8)
+        let imgWidth  = bitmap.width
         let imgHeight = bitmap.height
-        
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1.0
-        format.opaque = false
+        let s         = CGFloat(imgWidth) / 1530
+
+        let containerH   = 122 * s
+        let marginLR     = 78 * s
+        let containerTop = CGFloat(imgHeight) - containerH
+        let centerY      = containerTop + containerH / 2
+
+        let deviceFont = getMeizuDeviceFont(size: 44 * s)
+        let timeFont   = getMeizuTextFont(size: 30 * s)
+        let shadowColor = UIColor(red: 0, green: 0, blue: 0, alpha: 80.0/255.0)
+        let shadowBlur  = 4 * s
+        let shadowOff   = CGSize(width: s, height: s)
+
+        let deviceText = config.deviceName ?? ""
+        let timeText   = config.timeText ?? ""
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
         let renderer = UIGraphicsImageRenderer(size: CGSize(width: imgWidth, height: imgHeight), format: format)
-        return renderer.image { context in
-            let ctx = context.cgContext
-            
+        return renderer.image { _ in
             image.draw(in: CGRect(x: 0, y: 0, width: imgWidth, height: imgHeight))
-        
-        // Meizu watermark: simple text overlay
-        let fontSize: CGFloat = 60
-        let margin: CGFloat = 60
-        
-        let font = UIFont.systemFont(ofSize: fontSize, weight: .medium)
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font: font,
-            .foregroundColor: UIColor.white
-        ]
-        
-            if let deviceName = config.deviceName, !deviceName.isEmpty {
-                let attrString = NSAttributedString(string: deviceName, attributes: attrs)
-                let textY = CGFloat(imgHeight) - fontSize - margin
-                attrString.draw(at: CGPoint(x: margin, y: textY))
+
+            var curX = marginLR
+            if !deviceText.isEmpty {
+                let baselineY = centerBaseline(elementTop: containerTop, elementBottom: containerTop + containerH, font: deviceFont)
+                drawTextAtBaseline(deviceText, x: curX, baselineY: baselineY,
+                                   font: deviceFont, color: .white,
+                                   shadowBlur: shadowBlur, shadowOffset: shadowOff, shadowColor: shadowColor)
+                let attrs: [NSAttributedString.Key: Any] = [.font: deviceFont]
+                curX += (deviceText as NSString).size(withAttributes: attrs).width + 8 * s
+            }
+            if !timeText.isEmpty {
+                let baselineY = centerBaseline(elementTop: containerTop, elementBottom: containerTop + containerH, font: timeFont)
+                drawTextAtBaseline(timeText, x: curX, baselineY: baselineY,
+                                   font: timeFont, color: UIColor(white: 1, alpha: 0.8),
+                                   shadowBlur: shadowBlur, shadowOffset: shadowOff, shadowColor: shadowColor)
             }
         }
     }
-    
+
     private static func applyMeizuPro(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
-        // Similar to Norm with different styling
-        return applyMeizuNorm(image, bitmap: bitmap, config: config)
+        // Pro: white bottom bar h=160, marginL/R=85
+        // Left: device (MEIZUCamera-Medium, 45sp, black) + red dot
+        // Right: lens (TTForsMedium, 35sp, black) stacked above time (TTForsRegular, 24sp, #A6A6A6)
+        let imgWidth  = bitmap.width
+        let imgHeight = bitmap.height
+        let s         = CGFloat(imgWidth) / 1530
+
+        let barHeightF  = 160 * s
+        let totalHeight = CGFloat(imgHeight) + barHeightF
+
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1.0; format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: CGFloat(imgWidth), height: totalHeight), format: format)
+        return renderer.image { context in
+            let ctx = context.cgContext
+            image.draw(in: CGRect(x: 0, y: 0, width: imgWidth, height: imgHeight))
+
+            ctx.setFillColor(UIColor.white.cgColor)
+            ctx.fill(CGRect(x: 0, y: CGFloat(imgHeight), width: CGFloat(imgWidth), height: barHeightF))
+
+            let barTop    = CGFloat(imgHeight)
+            let marginL   = 85 * s
+            let marginR   = 85 * s
+            let barCenterY = barTop + barHeightF / 2
+
+            let deviceFont = getMeizuDeviceFont(size: 45 * s)
+            let lensFont   = loadMeizuFont("TTForsMedium.ttf", size: 35 * s)
+            let timeFont2  = getMeizuTextFont(size: 24 * s)
+
+            let deviceText = config.deviceName ?? ""
+            let lensText   = config.lensInfo ?? ""
+            let timeText2  = config.timeText ?? ""
+
+            var deviceEndX = marginL
+            if !deviceText.isEmpty {
+                let baselineY = centerBaseline(elementTop: barTop, elementBottom: barTop + barHeightF, font: deviceFont)
+                drawTextAtBaseline(deviceText, x: marginL, baselineY: baselineY, font: deviceFont, color: .black)
+                let attrs: [NSAttributedString.Key: Any] = [.font: deviceFont]
+                deviceEndX = marginL + (deviceText as NSString).size(withAttributes: attrs).width + 20 * s
+                // Red dot
+                let dotR = max(5.0, 8 * s)
+                ctx.setFillColor(UIColor(red: 1, green: 65.0/255, blue: 50.0/255, alpha: 1).cgColor)
+                ctx.fillEllipse(in: CGRect(x: deviceEndX - dotR, y: barCenterY - dotR, width: dotR * 2, height: dotR * 2))
+            }
+
+            let rightX = CGFloat(imgWidth) - marginR
+
+            if !lensText.isEmpty && !timeText2.isEmpty {
+                let lensH   = lensFont.ascender + abs(lensFont.descender)
+                let gapH    = 3 * s
+                let timeH   = timeFont2.ascender + abs(timeFont2.descender)
+                let totalH  = lensH + gapH + timeH
+                let groupTop = barTop + (barHeightF - totalH) / 2
+
+                // Lens baseline = groupTop + lensFont.ascender
+                let lensBaselineY = groupTop + lensFont.ascender
+                drawTextRightAtBaseline(lensText, rightX: rightX, baselineY: lensBaselineY, font: lensFont, color: .black)
+
+                // Time baseline = groupTop + lensH + gapH + timeFont2.ascender
+                let timeBaselineY = groupTop + lensH + gapH + timeFont2.ascender
+                drawTextRightAtBaseline(timeText2, rightX: rightX, baselineY: timeBaselineY,
+                                        font: timeFont2, color: UIColor(red: 0.651, green: 0.651, blue: 0.651, alpha: 1))
+            } else if !lensText.isEmpty {
+                let baselineY = centerBaseline(elementTop: barTop, elementBottom: barTop + barHeightF, font: lensFont)
+                drawTextRightAtBaseline(lensText, rightX: rightX, baselineY: baselineY, font: lensFont, color: .black)
+            } else if !timeText2.isEmpty {
+                let baselineY = centerBaseline(elementTop: barTop, elementBottom: barTop + barHeightF, font: timeFont2)
+                drawTextRightAtBaseline(timeText2, rightX: rightX, baselineY: baselineY,
+                                        font: timeFont2, color: UIColor(red: 0.651, green: 0.651, blue: 0.651, alpha: 1))
+            }
+        }
     }
     
     private static func applyMeizuZ(_ image: UIImage, bitmap: CGImage, config: WatermarkConfig) -> UIImage {
@@ -854,30 +1152,34 @@ class WatermarkProcessor {
     
     /// Load Honor font from bundle
     private static func getHonorFont(size: CGFloat, weight: Int) -> UIFont {
+        // HONORSansVFCN.ttf is a variable font with 'wght' axis (300..1000)
+        // Register once, then use UIFontDescriptor variation to apply weight
         if honorTypeface == nil {
-            // Try to load HONORSansVFCN.ttf from watermark/Honor/fonts/
-            // Note: Bundle resource lookup via subdirectory is safer
-            if let fontURL = Bundle.module.url(forResource: "HONORSansVFCN", withExtension: "ttf", subdirectory: "watermark/Honor/fonts") {
-                // Register font
+            if let fontURL = Bundle.module.url(forResource: "HONORSansVFCN", withExtension: "ttf",
+                                               subdirectory: "watermark/Honor/fonts") {
                 var error: Unmanaged<CFError>?
                 CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, &error)
-                
-                // Try to create font descriptor to get postscript name
                 if let fontData = try? Data(contentsOf: fontURL),
-                   let dataProvider = CGDataProvider(data: fontData as CFData),
-                   let cgFont = CGFont(dataProvider),
-                   let fontName = cgFont.postScriptName as String? {
-                    honorTypeface = UIFont(name: fontName, size: size)
+                   let provider = CGDataProvider(data: fontData as CFData),
+                   let cgFont   = CGFont(provider),
+                   let psName   = cgFont.postScriptName as String? {
+                    // Store a placeholder UIFont with the PostScript name
+                    honorTypeface = UIFont(name: psName, size: 12) ?? UIFont.systemFont(ofSize: 12)
                 }
             }
         }
-        
-        if let font = honorTypeface {
-            return font.withSize(size)
+
+        guard let base = honorTypeface else {
+            let uiW: UIFont.Weight = weight >= 800 ? .black : weight >= 700 ? .bold : weight >= 400 ? .regular : .light
+            return UIFont.systemFont(ofSize: size, weight: uiW)
         }
-        
-        // Fallback to system font
-        return UIFont.systemFont(ofSize: size, weight: weight >= 400 ? .regular : .light)
+
+        // Apply variable font axis: 'wght' tag = 0x77676874 = 2003265652
+        let wghtAxis: Int = 2003265652
+        let variationAttr = UIFontDescriptor.AttributeName(rawValue: "NSCTFontVariationAttribute")
+        let descriptor = UIFontDescriptor(name: base.fontName, size: size)
+            .addingAttributes([variationAttr: [wghtAxis: weight]])
+        return UIFont(descriptor: descriptor, size: size)
     }
     
     /// Load Honor logo image
