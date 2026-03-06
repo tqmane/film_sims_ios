@@ -6,6 +6,7 @@ struct LiquidAdjustPanel: View {
     @ObservedObject var viewModel: FilmSimsViewModel
     @ObservedObject private var proRepo = ProUserRepository.shared
     @State private var selectedTab: AdjustTab = .intensity
+    @State private var lockedMessageKey = "pro_adjust_tools_hint"
     @Environment(\.layoutMetrics) private var metrics
 
     enum AdjustTab: String, CaseIterable {
@@ -16,11 +17,26 @@ struct LiquidAdjustPanel: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Tab bar (matches Android LiquidTabBar)
+            LiquidNoticeCard(
+                title: viewModel.currentLut?.name ?? L10n.tr("adjustments"),
+                message: L10n.tr(adjustHintKey),
+                label: tabLabel(for: selectedTab)
+            )
+            .padding(.bottom, metrics.category == .compact ? 10 : 12)
+
+            if !proRepo.isProUser {
+                LiquidNoticeCard(
+                    title: L10n.tr("more_tools_title"),
+                    message: L10n.tr(lockedMessageKey),
+                    label: L10n.tr("label_pro"),
+                    accentColor: .accentSecondary
+                )
+                .padding(.bottom, metrics.category == .compact ? 10 : 12)
+            }
+
             tabBar
                 .padding(.bottom, metrics.adjustTabTopPad)
 
-            // Tab content
             Group {
                 switch selectedTab {
                 case .intensity:
@@ -46,10 +62,11 @@ struct LiquidAdjustPanel: View {
             ForEach(AdjustTab.allCases, id: \.self) { tab in
                 let isSelected = selectedTab == tab
                 Button {
-                    withAnimation(.easeInOut(duration: 0.25)) {
+                    withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
                         if tab == .watermark && !proRepo.isProUser {
-                            // Show toast-like effect but don't switch tab
+                            lockedMessageKey = "pro_watermark_locked"
                         } else {
+                            lockedMessageKey = "pro_adjust_tools_hint"
                             selectedTab = tab
                         }
                     }
@@ -87,6 +104,17 @@ struct LiquidAdjustPanel: View {
         case .watermark:
             let label = L10n.tr("watermark")
             return proRepo.isProUser ? label : "\(label) 🔒"
+        }
+    }
+
+    private var adjustHintKey: String {
+        switch selectedTab {
+        case .intensity:
+            "adjust_hint_intensity"
+        case .grain:
+            "adjust_hint_grain"
+        case .watermark:
+            "adjust_hint_watermark"
         }
     }
 

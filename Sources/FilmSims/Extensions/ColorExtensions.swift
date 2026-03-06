@@ -3,8 +3,8 @@ import SwiftUI
 // MARK: - Color Extensions
 extension Color {
     // Base Dark Theme Colors
-    static let surfaceDark = Color(hex: "#050508")
-    static let surfaceMedium = Color(hex: "#0A0A0E")     // Android SurfaceMedium 0xFF0A0A0E
+    static let surfaceDark = Color(hex: "#0C0C11")
+    static let surfaceMedium = Color(hex: "#141419")
     static let surfaceLight = Color(hex: "#151519")
     static let surfaceElevated = Color(hex: "#1E1E24")
     
@@ -22,8 +22,8 @@ extension Color {
     static let glassBorderHighlightAndroid = Color.white.opacity(0.145) // 0x25FFFFFF
     
     // Accent Colors - Warm amber/gold palette
-    static let accentStart = Color(hex: "#FF8A50")
-    static let accentEnd = Color(hex: "#FFC06A")
+    static let accentStart = Color(hex: "#FF9F43")
+    static let accentEnd = Color(hex: "#FFBE76")
     static let accentPrimary = Color(hex: "#FFAB60")
     static let accentDark = Color(hex: "#E07830")
     static let accentGlow = Color(hex: "#FF8A50").opacity(0.2)

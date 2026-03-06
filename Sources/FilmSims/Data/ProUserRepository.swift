@@ -35,6 +35,14 @@ final class ProUserRepository: ObservableObject {
             return
         }
 
+        let currentVersion = (
+            Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        )?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        var matchedCurrentVersion = false
+        var matchedPermanentLicense = false
+        var mismatchedVersion: String? = nil
+
         // Search both collections for any document containing this email
         let collections = ["pro_users", "ios"]
         for collectionId in collections {
@@ -42,18 +50,34 @@ final class ProUserRepository: ObservableObject {
                 let snap = try await firestore.collection(collectionId)
                     .whereField("emails", arrayContains: email)
                     .getDocuments()
-                if !snap.documents.isEmpty {
-                    isProUser = true
-                    isPermanentLicense = true
-                    licenseMismatchVersion = nil
-                    return
+                for document in snap.documents {
+                    let documentID = document.documentID
+                    if documentID == "ID_list" {
+                        matchedCurrentVersion = true
+                        matchedPermanentLicense = true
+                        mismatchedVersion = nil
+                        break
+                    }
+
+                    if documentID == currentVersion {
+                        matchedCurrentVersion = true
+                        mismatchedVersion = nil
+                    } else if !matchedCurrentVersion && mismatchedVersion == nil {
+                        mismatchedVersion = documentID
+                    }
+                }
+
+                if matchedPermanentLicense {
+                    break
                 }
             } catch {
                 print("ProUserRepository: Error querying \(collectionId): \(error)")
             }
         }
 
-        clearProStatus()
+        isProUser = matchedCurrentVersion
+        isPermanentLicense = matchedPermanentLicense
+        licenseMismatchVersion = matchedCurrentVersion ? nil : mismatchedVersion
     }
 
     func clearProStatus() {

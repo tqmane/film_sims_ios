@@ -1,128 +1,131 @@
-/* Image loading */
-"image_loaded" = "読み込み完了: %@ (プレビュー: %@)";
-"image_load_failed" = "画像の読み込みに失敗しました: %@";
-"select_image_first" = "先に画像を選択してください";
-
-/* Export */
-"exporting" = "書き出し中…";
-"cpu_processing" = "CPU処理中…（大きい画像は時間がかかる場合があります）";
-"save_error" = "保存エラー: %@";
-"save_folder_create_failed" = "保存フォルダの作成に失敗しました";
-"image_saved" = "保存しました（%@）: %@/%@";
-"lut_load_failed" = "フィルターの読み込みに失敗しました";
-
-/* Settings */
-"enter_save_folder" = "保存先フォルダを入力";
-"save_path_hint" = "例: Pictures/MyPhotos";
-"save" = "保存";
+"adjust_hint_grain" = "色味が決まってからグレインを足すと、質感を自然に仕上げられます。";
+"adjust_hint_intensity" = "まずはLUTの強度を整えて、全体の雰囲気を決めましょう。";
+"adjust_hint_watermark" = "仕上げとしてブランド透かしを重ねて、カメラらしい見た目を作れます。";
+"adjustments" = "調整";
+"brand_honor" = "Honor";
+"brand_leica_fotos" = "Leica FOTOS";
+"brand_leica_lux" = "Leica LUX";
+"brand_meizu" = "Meizu";
+"brand_none" = "None";
+"brand_tecno" = "TECNO";
+"brand_vivo" = "vivo";
+"btn_change" = "変更";
+"btn_close" = "閉じる";
+"btn_open_gallery" = "ギャラリーを開く";
+"btn_sign_in" = "Googleでログイン";
+"btn_sign_in_google" = "Googleでサインイン";
+"btn_sign_out" = "ログアウト";
 "cancel" = "キャンセル";
-"save_path_changed" = "保存先を変更しました: %@";
-
-/* Update dialog */
-"update_available" = "アップデートがあります";
-"new_version_available" = "新しいバージョン %@ が利用できます";
-"update_now" = "アップデート";
-"later" = "あとで";
-"update_check_failed" = "アップデート確認に失敗しました";
-
-/* LUT Categories - OnePlus */
+"category_a_series" = "Aシリーズ";
+"category_ai_camera" = "AIカメラ";
+"category_ai_filters" = "AI Filters";
+"category_all" = "すべて";
 "category_app_filters" = "アプリフィルター";
+"category_artist_looks" = "アーティストルックス";
 "category_artistic" = "アーティスティック";
-"category_black_white" = "白黒";
-"category_cinematic_movie" = "シネマティック";
-"category_cool_tones" = "クールトーン";
-"category_food" = "フード";
-"category_golden_touch" = "ゴールデンタッチ";
-"category_instagram_filters" = "Instagram";
-"category_japanese_style" = "和風";
-"category_landscape" = "風景";
-"category_night" = "夜景";
-"category_portrait" = "ポートレート";
-"category_uncategorized" = "未分類";
-"category_vintage_retro" = "ヴィンテージ";
-"category_warm_tones" = "ウォームトーン";
-
-/* LUT Categories - Xiaomi */
+"category_b_series" = "Bシリーズ";
+"category_black_white" = "モノクロ";
+"category_c_series" = "Cシリーズ";
+"category_camera_filters" = "カメラフィルター";
 "category_cinematic" = "シネマ";
+"category_cinematic_movie" = "シネマティック";
+"category_classic_filter" = "Classic Filter";
+"category_collage_filters" = "コラージュフィルター";
+"category_cool_tones" = "クールトーン";
+"category_custom" = "カスタム";
+"category_editor_filters" = "エディターフィルター";
+"category_film" = "フィルム";
 "category_film_simulation" = "フィルムシミュレーション";
+"category_filter_manager" = "Filter Manager";
+"category_filters" = "フィルター";
+"category_food" = "フード";
+"category_general" = "General";
+"category_golden_touch" = "ゴールデンタッチ";
+"category_india_filters" = "インドフィルター";
+"category_instagram_filters" = "Instagram風";
+"category_japanese_style" = "日本風";
+"category_landscape" = "風景";
+"category_leica_looks" = "Leica Looks";
+"category_misc" = "その他";
 "category_monochrome" = "モノクロ";
+"category_movie" = "ムービー";
 "category_nature_landscape" = "自然・風景";
+"category_night" = "夜景";
+"category_night_mode" = "ナイトモード";
+"category_night_style" = "夜景スタイル";
+"category_portrait" = "ポートレート";
+"category_portrait_multistyle" = "ポートレートマルチスタイル";
 "category_portrait_soft" = "ポートレート（ソフト）";
+"category_portrait_style" = "ポートレートスタイル";
+"category_samsung_myfilter" = "My Filter";
+"category_samsung_preload_effect" = "Preloaded Effects";
 "category_special_effects" = "特殊効果";
+"category_street_photo" = "ストリートフォト";
+"category_superzoom" = "スーパーズーム";
+"category_uncategorized" = "未分類";
+"category_vintage_retro" = "ヴィンテージ・レトロ";
 "category_vivid_natural" = "ビビッド・ナチュラル";
+"category_warm_tones" = "ウォームトーン";
 "category_warm_vintage" = "ウォーム・ヴィンテージ";
-/* Xiaomi Android categories */
 "category_xiaomi_effect" = "エフェクト";
 "category_xiaomi_film" = "フィルム";
-"category_xiaomi_leica" = "ライカスタイル";
+"category_xiaomi_leica" = "Leicaスタイル";
+"category_xiaomi_leica_m3" = "Leica M3";
+"category_xiaomi_leica_m9" = "Leica M9";
 "category_xiaomi_normal" = "ノーマル";
 "category_xiaomi_portrait" = "ポートレート";
 "category_xiaomi_video" = "ビデオ";
-"category_xiaomi_leica_m3" = "Leica M3";
-"category_xiaomi_leica_m9" = "Leica M9";
-
-/* LUT Categories - Nothing/Common */
-"category_all" = "すべて";
-
-/* LUT Categories - Leica_lux */
-"category_leica_looks" = "Leica Looks";
-"category_artist_looks" = "Artist Looks";
-
-/* Brand names */
-"brand_leica_lux" = "Leica LUX";
-
-/* Leica_lux filter names */
-"lut_leica_classic" = "ライカ クラシック";
-"lut_leica_contemporary" = "ライカ コンテンポラリー";
-"lut_leica_monochrome_natural" = "ライカ モノクローム ナチュラル";
-"lut_leica_natural" = "ライカ ナチュラル";
-"lut_leica_blue" = "ライカ ブルー";
-"lut_leica_eternal" = "ライカ エターナル";
-"lut_leica_selenium" = "ライカ セレニウム";
-"lut_leica_sepia" = "ライカ セピア";
-"lut_leica_silver" = "ライカ シルバー";
-"lut_leica_teal" = "ライカ ティール";
-"lut_leica_bleach" = "ライカ ブリーチ";
-"lut_leica_brass" = "ライカ ブラス";
-"lut_leica_high_contrast" = "ライカ モノクローム ハイコントラスト";
-"lut_leica_vivid" = "ライカ ビビッド";
-"lut_100_years_mono" = "100周年モノクロ";
-"lut_greg_williams_sepia_0" = "Greg Williams セピア 0%";
-"lut_greg_williams_sepia_100" = "Greg Williams セピア 100%";
-"lut_leica_standard" = "ライカ スタンダード";
-"lut_leica_chrome" = "ライカ クローム";
-
-/* UI Labels */
-"subtitle_film_simulator" = "フィルムシミュレーター";
-"label_pick_image" = "画像を選択";
-"desc_pick_image" = "写真を選んでフィルム調を適用します";
-"btn_open_gallery" = "ギャラリーを開く";
-"header_grain" = "エフェクト";
-"label_film_grain" = "フィルムグレイン";
-"header_camera" = "カメラ";
-"header_style" = "スタイル";
-"label_intensity" = "強度";
-"header_presets" = "プリセット";
-"title_settings" = "設定";
-"label_save_folder" = "保存先";
-"btn_change" = "変更";
-"label_quality" = "画質";
-"btn_close" = "閉じる";
-"export_success" = "書き出し成功";
-"export_error" = "書き出し中にエラーが発生しました";
-
-/* Compose UI / Tab labels */
-"adjustments" = "調整";
-"grain" = "グレイン";
-"watermark" = "ウォーターマーク";
-"watermark_select_brand" = "ブランドを選択してスタイルを表示";
+"cpu_processing" = "CPUで処理中… (大きな画像は時間がかかります)";
+"desc_pick_image" = "写真を選んでフィルムシミュレーションを適用";
 "device_name" = "デバイス名";
-"time" = "時刻";
-"location" = "位置情報";
+"enter_save_folder" = "保存先フォルダを入力";
+"export_error" = "書き出し中にエラーが発生しました";
+"export_success" = "書き出しに成功しました";
+"exporting" = "書き出し中…";
+"grain" = "エフェクト";
+"grain_style_oneplus" = "OnePlus";
+"grain_style_xiaomi" = "Xiaomi";
+"header_camera" = "カメラ";
+"header_grain" = "エフェクト";
+"header_presets" = "プリセット";
+"header_style" = "スタイル";
+"header_watermark" = "Watermark";
+"image_load_failed" = "画像の読み込みに失敗しました: %1$@";
+"image_loaded" = "画像を読み込みました: %1$@ (プレビュー: %2$@)";
+"image_saved" = "保存しました (%1$@): %2$@/%3$@";
+"label_account" = "アカウント";
+"label_film_grain" = "フィルムグレイン";
+"label_grain_style" = "グレインスタイル";
+"label_intensity" = "強度";
+"label_license_permanent" = "永続ライセンス";
+"label_license_version_mismatch" = "あなたのライセンスは%1$@限定です！";
+"label_pick_image" = "画像を選択";
+"label_pro" = "ライセンス";
+"label_purchase_license" = "ライセンス購入はこちら → tqmane.booth.pm";
+"label_quality" = "保存品質";
+"label_save_folder" = "保存先フォルダ";
+"label_watermark" = "Honor Watermark";
+"label_watermark_brand" = "Brand";
+"label_watermark_device" = "Device";
+"label_watermark_lens" = "Lens";
+"label_watermark_location" = "Location";
+"label_watermark_style" = "Style";
+"label_watermark_time" = "Time";
+"later" = "後で";
 "lens_info" = "レンズ情報";
-
-/* Leica FOTOS LUT names */
-"brand_leica_fotos" = "Leica FOTOS";
+"location" = "場所";
+"look_preview_hint" = "%1$d件のルックをすぐ試せます。1回タップでプレビュー、もう1回で調整に進みます。";
+"look_ready_hint" = "選択中のルックをもう一度タップすると調整を開けます。";
+"lut_100_years_mono" = "100周年モノクロ";
+"lut_film_800t" = "800t";
+"lut_film_city" = "都市";
+"lut_film_clear" = "クリア";
+"lut_film_cold_flash" = "コールドフラッシュ";
+"lut_film_field" = "フィールド";
+"lut_film_neon" = "ネオン";
+"lut_film_seaside" = "海辺";
+"lut_film_vintage" = "ビンテージ";
+"lut_film_warm_flash" = "ウォームフラッシュ";
 "lut_fotos_bleach" = "ブリーチ";
 "lut_fotos_blue" = "ブルー";
 "lut_fotos_brass" = "ブラス";
@@ -130,136 +133,76 @@
 "lut_fotos_classic" = "クラシック";
 "lut_fotos_contemporary" = "コンテンポラリー";
 "lut_fotos_eternal" = "エターナル";
-"lut_fotos_gregwilliams" = "Greg Williams";
+"lut_fotos_gregwilliams" = "グレッグ・ウィリアムズ";
+"lut_fotos_mono_blue" = "モノ ブルー";
+"lut_fotos_mono_gregwilliams" = "モノ グレッグ・ウィリアムズ";
+"lut_fotos_mono_selenium" = "モノ セレニウム";
+"lut_fotos_mono_sepia" = "モノ セピア";
 "lut_fotos_selenium" = "セレニウム";
 "lut_fotos_sepia" = "セピア";
 "lut_fotos_silver" = "シルバー";
 "lut_fotos_teal" = "ティール";
-"lut_fotos_mono_blue" = "モノ ブルー";
-"lut_fotos_mono_gregwilliams" = "モノ Greg Williams";
-"lut_fotos_mono_selenium" = "モノ セレニウム";
-"lut_fotos_mono_sepia" = "モノ セピア";
-
-/* Nubia LUT names */
+"lut_greg_williams_sepia_0" = "Greg Williams セピア 0%";
+"lut_greg_williams_sepia_100" = "Greg Williams セピア 100%";
+"lut_honor_baixi" = "Sketch";
+"lut_honor_danya" = "Elegant";
+"lut_honor_fendiao" = "Pink Tone";
+"lut_honor_heibai" = "Black & White";
+"lut_honor_heijin" = "Black Gold";
+"lut_honor_huaijiu" = "Nostalgic";
+"lut_honor_huidiao" = "Gray Tone";
+"lut_honor_jiaopian" = "Film";
+"lut_honor_jiaotang" = "Caramel";
+"lut_honor_jingdian" = "Classic";
+"lut_honor_landiao" = "Blue Tone";
+"lut_honor_qingcheng" = "Clear City";
+"lut_honor_qingchun" = "Youth";
+"lut_honor_rouhe" = "Soft";
+"lut_honor_senxi" = "Forest";
+"lut_honor_tangguo" = "Candy";
+"lut_honor_xianming" = "Vivid";
+"lut_honor_xianyan" = "Vibrant";
+"lut_honor_yingxiang" = "Shadow";
+"lut_honor_yuanqi" = "Vitality";
+"lut_honor_zhishi" = "Knowledge";
+"lut_honor_ziran" = "Natural";
+"lut_leica_bleach" = "ライカ ブリーチ";
+"lut_leica_blue" = "ライカ ブルー";
+"lut_leica_brass" = "ライカ ブラス";
+"lut_leica_chrome" = "ライカ クローム";
+"lut_leica_classic" = "ライカ クラシック";
+"lut_leica_contemporary" = "ライカ コンテンポラリー";
+"lut_leica_eternal" = "ライカ エターナル";
+"lut_leica_high_contrast" = "ライカ モノクローム ハイコントラスト";
+"lut_leica_monochrome_natural" = "ライカ モノクローム ナチュラル";
+"lut_leica_natural" = "ライカ ナチュラル";
+"lut_leica_selenium" = "ライカ セレニウム";
+"lut_leica_sepia" = "ライカ セピア";
+"lut_leica_silver" = "ライカ シルバー";
+"lut_leica_standard" = "ライカ スタンダード";
+"lut_leica_teal" = "ライカ ティール";
+"lut_leica_vivid" = "ライカ ビビッド";
+"lut_load_failed" = "フィルターの読み込みに失敗しました";
+"lut_meizu_original" = "Original";
+"lut_meizu_retro" = "Retro";
+"lut_meizu_retro_front" = "Retro (Front)";
+"lut_meizu_skin_whiten" = "Skin Whiten";
+"lut_meizu_tender" = "Tender";
+"lut_meizu_tender_front" = "Tender (Front)";
+"lut_meizu_vivid" = "Vivid";
+"lut_meizu_vivid_front" = "Vivid (Front)";
+"lut_meizu_warm" = "Warm";
+"lut_meizu_warm_front" = "Warm (Front)";
+"lut_meizu_warm_tone" = "Warm Tone";
+"lut_meizu_warm_tone_front" = "Warm Tone (Front)";
+"lut_nubia_daily" = "デイリー";
+"lut_nubia_food" = "グルメ";
 "lut_nubia_landscape" = "風景";
-"lut_nubia_food" = "料理";
-"lut_nubia_portrait_bg" = "ポートレート (BG)";
-"lut_nubia_portrait_skin" = "ポートレート (肌)";
-"lut_nubia_portrait_skin_2" = "ポートレート (肌2)";
-"lut_nubia_daily" = "日常";
-"lut_nubia_life_bg" = "生活 (BG)";
-"lut_nubia_life_skin" = "生活 (肌)";
-
-/* Honor LUT names */
-"lut_honor_baixi" = "スケッチ";
-"lut_honor_fendiao" = "ピンクトーン";
-"lut_honor_heibai" = "白黒";
-"lut_honor_heijin" = "ブラックゴールド";
-"lut_honor_huaijiu" = "ノスタルジック";
-"lut_honor_huidiao" = "グレートーン";
-"lut_honor_jiaotang" = "キャラメル";
-"lut_honor_jingdian" = "クラシック";
-"lut_honor_landiao" = "ブルートーン";
-"lut_honor_qingcheng" = "クリアシティ";
-"lut_honor_senxi" = "フォレスト";
-"lut_honor_tangguo" = "キャンディー";
-"lut_honor_yingxiang" = "シャドウ";
-"lut_honor_zhishi" = "ナレッジ";
-"lut_honor_ziran" = "ナチュラル";
-"lut_honor_danya" = "エレガント";
-"lut_honor_jiaopian" = "フィルム";
-"lut_honor_qingchun" = "ユース";
-"lut_honor_rouhe" = "ソフト";
-"lut_honor_xianming" = "ビビッド";
-"lut_honor_xianyan" = "バイブラント";
-"lut_honor_yuanqi" = "バイタリティ";
-
-/* Meizu categories */
-"category_general" = "一般";
-"category_classic_filter" = "クラシックフィルター";
-"category_filter_manager" = "フィルターマネージャー";
-"category_ai_filters" = "AIフィルター";
-
-/* Vivo categories */
-"category_camera_filters" = "カメラフィルター";
-"category_editor_filters" = "編集フィルター";
-"category_movie" = "ムービー";
-"category_portrait_style" = "ポートレートスタイル";
-"category_portrait_multistyle" = "ポートレートマルチスタイル";
-"category_collage_filters" = "コラージュフィルター";
-"category_night_style" = "夜景スタイル";
-"category_superzoom" = "超望遠";
-
-/* Samsung categories */
-"category_samsung_myfilter" = "マイフィルター";
-"category_samsung_preload_effect" = "プリロードエフェクト";
-
-/* Meizu LUT names */
-"lut_meizu_warm" = "ウォーム";
-"lut_meizu_warm_front" = "ウォーム (フロント)";
-"lut_meizu_retro" = "レトロ";
-"lut_meizu_retro_front" = "レトロ (フロント)";
-"lut_meizu_tender" = "テンダー";
-"lut_meizu_tender_front" = "テンダー (フロント)";
-"lut_meizu_warm_tone" = "ウォームトーン";
-"lut_meizu_warm_tone_front" = "ウォームトーン (フロント)";
-"lut_meizu_vivid" = "ビビッド";
-"lut_meizu_vivid_front" = "ビビッド (フロント)";
-"lut_meizu_original" = "オリジナル";
-"lut_meizu_skin_whiten" = "美肌";
-
-/* Watermark */
-"header_watermark" = "ウォーターマーク";
-"label_watermark" = "Honor ウォーターマーク";
-"label_watermark_style" = "スタイル";
-"label_watermark_brand" = "ブランド";
-"watermark_none" = "なし";
-"brand_none" = "なし";
-"brand_honor" = "Honor";
-"brand_meizu" = "Meizu";
-"brand_vivo" = "vivo";
-"brand_tecno" = "TECNO";
-"label_watermark_device" = "デバイス";
-"label_watermark_lens" = "レンズ";
-"label_watermark_time" = "時刻";
-"label_watermark_location" = "位置情報";
-
-/* OnePlus Film category */
-"category_film" = "フィルム";
-"lut_film_field" = "フィールド";
-"lut_film_seaside" = "海辺";
-"lut_film_city" = "都市";
-"lut_film_neon" = "ネオン";
-"lut_film_cold_flash" = "コールドフラッシュ";
-"lut_film_warm_flash" = "ウォームフラッシュ";
-"lut_film_vintage" = "ビンテージ";
-"lut_film_clear" = "クリア";
-"lut_film_800t" = "800T";
-
-/* TECNO categories */
-"category_a_series" = "Aシリーズ";
-"category_b_series" = "Bシリーズ";
-"category_c_series" = "Cシリーズ";
-"category_ai_camera" = "AIカメラ";
-"category_filters" = "フィルター";
-"category_india_filters" = "インドフィルター";
-"category_misc" = "その他";
-"category_night_mode" = "ナイトモード";
-"category_street_photo" = "ストリートフォト";
-"category_custom" = "カスタム";
-
-/* Grain style */
-"label_grain_style" = "Grain Style";
-"grain_style_xiaomi" = "Xiaomi";
-"grain_style_oneplus" = "OnePlus";
-
-/* Watermark style names - Honor */
-"watermark_frame" = "Frame";
-"watermark_text" = "Text";
-"watermark_frame_yg" = "Frame YG";
-"watermark_text_yg" = "Text YG";
-
-/* Watermark style names - Meizu */
+"lut_nubia_life_bg" = "ライフ (背景)";
+"lut_nubia_life_skin" = "ライフ (肌)";
+"lut_nubia_portrait_bg" = "人物 (背景)";
+"lut_nubia_portrait_skin" = "人物 (肌)";
+"lut_nubia_portrait_skin_2" = "人物 (肌 2)";
 "meizu_norm" = "Norm";
 "meizu_pro" = "Pro";
 "meizu_z1" = "Z1";
@@ -269,28 +212,53 @@
 "meizu_z5" = "Z5";
 "meizu_z6" = "Z6";
 "meizu_z7" = "Z7";
-
-/* Watermark style names - vivo */
-"vivo_zeiss" = "ZEISS";
+"more_brands_title" = "さらに多くのルックを解放";
+"more_tools_title" = "仕上げツールをさらに解放";
+"new_version_available" = "新しいバージョン %1$@ が利用可能です";
+"premium_brands_hint" = "ログインすると、さらに多くのブランドと仕上げ機能を利用できます。";
+"pro_adjust_tools_hint" = "ログインすると、色調整・透かし・プリセットをまとめて使えるようになります。";
+"pro_brand_locked" = "ライセンス機能: ログインしてこのブランドを有効化";
+"pro_quality_limit" = "ライセンス機能: 60%以上の画質で保存するにはライセンスが必要です";
+"pro_watermark_locked" = "ライセンス機能: ログインして透かしを有効化";
+"quality_limit_notice" = "ライセンス機能: 無料ユーザーは最大60%%まで";
+"save" = "保存";
+"save_error" = "保存エラー: %1$@";
+"save_folder_create_failed" = "保存先の作成に失敗しました";
+"save_path_changed" = "保存先を変更しました: %1$@";
+"save_path_hint" = "例: Pictures/MyPhotos";
+"select_image_first" = "先に画像を選択してください";
+"sign_in_description" = "Googleでログインしてライセンス機能を有効化";
+"subtitle_film_simulator" = "フィルムシミュレーター";
+"tecno_1" = "Mode 1";
+"tecno_2" = "Mode 2";
+"tecno_3" = "Mode 3";
+"tecno_4" = "Mode 4";
+"time" = "撮影日時";
+"title_settings" = "設定";
+"update_available" = "アップデートがあります";
+"update_check_failed" = "更新の確認に失敗しました";
+"update_now" = "更新する";
+"vivo_1" = "vivo 1";
+"vivo_2" = "vivo 2";
+"vivo_3" = "vivo 3";
+"vivo_4" = "vivo 4";
+"vivo_5" = "vivo 5";
 "vivo_classic" = "Classic";
-"vivo_pro" = "Pro";
+"vivo_common_iqoo4" = "Common iQOO4";
+"vivo_event" = "Event";
+"vivo_frame" = "vivo枠";
+"vivo_frame_time" = "vivo枠+時";
 "vivo_iqoo" = "iQOO";
-"vivo_zeiss_v1" = "ZEISS v1";
-"vivo_zeiss_sonnar" = "Sonnar";
-"vivo_zeiss_humanity" = "Humanity ZEISS";
+"vivo_iqoo_4" = "iQOO 4";
+"vivo_iqoo_frame" = "iQOO枠";
+"vivo_iqoo_frame_time" = "iQOO枠+時";
+"vivo_iqoo_humanity" = "人文 iQOO";
 "vivo_iqoo_v1" = "iQOO v1";
-"vivo_iqoo_humanity" = "Humanity iQOO";
-"vivo_zeiss_frame" = "ZEISS Frame";
-"vivo_zeiss_overlay" = "ZEISS Overlay";
-"vivo_zeiss_center" = "ZEISS Center";
-"vivo_frame" = "vivo Frame";
-"vivo_frame_time" = "vivo Frame+Time";
-"vivo_iqoo_frame" = "iQOO Frame";
-"vivo_iqoo_frame_time" = "iQOO Frame+Time";
 "vivo_os" = "OriginOS";
 "vivo_os_corner" = "OS Corner";
 "vivo_os_simple" = "OS Simple";
-"vivo_event" = "Event";
+"vivo_pro" = "Pro";
+"vivo_zeiss" = "ZEISS";
 "vivo_zeiss_0" = "ZEISS 0";
 "vivo_zeiss_1" = "ZEISS 1";
 "vivo_zeiss_2" = "ZEISS 2";
@@ -300,34 +268,20 @@
 "vivo_zeiss_6" = "ZEISS 6";
 "vivo_zeiss_7" = "ZEISS 7";
 "vivo_zeiss_8" = "ZEISS 8";
-"vivo_iqoo_4" = "iQOO 4";
-"vivo_common_iqoo4" = "Common iQOO4";
-"vivo_1" = "vivo 1";
-"vivo_2" = "vivo 2";
-"vivo_3" = "vivo 3";
-"vivo_4" = "vivo 4";
-"vivo_5" = "vivo 5";
-
-/* Watermark style names - TECNO */
-"tecno_1" = "Mode 1";
-"tecno_2" = "Mode 2";
-"tecno_3" = "Mode 3";
-"tecno_4" = "Mode 4";
-
-/* Account / Auth */
-"label_account" = "アカウント";
-"sign_in_description" = "Googleでログインしてライセンス機能を有効化";
-"btn_sign_in" = "Googleでログイン";
-"btn_sign_out" = "サインアウト";
-"label_pro" = "ライセンス";
-
-/* Pro restrictions */
-"pro_brand_locked" = "ライセンス機能: このブランドのロックを解除するにはサインインしてください";
-"pro_watermark_locked" = "ライセンス機能: ウォーターマークのロックを解除するにはサインインしてください";
-"pro_quality_limit" = "ライセンス機能: 60%%以上の画質にはライセンスが必要です";
-"label_license_permanent" = "永久ライセンス";
-"label_license_version_mismatch" = "ライセンスはバージョン %@ までに限定されています！";
-
-"label_grain_style" = "グレインスタイル";
-"quality_limit_notice" = "ライセンス機能: 無料ユーザーは最大60%%まで";
-"btn_sign_in_google" = "Googleでサインイン";
+"vivo_zeiss_center" = "ZEISS中央";
+"vivo_zeiss_frame" = "ZEISS枠";
+"vivo_zeiss_humanity" = "人文 ZEISS";
+"vivo_zeiss_overlay" = "ZEISS OL";
+"vivo_zeiss_sonnar" = "Sonnar";
+"vivo_zeiss_v1" = "ZEISS v1";
+"watermark" = "透かし";
+"watermark_frame" = "Frame";
+"watermark_frame_yg" = "Frame YG";
+"watermark_none" = "None";
+"watermark_select_brand" = "ブランドを選択して透かしスタイルを表示";
+"watermark_text" = "Text";
+"watermark_text_yg" = "Text YG";
+"workflow_step_choose" = "ブランドを選び、ルックをタップしてプレビューします";
+"workflow_step_import" = "まず写真を読み込んでプレビューを始めます";
+"workflow_step_refine_save" = "仕上がりを微調整して、準備ができたら保存します";
+"workflow_title" = "使い方";

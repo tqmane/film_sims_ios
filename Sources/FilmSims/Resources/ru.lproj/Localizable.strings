@@ -1,244 +1,208 @@
-/* Image loading */
-"image_loaded" = "Image loaded: %@ (Preview: %@)";
-"image_load_failed" = "Failed to load image: %@";
-"select_image_first" = "Please select an image first";
-
-/* Export */
-"exporting" = "Exporting…";
-"cpu_processing" = "CPU processing… (Large images may take time)";
-"save_error" = "Save error: %@";
-"save_folder_create_failed" = "Failed to create save folder";
-"image_saved" = "Saved (%@): %@/%@";
-"lut_load_failed" = "Failed to load filter";
-
-/* Settings */
-"enter_save_folder" = "Enter save folder";
-"save_path_hint" = "e.g. Pictures/MyPhotos";
-"save" = "Save";
-"cancel" = "Cancel";
-"save_path_changed" = "Save path changed: %@";
-
-/* Update dialog */
-"update_available" = "Update Available";
-"new_version_available" = "New version %@ is available";
-"update_now" = "Update";
-"later" = "Later";
-"update_check_failed" = "Failed to check for updates";
-
-/* LUT Categories - OnePlus */
+"adjust_hint_grain" = "Добавляйте зерно после настройки LUT и тона для более естественной текстуры.";
+"adjust_hint_intensity" = "Сначала подберите силу LUT, чтобы задать общее настроение.";
+"adjust_hint_watermark" = "Завершите кадр фирменным водяным знаком, когда редактирование будет готово.";
+"adjustments" = "Настройки";
+"brand_honor" = "Honor";
+"brand_leica_fotos" = "Leica FOTOS";
+"brand_leica_lux" = "Leica LUX";
+"brand_meizu" = "Meizu";
+"brand_none" = "Нет";
+"brand_tecno" = "TECNO";
+"brand_vivo" = "vivo";
+"btn_change" = "Изменить";
+"btn_close" = "Закрыть";
+"btn_open_gallery" = "Открыть галерею";
+"btn_sign_in" = "Войти через Google";
+"btn_sign_in_google" = "Sign in with Google";
+"btn_sign_out" = "Выйти";
+"cancel" = "Отмена";
+"category_a_series" = "A Series";
+"category_ai_camera" = "AI Camera";
+"category_ai_filters" = "AI Filters";
+"category_all" = "All";
 "category_app_filters" = "App Filters";
+"category_artist_looks" = "Artist Looks";
 "category_artistic" = "Artistic";
+"category_b_series" = "B Series";
 "category_black_white" = "Black & White";
+"category_c_series" = "C Series";
+"category_camera_filters" = "Camera Filters";
+"category_cinematic" = "Cinematic";
 "category_cinematic_movie" = "Cinematic Movie";
+"category_classic_filter" = "Classic Filter";
+"category_collage_filters" = "Collage Filters";
 "category_cool_tones" = "Cool Tones";
+"category_custom" = "Custom";
+"category_editor_filters" = "Editor Filters";
+"category_film" = "Film";
+"category_film_simulation" = "Film Simulation";
+"category_filter_manager" = "Filter Manager";
+"category_filters" = "Filters";
 "category_food" = "Food";
+"category_general" = "General";
 "category_golden_touch" = "Golden Touch";
+"category_india_filters" = "India Filters";
 "category_instagram_filters" = "Instagram Filters";
 "category_japanese_style" = "Japanese Style";
 "category_landscape" = "Landscape";
+"category_leica_looks" = "Leica Looks";
+"category_misc" = "Misc";
+"category_monochrome" = "Monochrome";
+"category_movie" = "Movie";
+"category_nature_landscape" = "Nature-Landscape";
 "category_night" = "Night";
+"category_night_mode" = "Night Mode";
+"category_night_style" = "Night Style";
 "category_portrait" = "Portrait";
+"category_portrait_multistyle" = "Portrait Multi-Style";
+"category_portrait_soft" = "Portrait-Soft";
+"category_portrait_style" = "Portrait Style";
+"category_samsung_myfilter" = "My Filter";
+"category_samsung_preload_effect" = "Preloaded Effects";
+"category_special_effects" = "Special Effects";
+"category_street_photo" = "Street Photo";
+"category_superzoom" = "Superzoom";
 "category_uncategorized" = "Uncategorized";
 "category_vintage_retro" = "Vintage-Retro";
-"category_warm_tones" = "Warm Tones";
-
-/* LUT Categories - Xiaomi */
-"category_cinematic" = "Cinematic";
-"category_film_simulation" = "Film Simulation";
-"category_monochrome" = "Monochrome";
-"category_nature_landscape" = "Nature-Landscape";
-"category_portrait_soft" = "Portrait-Soft";
-"category_special_effects" = "Special Effects";
 "category_vivid_natural" = "Vivid-Natural";
+"category_warm_tones" = "Warm Tones";
 "category_warm_vintage" = "Warm-Vintage";
-
-/* LUT Categories - Nothing/Common */
-"category_all" = "All";
-
-/* LUT Categories - Leica_lux */
-"category_leica_looks" = "Leica Looks";
-"category_artist_looks" = "Artist Looks";
-
-/* Brand names */
-"brand_leica_lux" = "Leica LUX";
-
-/* Leica_lux filter names */
-"lut_leica_classic" = "Leica Classic";
-"lut_leica_contemporary" = "Leica Contemporary";
-"lut_leica_monochrome_natural" = "Leica Monochrome Natural";
-"lut_leica_natural" = "Leica Natural";
-"lut_leica_blue" = "Leica Blue";
-"lut_leica_eternal" = "Leica Eternal";
-"lut_leica_selenium" = "Leica Selenium";
-"lut_leica_sepia" = "Leica Sepia";
-"lut_leica_silver" = "Leica Silver";
-"lut_leica_teal" = "Leica Teal";
-"lut_leica_bleach" = "Leica Bleach";
-"lut_leica_brass" = "Leica Brass";
-"lut_leica_high_contrast" = "Leica Monochrome High Contrast";
-"lut_leica_vivid" = "Leica Vivid";
+"category_xiaomi_effect" = "Effects";
+"category_xiaomi_film" = "Film";
+"category_xiaomi_leica" = "Leica Style";
+"category_xiaomi_leica_m3" = "Leica M3";
+"category_xiaomi_leica_m9" = "Leica M9";
+"category_xiaomi_normal" = "Normal";
+"category_xiaomi_portrait" = "Portrait";
+"category_xiaomi_video" = "Video";
+"cpu_processing" = "Обработка на CPU… (Большие изображения могут занять время)";
+"desc_pick_image" = "Выберите фото для применения плёночных симуляций";
+"device_name" = "Имя устройства";
+"enter_save_folder" = "Введите папку для сохранения";
+"export_error" = "Ошибка при экспорте";
+"export_success" = "Успешно экспортировано";
+"exporting" = "Экспорт…";
+"grain" = "Зерно";
+"grain_style_oneplus" = "OnePlus";
+"grain_style_xiaomi" = "Xiaomi";
+"header_camera" = "Камера";
+"header_grain" = "Эффекты";
+"header_presets" = "Пресеты";
+"header_style" = "Стиль";
+"header_watermark" = "Водяной знак";
+"image_load_failed" = "Не удалось загрузить изображение: %1$@";
+"image_loaded" = "Изображение загружено: %1$@ (Предпросмотр: %2$@)";
+"image_saved" = "Сохранено (%1$@): %2$@/%3$@";
+"label_account" = "Аккаунт";
+"label_film_grain" = "Зерно плёнки";
+"label_grain_style" = "Стиль зерна";
+"label_intensity" = "Интенсивность";
+"label_license_permanent" = "Постоянная лицензия";
+"label_license_version_mismatch" = "Ваша лицензия ограничена версией %1$@!";
+"label_pick_image" = "Выбрать изображение";
+"label_pro" = "ЛИЦЕНЗИЯ";
+"label_purchase_license" = "Купить лицензию → tqmane.booth.pm";
+"label_quality" = "Качество";
+"label_save_folder" = "Папка сохранения";
+"label_watermark" = "Водяной знак Honor";
+"label_watermark_brand" = "Бренд";
+"label_watermark_device" = "Устройство";
+"label_watermark_lens" = "Объектив";
+"label_watermark_location" = "Местоположение";
+"label_watermark_style" = "Стиль";
+"label_watermark_time" = "Время";
+"later" = "Позже";
+"lens_info" = "Инфо об объективе";
+"location" = "Местоположение";
+"look_preview_hint" = "Доступно %1$d стилей для предпросмотра. Нажмите один раз для просмотра и ещё раз для настройки.";
+"look_ready_hint" = "Нажмите на выбранный стиль ещё раз, чтобы открыть настройки.";
 "lut_100_years_mono" = "100 Years Mono";
+"lut_film_800t" = "800T";
+"lut_film_city" = "City";
+"lut_film_clear" = "Clear";
+"lut_film_cold_flash" = "Cold Flash";
+"lut_film_field" = "Field";
+"lut_film_neon" = "Neon";
+"lut_film_seaside" = "Seaside";
+"lut_film_vintage" = "Vintage";
+"lut_film_warm_flash" = "Warm Flash";
+"lut_fotos_bleach" = "Отбеливание";
+"lut_fotos_blue" = "Синий";
+"lut_fotos_brass" = "Латунь";
+"lut_fotos_chrome" = "Хром";
+"lut_fotos_classic" = "Классика";
+"lut_fotos_contemporary" = "Современный";
+"lut_fotos_eternal" = "Вечный";
+"lut_fotos_gregwilliams" = "Грег Уильямс";
+"lut_fotos_mono_blue" = "Моно Синий";
+"lut_fotos_mono_gregwilliams" = "Моно Грег Уильямс";
+"lut_fotos_mono_selenium" = "Моно Селен";
+"lut_fotos_mono_sepia" = "Моно Сепия";
+"lut_fotos_selenium" = "Селен";
+"lut_fotos_sepia" = "Сепия";
+"lut_fotos_silver" = "Серебро";
+"lut_fotos_teal" = "Бирюзовый";
 "lut_greg_williams_sepia_0" = "Greg Williams Sepia 0%";
 "lut_greg_williams_sepia_100" = "Greg Williams Sepia 100%";
-"lut_leica_standard" = "Leica Standard";
-"lut_leica_chrome" = "Leica Chrome";
-
-/* UI Labels */
-"subtitle_film_simulator" = "Film Simulator";
-"label_pick_image" = "Pick Image";
-"desc_pick_image" = "Pick a photo to apply film simulations";
-"btn_open_gallery" = "Open Gallery";
-"header_grain" = "Эффекты";
-"label_film_grain" = "Film Grain";
-"header_camera" = "Camera";
-"header_style" = "Style";
-"label_intensity" = "Intensity";
-"header_presets" = "Presets";
-"title_settings" = "Settings";
-"label_save_folder" = "Save Folder";
-"btn_change" = "Change";
-"label_quality" = "Quality";
-"btn_close" = "Close";
-"export_success" = "Успешно экспортировано";
-"export_error" = "Ошибка при экспорте";
-"adjustments" = "Настройки";
-"grain" = "Зерно";
-"watermark" = "Водяной знак";
-"watermark_select_brand" = "Выберите бренд для просмотра стилей";
-"device_name" = "Имя устройства";
-"time" = "Время";
-"location" = "Местоположение";
-"lens_info" = "Инфо об объективе";
-"brand_leica_fotos" = "Leica FOTOS";
-"label_account" = "Аккаунт";
-"sign_in_description" = "Войдите через Google, чтобы разблокировать функции Лицензии";
-"btn_sign_in" = "Войти через Google";
-"btn_sign_out" = "Выйти";
-"label_pro" = "ЛИЦЕНЗИЯ";
-"pro_brand_locked" = "Лицензионная функция: Войдите, чтобы разблокировать этот бренд";
-"pro_watermark_locked" = "Лицензионная функция: Войдите, чтобы разблокировать водяной знак";
-"pro_quality_limit" = "Лицензионная функция: Качество выше 60%% требует лицензию";
-
-/* Leica FOTOS LUT names */
-"lut_fotos_classic" = "Classic";
-"lut_fotos_contemporary" = "Contemporary";
-"lut_fotos_eternal" = "Eternal";
-"lut_fotos_gregwilliams" = "Greg Williams";
-"lut_fotos_selenium" = "Selenium";
-"lut_fotos_sepia" = "Sepia";
-"lut_fotos_silver" = "Silver";
-"lut_fotos_teal" = "Teal";
-"lut_fotos_mono_blue" = "Mono Blue";
-"lut_fotos_mono_gregwilliams" = "Mono Greg Williams";
-"lut_fotos_mono_selenium" = "Mono Selenium";
-"lut_fotos_mono_sepia" = "Mono Sepia";
-
-/* Nubia LUT names */
-"lut_nubia_landscape" = "Landscape";
-"lut_nubia_food" = "Food";
-"lut_nubia_portrait_bg" = "Portrait (BG)";
-"lut_nubia_portrait_skin" = "Portrait (Skin)";
-"lut_nubia_portrait_skin_2" = "Portrait (Skin 2)";
-"lut_nubia_daily" = "Daily Life";
-"lut_nubia_life_bg" = "Life (BG)";
-"lut_nubia_life_skin" = "Life (Skin)";
-
-/* Honor LUT names */
 "lut_honor_baixi" = "Sketch";
+"lut_honor_danya" = "Elegant";
 "lut_honor_fendiao" = "Pink Tone";
 "lut_honor_heibai" = "Black & White";
 "lut_honor_heijin" = "Black Gold";
 "lut_honor_huaijiu" = "Nostalgic";
 "lut_honor_huidiao" = "Gray Tone";
+"lut_honor_jiaopian" = "Film";
 "lut_honor_jiaotang" = "Caramel";
 "lut_honor_jingdian" = "Classic";
 "lut_honor_landiao" = "Blue Tone";
 "lut_honor_qingcheng" = "Clear City";
-"lut_honor_senxi" = "Forest";
-"lut_honor_tangguo" = "Candy";
-"lut_honor_yingxiang" = "Shadow";
-"lut_honor_zhishi" = "Knowledge";
-"lut_honor_ziran" = "Natural";
-"lut_honor_danya" = "Elegant";
-"lut_honor_jiaopian" = "Film";
 "lut_honor_qingchun" = "Youth";
 "lut_honor_rouhe" = "Soft";
+"lut_honor_senxi" = "Forest";
+"lut_honor_tangguo" = "Candy";
 "lut_honor_xianming" = "Vivid";
 "lut_honor_xianyan" = "Vibrant";
+"lut_honor_yingxiang" = "Shadow";
 "lut_honor_yuanqi" = "Vitality";
-
-/* Meizu categories */
-"category_general" = "General";
-"category_classic_filter" = "Classic Filter";
-"category_filter_manager" = "Filter Manager";
-
-/* Meizu LUT names */
-"lut_meizu_warm" = "Warm";
-"lut_meizu_warm_front" = "Warm (Front)";
+"lut_honor_zhishi" = "Knowledge";
+"lut_honor_ziran" = "Natural";
+"lut_leica_bleach" = "Leica Bleach";
+"lut_leica_blue" = "Leica Blue";
+"lut_leica_brass" = "Leica Brass";
+"lut_leica_chrome" = "Leica Chrome";
+"lut_leica_classic" = "Leica Classic";
+"lut_leica_contemporary" = "Leica Contemporary";
+"lut_leica_eternal" = "Leica Eternal";
+"lut_leica_high_contrast" = "Leica Monochrome High Contrast";
+"lut_leica_monochrome_natural" = "Leica Monochrome Natural";
+"lut_leica_natural" = "Leica Natural";
+"lut_leica_selenium" = "Leica Selenium";
+"lut_leica_sepia" = "Leica Sepia";
+"lut_leica_silver" = "Leica Silver";
+"lut_leica_standard" = "Leica Standard";
+"lut_leica_teal" = "Leica Teal";
+"lut_leica_vivid" = "Leica Vivid";
+"lut_load_failed" = "Не удалось загрузить фильтр";
+"lut_meizu_original" = "Original";
 "lut_meizu_retro" = "Retro";
 "lut_meizu_retro_front" = "Retro (Front)";
+"lut_meizu_skin_whiten" = "Skin Whiten";
 "lut_meizu_tender" = "Tender";
 "lut_meizu_tender_front" = "Tender (Front)";
-"lut_meizu_warm_tone" = "Warm Tone";
-"lut_meizu_warm_tone_front" = "Warm Tone (Front)";
 "lut_meizu_vivid" = "Vivid";
 "lut_meizu_vivid_front" = "Vivid (Front)";
-"lut_meizu_original" = "Original";
-"lut_meizu_skin_whiten" = "Skin Whiten";
-
-/* Watermark */
-"header_watermark" = "Watermark";
-"label_watermark" = "Honor Watermark";
-"label_watermark_style" = "Style";
-"label_watermark_brand" = "Brand";
-"watermark_none" = "None";
-"brand_none" = "None";
-"brand_honor" = "Honor";
-"brand_meizu" = "Meizu";
-"brand_vivo" = "vivo";
-"brand_tecno" = "TECNO";
-"label_watermark_device" = "Device";
-"label_watermark_lens" = "Lens";
-"label_watermark_time" = "Time";
-"label_watermark_location" = "Location";
-
-/* OnePlus Film category */
-"category_film" = "Film";
-"lut_film_field" = "Field";
-"lut_film_seaside" = "Seaside";
-"lut_film_city" = "City";
-"lut_film_neon" = "Neon";
-"lut_film_cold_flash" = "Cold Flash";
-"lut_film_warm_flash" = "Warm Flash";
-"lut_film_vintage" = "Vintage";
-"lut_film_clear" = "Clear";
-"lut_film_800t" = "800T";
-
-/* TECNO categories */
-"category_a_series" = "A Series";
-"category_b_series" = "B Series";
-"category_c_series" = "C Series";
-"category_ai_camera" = "AI Camera";
-"category_filters" = "Filters";
-"category_india_filters" = "India Filters";
-"category_misc" = "Misc";
-"category_night_mode" = "Night Mode";
-"category_street_photo" = "Street Photo";
-"category_custom" = "Custom";
-
-
-/* Grain style */
-"label_grain_style" = "Grain Style";
-"grain_style_xiaomi" = "Xiaomi";
-"grain_style_oneplus" = "OnePlus";
-
-/* Watermark style names - Honor */
-"watermark_frame" = "Frame";
-"watermark_text" = "Text";
-"watermark_frame_yg" = "Frame YG";
-"watermark_text_yg" = "Text YG";
-
-/* Watermark style names - Meizu */
+"lut_meizu_warm" = "Warm";
+"lut_meizu_warm_front" = "Warm (Front)";
+"lut_meizu_warm_tone" = "Warm Tone";
+"lut_meizu_warm_tone_front" = "Warm Tone (Front)";
+"lut_nubia_daily" = "Daily Life";
+"lut_nubia_food" = "Food";
+"lut_nubia_landscape" = "Landscape";
+"lut_nubia_life_bg" = "Life (BG)";
+"lut_nubia_life_skin" = "Life (Skin)";
+"lut_nubia_portrait_bg" = "Portrait (BG)";
+"lut_nubia_portrait_skin" = "Portrait (Skin)";
+"lut_nubia_portrait_skin_2" = "Portrait (Skin 2)";
 "meizu_norm" = "Norm";
 "meizu_pro" = "Pro";
 "meizu_z1" = "Z1";
@@ -248,28 +212,53 @@
 "meizu_z5" = "Z5";
 "meizu_z6" = "Z6";
 "meizu_z7" = "Z7";
-
-/* Watermark style names - vivo */
-"vivo_zeiss" = "ZEISS";
+"more_brands_title" = "Доступно больше стилей";
+"more_tools_title" = "Доступно больше инструментов финальной обработки";
+"new_version_available" = "Доступна новая версия %1$@";
+"premium_brands_hint" = "Войдите, чтобы открыть больше брендов и полный сценарий финальной обработки.";
+"pro_adjust_tools_hint" = "Войдите, чтобы открыть тоновые настройки, водяные знаки и пресеты в одном месте.";
+"pro_brand_locked" = "Функция лицензии: Войдите, чтобы разблокировать этот бренд";
+"pro_quality_limit" = "Функция лицензии: Для качества выше 60% требуется Лицензия";
+"pro_watermark_locked" = "Функция лицензии: Войдите, чтобы разблокировать водяные знаки";
+"quality_limit_notice" = "License feature: Max quality 60%% for free users";
+"save" = "Сохранить";
+"save_error" = "Ошибка сохранения: %1$@";
+"save_folder_create_failed" = "Не удалось создать папку для сохранения";
+"save_path_changed" = "Путь сохранения изменён: %1$@";
+"save_path_hint" = "Напр.: Pictures/МоиФото";
+"select_image_first" = "Сначала выберите изображение";
+"sign_in_description" = "Войдите через Google, чтобы разблокировать функции Лицензии";
+"subtitle_film_simulator" = "Симулятор плёнки";
+"tecno_1" = "Mode 1";
+"tecno_2" = "Mode 2";
+"tecno_3" = "Mode 3";
+"tecno_4" = "Mode 4";
+"time" = "Время";
+"title_settings" = "Настройки";
+"update_available" = "Доступно обновление";
+"update_check_failed" = "Не удалось проверить обновления";
+"update_now" = "Обновить";
+"vivo_1" = "vivo 1";
+"vivo_2" = "vivo 2";
+"vivo_3" = "vivo 3";
+"vivo_4" = "vivo 4";
+"vivo_5" = "vivo 5";
 "vivo_classic" = "Classic";
-"vivo_pro" = "Pro";
+"vivo_common_iqoo4" = "Common iQOO4";
+"vivo_event" = "Event";
+"vivo_frame" = "vivo枠";
+"vivo_frame_time" = "vivo枠+時";
 "vivo_iqoo" = "iQOO";
-"vivo_zeiss_v1" = "ZEISS v1";
-"vivo_zeiss_sonnar" = "Sonnar";
-"vivo_zeiss_humanity" = "Humanity ZEISS";
+"vivo_iqoo_4" = "iQOO 4";
+"vivo_iqoo_frame" = "iQOO枠";
+"vivo_iqoo_frame_time" = "iQOO枠+時";
+"vivo_iqoo_humanity" = "人文 iQOO";
 "vivo_iqoo_v1" = "iQOO v1";
-"vivo_iqoo_humanity" = "Humanity iQOO";
-"vivo_zeiss_frame" = "ZEISS Frame";
-"vivo_zeiss_overlay" = "ZEISS Overlay";
-"vivo_zeiss_center" = "ZEISS Center";
-"vivo_frame" = "vivo Frame";
-"vivo_frame_time" = "vivo Frame+Time";
-"vivo_iqoo_frame" = "iQOO Frame";
-"vivo_iqoo_frame_time" = "iQOO Frame+Time";
 "vivo_os" = "OriginOS";
 "vivo_os_corner" = "OS Corner";
 "vivo_os_simple" = "OS Simple";
-"vivo_event" = "Event";
+"vivo_pro" = "Pro";
+"vivo_zeiss" = "ZEISS";
 "vivo_zeiss_0" = "ZEISS 0";
 "vivo_zeiss_1" = "ZEISS 1";
 "vivo_zeiss_2" = "ZEISS 2";
@@ -279,20 +268,20 @@
 "vivo_zeiss_6" = "ZEISS 6";
 "vivo_zeiss_7" = "ZEISS 7";
 "vivo_zeiss_8" = "ZEISS 8";
-"vivo_iqoo_4" = "iQOO 4";
-"vivo_common_iqoo4" = "Common iQOO4";
-"vivo_1" = "vivo 1";
-"vivo_2" = "vivo 2";
-"vivo_3" = "vivo 3";
-"vivo_4" = "vivo 4";
-"vivo_5" = "vivo 5";
-
-/* Watermark style names - TECNO */
-"tecno_1" = "Mode 1";
-"tecno_2" = "Mode 2";
-"tecno_3" = "Mode 3";
-"tecno_4" = "Mode 4";
-"quality_limit_notice" = "License feature: Max quality 60%% for free users";
-"btn_sign_in_google" = "Sign in with Google";
-"category_xiaomi_leica_m3" = "Leica M3";
-"category_xiaomi_leica_m9" = "Leica M9";
+"vivo_zeiss_center" = "ZEISS中央";
+"vivo_zeiss_frame" = "ZEISS枠";
+"vivo_zeiss_humanity" = "人文 ZEISS";
+"vivo_zeiss_overlay" = "ZEISS OL";
+"vivo_zeiss_sonnar" = "Sonnar";
+"vivo_zeiss_v1" = "ZEISS v1";
+"watermark" = "Водяной знак";
+"watermark_frame" = "Frame";
+"watermark_frame_yg" = "Frame YG";
+"watermark_none" = "Нет";
+"watermark_select_brand" = "Выберите бренд для просмотра стилей водяных знаков";
+"watermark_text" = "Text";
+"watermark_text_yg" = "Text YG";
+"workflow_step_choose" = "Выберите бренд и нажмите на стиль для предпросмотра";
+"workflow_step_import" = "Импортируйте фото, чтобы начать предпросмотр";
+"workflow_step_refine_save" = "Точно настройте результат и экспортируйте, когда всё готово";
+"workflow_title" = "Как это работает";

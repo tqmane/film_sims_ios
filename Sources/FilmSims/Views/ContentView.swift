@@ -24,10 +24,12 @@ struct ContentView: View {
                 phoneLayout(geometry: geometry, metrics: metrics)
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: isImmersiveMode)
-        .animation(.easeInOut(duration: 0.25), value: showAdjustPanel)
+        .animation(.spring(response: 0.45, dampingFraction: 0.55), value: isImmersiveMode)
+        .animation(.spring(response: 0.45, dampingFraction: 0.55), value: showAdjustPanel)
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView(viewModel: viewModel)
+                .presentationBackground(.clear)
+                .presentationDragIndicator(.hidden)
         }
     }
 
@@ -149,30 +151,7 @@ struct ContentView: View {
                                     .padding(.bottom, 16)
                             }
 
-                            LiquidSectionHeader(text: L10n.tr("header_camera"))
-                            BrandSelector(
-                                brands: viewModel.brands,
-                                selectedBrand: $viewModel.selectedBrand,
-                                isProUser: proRepo.isProUser,
-                                freeBrands: freeBrands
-                            )
-
-                            LiquidSectionHeader(text: L10n.tr("header_style"))
-                            GenreSelector(
-                                categories: viewModel.currentCategories,
-                                selectedCategory: $viewModel.selectedCategory
-                            )
-
-                            LiquidSectionHeader(text: L10n.tr("header_presets"))
-                            LutPresetSelector(
-                                luts: viewModel.currentLuts,
-                                selectedLut: $viewModel.currentLut,
-                                sourceThumbnail: viewModel.thumbnailImage,
-                                viewModel: viewModel,
-                                onLutReselected: {
-                                    withAnimation { showAdjustPanel.toggle() }
-                                }
-                            )
+                            selectionSections(metrics: metrics)
                         }
                         .padding(.horizontal, metrics.panelHPad)
                         .padding(.vertical, 16)
@@ -246,45 +225,7 @@ struct ContentView: View {
     // MARK: - Placeholder View
     @ViewBuilder
     private func placeholderView(metrics: LayoutMetrics) -> some View {
-        let isCompact = metrics.category == .compact
-        VStack(spacing: 0) {
-            ZStack {
-                RoundedRectangle(cornerRadius: isCompact ? 16 : 20, style: .continuous)
-                    .fill(Color.glassSurface)
-                    .frame(width: isCompact ? 76 : 100, height: isCompact ? 76 : 100)
-
-                Image(systemName: "photo.badge.plus")
-                    .font(.system(size: isCompact ? 28 : 36))
-                    .foregroundColor(.textTertiary)
-            }
-
-            Text(L10n.tr("label_pick_image"))
-                .font(.system(size: isCompact ? 20 : 26, weight: .light))
-                .foregroundColor(.textPrimary)
-                .padding(.top, isCompact ? 20 : 36)
-
-            Text(L10n.tr("desc_pick_image"))
-                .font(.system(size: isCompact ? 13 : 15))
-                .foregroundColor(.textTertiary)
-                .multilineTextAlignment(.center)
-                .padding(.top, isCompact ? 10 : 14)
-
-            PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
-                HStack(spacing: 10) {
-                    Image(systemName: "photo.on.rectangle")
-                        .font(.system(size: isCompact ? 18 : 22))
-                    Text(L10n.tr("btn_open_gallery"))
-                        .font(.system(size: isCompact ? 14 : 15, weight: .medium))
-                }
-                .foregroundColor(.white)
-                .frame(height: isCompact ? 44 : 56)
-                .background(AndroidAccentGradientButtonBackground(cornerRadius: 24))
-                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            }
-            .frame(minWidth: 180)
-            .padding(.top, isCompact ? 28 : 44)
-        }
-        .padding(isCompact ? 32 : 56)
+        EmptyStateView(selectedPhotoItem: $viewModel.selectedPhotoItem)
     }
 
     // MARK: - Image Preview View
@@ -321,6 +262,37 @@ struct ContentView: View {
                 Spacer().frame(height: 10)
             }
 
+            selectionSections(metrics: metrics)
+        }
+        .padding(.horizontal, metrics.panelHPad)
+        .padding(.bottom, metrics.panelBottomPad)
+        .background(
+            AndroidControlPanelBackground(
+                topRadius: showAdjustPanel && viewModel.currentLut != nil ? 0 : metrics.panelTopRadius
+            )
+        )
+    }
+
+    @ViewBuilder
+    private func selectionSections(metrics: LayoutMetrics) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            LiquidNoticeCard(
+                title: currentLookNoticeTitle,
+                message: currentLookNoticeMessage,
+                label: currentLookNoticeLabel
+            )
+            .padding(.bottom, metrics.category == .compact ? 10 : 12)
+
+            if !proRepo.isProUser {
+                LiquidNoticeCard(
+                    title: L10n.tr("more_brands_title"),
+                    message: L10n.tr("premium_brands_hint"),
+                    label: L10n.tr("label_pro"),
+                    accentColor: .accentSecondary
+                )
+                .padding(.bottom, metrics.category == .compact ? 10 : 14)
+            }
+
             VStack(alignment: .leading, spacing: 0) {
                 LiquidSectionHeader(text: L10n.tr("header_camera"))
                 BrandSelector(
@@ -347,17 +319,29 @@ struct ContentView: View {
                     sourceThumbnail: viewModel.thumbnailImage,
                     viewModel: viewModel,
                     onLutReselected: {
-                        withAnimation { showAdjustPanel.toggle() }
+                        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+                            showAdjustPanel.toggle()
+                        }
                     }
                 )
             }
         }
-        .padding(.horizontal, metrics.panelHPad)
-        .padding(.bottom, metrics.panelBottomPad)
-        .background(
-            AndroidControlPanelBackground(
-                topRadius: showAdjustPanel && viewModel.currentLut != nil ? 0 : metrics.panelTopRadius
-            )
-        )
+    }
+
+    private var currentLookNoticeTitle: String {
+        viewModel.currentLut?.name
+            ?? viewModel.selectedBrand?.displayName
+            ?? L10n.tr("header_camera")
+    }
+
+    private var currentLookNoticeMessage: String {
+        if viewModel.currentLut != nil {
+            return L10n.tr("look_ready_hint")
+        }
+        return L10n.tr("look_preview_hint", viewModel.currentLuts.count)
+    }
+
+    private var currentLookNoticeLabel: String? {
+        viewModel.selectedCategory?.displayName
     }
 }

@@ -78,7 +78,7 @@ struct ChipButton: View {
                             lineWidth: 1
                         )
                 )
-                .animation(.easeInOut(duration: 0.3), value: isSelected)
+                .animation(.spring(response: 0.45, dampingFraction: 0.55), value: isSelected)
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
