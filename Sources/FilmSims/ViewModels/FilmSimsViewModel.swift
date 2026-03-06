@@ -32,45 +32,112 @@ class FilmSimsViewModel: ObservableObject {
     
     @Published var selectedCategory: LutCategory? {
         didSet {
-            currentLut = nil
+            if !suppressAutomaticProcessing {
+                performBatchedUpdates(applyAfter: true) {
+                    currentLut = nil
+                    overlayLut = nil
+                }
+            }
             prefetchCategoryLuts()
         }
     }
     
     @Published var currentLut: LutItem? {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
+            scheduleApply()
+        }
+    }
+
+    @Published var overlayLut: LutItem? {
+        didSet {
+            guard !suppressAutomaticProcessing else { return }
             scheduleApply()
         }
     }
     
     @Published var intensity: Float = 1.0 {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
             scheduleApply()
+        }
+    }
+
+    @Published var overlayIntensity: Float = 0.35 {
+        didSet {
+            guard !suppressAutomaticProcessing else { return }
+            if overlayLut != nil {
+                scheduleApply()
+            } else {
+                saveSettings()
+            }
         }
     }
     
     @Published var grainEnabled: Bool = false {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
             scheduleApply()
         }
     }
     
     @Published var grainIntensity: Float = 0.5 {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
             if grainEnabled {
                 scheduleApply()
+            } else {
+                saveSettings()
             }
         }
     }
 
     @Published var grainStyle: String = "Xiaomi" {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
             if grainEnabled {
                 scheduleApply()
+            } else {
+                saveSettings()
             }
         }
     }
-    
+
+    @Published var exposure: Float = 0 {
+        didSet {
+            guard !suppressAutomaticProcessing else { return }
+            scheduleApply()
+        }
+    }
+
+    @Published var contrast: Float = 0 {
+        didSet {
+            guard !suppressAutomaticProcessing else { return }
+            scheduleApply()
+        }
+    }
+
+    @Published var highlights: Float = 0 {
+        didSet {
+            guard !suppressAutomaticProcessing else { return }
+            scheduleApply()
+        }
+    }
+
+    @Published var shadows: Float = 0 {
+        didSet {
+            guard !suppressAutomaticProcessing else { return }
+            scheduleApply()
+        }
+    }
+
+    @Published var colorTemp: Float = 0 {
+        didSet {
+            guard !suppressAutomaticProcessing else { return }
+            scheduleApply()
+        }
+    }
+
     // Watermark
     @Published var watermarkBrand: String = "None" {
         didSet {
@@ -92,6 +159,7 @@ class FilmSimsViewModel: ObservableObject {
 
     @Published var watermarkEnabled: Bool = false {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
             scheduleApply()
         }
     }
@@ -99,44 +167,59 @@ class FilmSimsViewModel: ObservableObject {
     @Published var watermarkStyle: WatermarkProcessor.WatermarkStyle = .none {
         didSet {
             watermarkEnabled = (watermarkStyle != .none)
+            guard !suppressAutomaticProcessing else { return }
             scheduleApply()
         }
     }
     
     @Published var watermarkDeviceName: String = "" {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
             if watermarkEnabled {
                 scheduleApply()
+            } else {
+                saveSettings()
             }
         }
     }
     
     @Published var watermarkLensInfo: String = "" {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
             if watermarkEnabled {
                 scheduleApply()
+            } else {
+                saveSettings()
             }
         }
     }
     
     @Published var watermarkTimeText: String = "" {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
             if watermarkEnabled {
                 scheduleApply()
+            } else {
+                saveSettings()
             }
         }
     }
     
     @Published var watermarkLocationText: String = "" {
         didSet {
+            guard !suppressAutomaticProcessing else { return }
             if watermarkEnabled {
                 scheduleApply()
+            } else {
+                saveSettings()
             }
         }
     }
     
     // Settings
     @Published var saveQuality: Int = 100
+    @Published var panelHintsEnabled: Bool = true
+    @Published var presets: [Preset] = []
     
     // MARK: - Private Properties
     private let ciContext = CIContext(options: [.useSoftwareRenderer: false])
@@ -148,8 +231,29 @@ class FilmSimsViewModel: ObservableObject {
     private var thumbnailStamp = UUID()
     private var thumbnailPreviewCache: [String: UIImage] = [:]
     private var thumbnailPreviewTaskCache: [String: Task<UIImage?, Never>] = [:]
+    private var suppressAutomaticProcessing = false
     // Limits concurrent LUT parse+apply tasks for thumbnail previews.
     private let previewSemaphore = AsyncSemaphore(limit: 4)
+
+    nonisolated(unsafe) private static let basicAdjustKernel: CIColorKernel? = {
+        CIColorKernel(source: """
+        kernel vec4 basicAdjust(__sample image, float exposure, float contrast, float highlights, float shadows, float colorTemp) {
+            vec3 adjusted = image.rgb;
+            adjusted *= pow(2.0, exposure);
+            adjusted = mix(vec3(0.5), adjusted, 1.0 + contrast);
+            float luminance = dot(adjusted, vec3(0.299, 0.587, 0.114));
+            float shadowMask = 1.0 - smoothstep(0.0, 0.5, luminance);
+            float highlightMask = smoothstep(0.5, 1.0, luminance);
+            adjusted += shadows * shadowMask * 0.4;
+            adjusted += highlights * highlightMask * 0.4;
+            adjusted.r *= 1.0 + colorTemp * 0.15;
+            adjusted.g *= 1.0 + colorTemp * 0.05;
+            adjusted.b *= 1.0 - colorTemp * 0.15;
+            adjusted = clamp(adjusted, 0.0, 1.0);
+            return vec4(adjusted, image.a);
+        }
+        """)
+    }()
     
     // MARK: - Computed Properties
     var currentCategories: [LutCategory] {
@@ -158,6 +262,14 @@ class FilmSimsViewModel: ObservableObject {
     
     var currentLuts: [LutItem] {
         selectedCategory?.items ?? []
+    }
+
+    var hasVisibleEdits: Bool {
+        currentLut != nil ||
+        overlayLut != nil ||
+        hasBasicAdjustments ||
+        (grainEnabled && grainIntensity > 0) ||
+        (watermarkEnabled && watermarkStyle != .none)
     }
     
     // MARK: - Initialization
@@ -198,20 +310,187 @@ class FilmSimsViewModel: ObservableObject {
     // MARK: - Settings
     private func loadSettings() {
         let settings = SettingsManager.shared
-        saveQuality = settings.saveQuality
-        intensity = settings.lastIntensity
-        grainEnabled = settings.lastGrainEnabled
-        grainIntensity = settings.lastGrainIntensity
-        grainStyle = settings.lastGrainStyle
+        performBatchedUpdates(applyAfter: false) {
+            saveQuality = settings.saveQuality
+            panelHintsEnabled = settings.panelHintsEnabled
+            intensity = settings.lastIntensity
+            overlayIntensity = settings.lastOverlayIntensity
+            grainEnabled = settings.lastGrainEnabled
+            grainIntensity = settings.lastGrainIntensity
+            grainStyle = settings.lastGrainStyle
+            exposure = settings.lastExposure
+            contrast = settings.lastContrast
+            highlights = settings.lastHighlights
+            shadows = settings.lastShadows
+            colorTemp = settings.lastColorTemp
+        }
+        presets = settings.loadPresets()
     }
     
     func saveSettings() {
         let settings = SettingsManager.shared
         settings.saveQuality = saveQuality
+        settings.panelHintsEnabled = panelHintsEnabled
         settings.lastIntensity = intensity
+        settings.lastOverlayIntensity = overlayIntensity
         settings.lastGrainEnabled = grainEnabled
         settings.lastGrainIntensity = grainIntensity
         settings.lastGrainStyle = grainStyle
+        settings.lastExposure = exposure
+        settings.lastContrast = contrast
+        settings.lastHighlights = highlights
+        settings.lastShadows = shadows
+        settings.lastColorTemp = colorTemp
+    }
+
+    private func performBatchedUpdates(applyAfter: Bool, _ updates: () -> Void) {
+        suppressAutomaticProcessing = true
+        updates()
+        suppressAutomaticProcessing = false
+
+        if applyAfter {
+            scheduleApply()
+        }
+    }
+
+    private func selectionContext(for assetPath: String?) -> (brand: LutBrand, category: LutCategory, item: LutItem)? {
+        guard let assetPath else { return nil }
+
+        for brand in brands {
+            for category in brand.categories {
+                if let item = category.items.first(where: { $0.assetPath == assetPath }) {
+                    return (brand, category, item)
+                }
+            }
+        }
+
+        return nil
+    }
+
+    private func item(for assetPath: String?) -> LutItem? {
+        selectionContext(for: assetPath)?.item
+    }
+
+    private func restoreSelectionContext(for assetPath: String?) {
+        guard let context = selectionContext(for: assetPath) else { return }
+        selectedBrand = context.brand
+        selectedCategory = context.category
+    }
+
+    private func resolvedWatermarkStyle(from storedName: String) -> WatermarkProcessor.WatermarkStyle {
+        let normalizedName = storedName.lowercased()
+        return WatermarkProcessor.WatermarkStyle.allCases.first {
+            String(describing: $0).lowercased() == normalizedName
+        } ?? .none
+    }
+
+    private func watermarkBrand(for style: WatermarkProcessor.WatermarkStyle) -> String {
+        switch style {
+        case .none:
+            return "None"
+        case .frame, .text, .frameYG, .textYG:
+            return "Honor"
+        case .meizuNorm, .meizuPro, .meizuZ1, .meizuZ2, .meizuZ3, .meizuZ4, .meizuZ5, .meizuZ6, .meizuZ7:
+            return "Meizu"
+        case .vivoZeiss, .vivoClassic, .vivoPro, .vivoIqoo, .vivoZeissV1, .vivoZeissSonnar, .vivoZeissHumanity,
+             .vivoIqooV1, .vivoIqooHumanity, .vivoZeissFrame, .vivoZeissOverlay, .vivoZeissCenter,
+             .vivoFrame, .vivoFrameTime, .vivoIqooFrame, .vivoIqooFrameTime, .vivoOS, .vivoOSCorner,
+             .vivoOSSimple, .vivoEvent, .vivoZeiss0, .vivoZeiss1, .vivoZeiss2, .vivoZeiss3, .vivoZeiss4,
+             .vivoZeiss5, .vivoZeiss6, .vivoZeiss7, .vivoZeiss8, .vivoIqoo4, .vivoCommonIqoo4,
+             .vivo1, .vivo2, .vivo3, .vivo4, .vivo5:
+            return "Vivo"
+        case .tecno1, .tecno2, .tecno3, .tecno4:
+            return "TECNO"
+        }
+    }
+
+    func clearOverlayLut() {
+        overlayLut = nil
+    }
+
+    func setPanelHintsEnabled(_ enabled: Bool) {
+        panelHintsEnabled = enabled
+        SettingsManager.shared.panelHintsEnabled = enabled
+    }
+
+    func resetAdjustments() {
+        performBatchedUpdates(applyAfter: true) {
+            exposure = 0
+            contrast = 0
+            highlights = 0
+            shadows = 0
+            colorTemp = 0
+        }
+    }
+
+    @discardableResult
+    func savePreset(named name: String) -> Bool {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return false }
+
+        let preset = Preset(
+            id: UUID().uuidString,
+            name: trimmedName,
+            lutPath: currentLut?.assetPath,
+            intensity: intensity,
+            overlayLutPath: overlayLut?.assetPath,
+            overlayIntensity: overlayIntensity,
+            grainEnabled: grainEnabled,
+            grainIntensity: grainIntensity,
+            grainStyle: grainStyle,
+            exposure: exposure,
+            contrast: contrast,
+            highlights: highlights,
+            shadows: shadows,
+            colorTemp: colorTemp,
+            watermarkStyleName: String(describing: watermarkStyle),
+            watermarkDeviceName: watermarkDeviceName,
+            watermarkTimeText: watermarkTimeText,
+            watermarkLocationText: watermarkLocationText,
+            watermarkLensInfo: watermarkLensInfo
+        )
+
+        let didSave = SettingsManager.shared.savePreset(preset)
+        if didSave {
+            presets = SettingsManager.shared.loadPresets()
+        }
+        return didSave
+    }
+
+    func loadPreset(_ preset: Preset) {
+        let style = resolvedWatermarkStyle(from: preset.watermarkStyleName)
+        let currentItem = item(for: preset.lutPath)
+        let overlayItem = item(for: preset.overlayLutPath)
+
+        performBatchedUpdates(applyAfter: true) {
+            if let basePath = preset.lutPath {
+                restoreSelectionContext(for: basePath)
+            }
+
+            currentLut = currentItem
+            overlayLut = overlayItem
+            intensity = preset.intensity
+            overlayIntensity = preset.overlayIntensity
+            grainEnabled = preset.grainEnabled
+            grainIntensity = preset.grainIntensity
+            grainStyle = preset.grainStyle
+            exposure = preset.exposure
+            contrast = preset.contrast
+            highlights = preset.highlights
+            shadows = preset.shadows
+            colorTemp = preset.colorTemp
+            watermarkBrand = watermarkBrand(for: style)
+            watermarkStyle = style
+            watermarkDeviceName = preset.watermarkDeviceName
+            watermarkTimeText = preset.watermarkTimeText
+            watermarkLocationText = preset.watermarkLocationText
+            watermarkLensInfo = preset.watermarkLensInfo
+        }
+    }
+
+    func deletePreset(_ preset: Preset) {
+        SettingsManager.shared.deletePreset(id: preset.id)
+        presets = SettingsManager.shared.loadPresets()
     }
     
     // MARK: - Image Loading
@@ -244,17 +523,11 @@ class FilmSimsViewModel: ObservableObject {
                     thumbnailStamp = UUID()
                     thumbnailPreviewCache.removeAll(keepingCapacity: true)
                     thumbnailPreviewTaskCache.removeAll(keepingCapacity: true)
-                    
-                    // Reset intensity when new image is loaded
-                    intensity = 1.0
 
                     // Extract EXIF metadata to auto-populate watermark fields.
                     readExif(from: data)
 
-                    // Apply current LUT if selected
-                    if currentLut != nil {
-                        await applyCurrentLut()
-                    }
+                    await applyCurrentLut()
                 }
             }
         } catch {
@@ -309,6 +582,14 @@ class FilmSimsViewModel: ObservableObject {
     }
     
     // MARK: - LUT Application
+    private var hasBasicAdjustments: Bool {
+        abs(exposure) > 0.001 ||
+        abs(contrast) > 0.001 ||
+        abs(highlights) > 0.001 ||
+        abs(shadows) > 0.001 ||
+        abs(colorTemp) > 0.001
+    }
+
     func applyCurrentLut() async {
         guard let originalImage = originalImage else { return }
 
@@ -325,40 +606,20 @@ class FilmSimsViewModel: ObservableObject {
 
         if Task.isCancelled { return }
 
-        // If no LUT selected, still allow grain/watermark to be applied.
-        guard let lutItem = currentLut,
-              let lut = getLut(for: lutItem) else {
-            var noLutImage = previewImage
-            if grainEnabled && grainIntensity > 0 {
-                noLutImage = await applyFilmGrainAsync(to: noLutImage, intensity: grainIntensity) ?? noLutImage
-            }
-            if watermarkEnabled && watermarkStyle != .none {
-                noLutImage = applyWatermark(to: noLutImage)
-            }
-            processedImage = noLutImage
-            return
+        var finalImage = await renderEditedImage(from: previewImage) ?? previewImage
+
+        if Task.isCancelled { return }
+        
+        if grainEnabled && grainIntensity > 0 {
+            finalImage = await applyFilmGrainAsync(to: finalImage, intensity: grainIntensity) ?? finalImage
         }
         
-        if let processed = await applyLutToImage(previewImage, lut: lut, intensity: intensity) {
-            var finalImage = processed
-
-            if Task.isCancelled { return }
-            
-            // Apply grain if enabled
-            if grainEnabled && grainIntensity > 0 {
-                if let grainedImage = await applyFilmGrainAsync(to: finalImage, intensity: grainIntensity) {
-                    finalImage = grainedImage
-                }
-            }
-            
-            // Apply watermark if enabled
-            if watermarkEnabled && watermarkStyle != .none {
-                finalImage = applyWatermark(to: finalImage)
-            }
-            
-            if Task.isCancelled { return }
-            processedImage = finalImage
+        if watermarkEnabled && watermarkStyle != .none {
+            finalImage = applyWatermark(to: finalImage)
         }
+
+        if Task.isCancelled { return }
+        processedImage = finalImage
     }
 
     private func scheduleApply() {
@@ -371,6 +632,144 @@ class FilmSimsViewModel: ObservableObject {
             if Task.isCancelled { return }
             await self.applyCurrentLut()
         }
+    }
+
+    private func renderEditedImage(from image: UIImage) async -> UIImage? {
+        let baseLut = currentLut.flatMap(getLut(for:))
+        let overlayCube = overlayLut.flatMap(getLut(for:))
+        let shouldRender = baseLut != nil || overlayCube != nil || hasBasicAdjustments
+
+        guard shouldRender else { return image }
+        guard let cgImage = image.cgImage else { return nil }
+
+        let context = ciContext
+        let baseIntensity = intensity
+        let overlayBlend = overlayIntensity
+        let exposureValue = exposure
+        let contrastValue = contrast
+        let highlightsValue = highlights
+        let shadowsValue = shadows
+        let colorTemperature = colorTemp
+
+        return await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                let inputImage = CIImage(cgImage: cgImage)
+                guard let outputImage = Self.renderPipelineImage(
+                    from: inputImage,
+                    baseLut: baseLut,
+                    intensity: baseIntensity,
+                    overlayLut: overlayCube,
+                    overlayIntensity: overlayBlend,
+                    exposure: exposureValue,
+                    contrast: contrastValue,
+                    highlights: highlightsValue,
+                    shadows: shadowsValue,
+                    colorTemp: colorTemperature
+                ) else {
+                    continuation.resume(returning: image)
+                    return
+                }
+
+                guard let rendered = context.createCGImage(outputImage, from: outputImage.extent) else {
+                    continuation.resume(returning: image)
+                    return
+                }
+
+                continuation.resume(returning: UIImage(cgImage: rendered, scale: image.scale, orientation: image.imageOrientation))
+            }
+        }
+    }
+
+    nonisolated private static func renderPipelineImage(
+        from inputImage: CIImage,
+        baseLut: CubeLUT?,
+        intensity: Float,
+        overlayLut: CubeLUT?,
+        overlayIntensity: Float,
+        exposure: Float,
+        contrast: Float,
+        highlights: Float,
+        shadows: Float,
+        colorTemp: Float
+    ) -> CIImage? {
+        var workingImage = inputImage
+
+        if abs(exposure) > 0.001 || abs(contrast) > 0.001 || abs(highlights) > 0.001 || abs(shadows) > 0.001 || abs(colorTemp) > 0.001 {
+            workingImage = applyBasicAdjustments(
+                to: workingImage,
+                exposure: exposure,
+                contrast: contrast,
+                highlights: highlights,
+                shadows: shadows,
+                colorTemp: colorTemp
+            )
+        }
+
+        if let baseLut,
+           let baseImage = applyColorCube(to: workingImage, lut: baseLut) {
+            workingImage = blendImage(base: workingImage, filtered: baseImage, intensity: intensity) ?? baseImage
+        }
+
+        if let overlayLut,
+           overlayIntensity > 0.001,
+           let overlayImage = applyColorCube(to: workingImage, lut: overlayLut) {
+            workingImage = blendImage(base: workingImage, filtered: overlayImage, intensity: overlayIntensity) ?? overlayImage
+        }
+
+        return workingImage.cropped(to: inputImage.extent)
+    }
+
+    nonisolated private static func applyBasicAdjustments(
+        to image: CIImage,
+        exposure: Float,
+        contrast: Float,
+        highlights: Float,
+        shadows: Float,
+        colorTemp: Float
+    ) -> CIImage {
+        guard let kernel = Self.basicAdjustKernel,
+              let adjusted = kernel.apply(
+                extent: image.extent,
+                arguments: [
+                    image,
+                    NSNumber(value: exposure),
+                    NSNumber(value: contrast),
+                    NSNumber(value: highlights),
+                    NSNumber(value: shadows),
+                    NSNumber(value: colorTemp),
+                ]
+              ) else {
+            return image
+        }
+
+        return adjusted.cropped(to: image.extent)
+    }
+
+    nonisolated private static func applyColorCube(to image: CIImage, lut: CubeLUT) -> CIImage? {
+        guard let filter = CIFilter(name: "CIColorCubeWithColorSpace") else { return nil }
+        filter.setValue(image, forKey: kCIInputImageKey)
+        filter.setValue(lut.size, forKey: "inputCubeDimension")
+        filter.setValue(lut.cubeData, forKey: "inputCubeData")
+        filter.setValue(CGColorSpaceCreateDeviceRGB(), forKey: "inputColorSpace")
+        return filter.outputImage?.cropped(to: image.extent)
+    }
+
+    nonisolated private static func blendImage(base: CIImage, filtered: CIImage, intensity: Float) -> CIImage? {
+        if intensity <= 0.001 {
+            return base
+        }
+        if intensity >= 0.999 {
+            return filtered.cropped(to: base.extent)
+        }
+
+        guard let dissolveFilter = CIFilter(name: "CIDissolveTransition") else {
+            return filtered
+        }
+
+        dissolveFilter.setValue(base, forKey: kCIInputImageKey)
+        dissolveFilter.setValue(filtered, forKey: kCIInputTargetImageKey)
+        dissolveFilter.setValue(NSNumber(value: intensity), forKey: kCIInputTimeKey)
+        return dissolveFilter.outputImage?.cropped(to: base.extent)
     }
     
     // MARK: - Watermark Application
@@ -440,56 +839,19 @@ class FilmSimsViewModel: ObservableObject {
     
     private func applyLutToImage(_ image: UIImage, lut: CubeLUT, intensity: Float) async -> UIImage? {
         guard let cgImage = image.cgImage else { return nil }
+        let context = ciContext
         
         return await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                guard let self = self else {
+            DispatchQueue.global(qos: .userInitiated).async {
+                let inputImage = CIImage(cgImage: cgImage)
+                guard let filtered = Self.applyColorCube(to: inputImage, lut: lut) else {
                     continuation.resume(returning: nil)
                     return
                 }
-                
-                let ciImage = CIImage(cgImage: cgImage)
-                
-                // Apply LUT using CIColorCube filter
-                guard let filter = CIFilter(name: "CIColorCubeWithColorSpace") else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-                
-                filter.setValue(ciImage, forKey: kCIInputImageKey)
-                filter.setValue(lut.size, forKey: "inputCubeDimension")
-                filter.setValue(lut.cubeData, forKey: "inputCubeData")
-                filter.setValue(CGColorSpaceCreateDeviceRGB(), forKey: "inputColorSpace")
-                
-                guard let outputCIImage = filter.outputImage else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-                
-                // Blend with original based on intensity
-                let blendedImage: CIImage
-                if intensity < 1.0 {
-                    guard CIFilter(name: "CISourceOverCompositing") != nil else {
-                        continuation.resume(returning: nil)
-                        return
-                    }
-                    
-                    // Use dissolve blend instead for proper intensity mixing
-                    guard let dissolveFilter = CIFilter(name: "CIDissolveTransition") else {
-                        continuation.resume(returning: nil)
-                        return
-                    }
-                    
-                    dissolveFilter.setValue(ciImage, forKey: kCIInputImageKey)
-                    dissolveFilter.setValue(outputCIImage, forKey: kCIInputTargetImageKey)
-                    dissolveFilter.setValue(NSNumber(value: intensity), forKey: kCIInputTimeKey)
-                    
-                    blendedImage = dissolveFilter.outputImage ?? outputCIImage
-                } else {
-                    blendedImage = outputCIImage
-                }
-                
-                guard let outputCGImage = self.ciContext.createCGImage(blendedImage, from: blendedImage.extent) else {
+
+                let blendedImage = Self.blendImage(base: inputImage, filtered: filtered, intensity: intensity) ?? filtered
+
+                guard let outputCGImage = context.createCGImage(blendedImage, from: inputImage.extent) else {
                     continuation.resume(returning: nil)
                     return
                 }
@@ -633,25 +995,10 @@ class FilmSimsViewModel: ObservableObject {
         guard let originalImage = originalImage else { return }
         
         Task {
-            // Apply LUT to full resolution image
-            var imageToSave: UIImage
-            
-            if let lutItem = currentLut, let lut = getLut(for: lutItem) {
-                if let processed = await applyLutToImage(originalImage, lut: lut, intensity: intensity) {
-                    if grainEnabled && grainIntensity > 0 {
-                        imageToSave = Self.applyFilmGrain(to: processed, intensity: grainIntensity, ciContext: ciContext, style: grainStyle) ?? processed
-                    } else {
-                        imageToSave = processed
-                    }
-                } else {
-                    imageToSave = originalImage
-                }
-            } else {
-                if grainEnabled && grainIntensity > 0 {
-                    imageToSave = Self.applyFilmGrain(to: originalImage, intensity: grainIntensity, ciContext: ciContext, style: grainStyle) ?? originalImage
-                } else {
-                    imageToSave = originalImage
-                }
+            var imageToSave = await renderEditedImage(from: originalImage) ?? originalImage
+
+            if grainEnabled && grainIntensity > 0 {
+                imageToSave = Self.applyFilmGrain(to: imageToSave, intensity: grainIntensity, ciContext: ciContext, style: grainStyle) ?? imageToSave
             }
             
             // Apply watermark if enabled

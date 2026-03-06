@@ -16,7 +16,7 @@ class WatermarkProcessor {
     
     // MARK: - Watermark Style Enum
     
-    enum WatermarkStyle {
+    enum WatermarkStyle: CaseIterable, Sendable {
         case none
         
         // Honor styles
@@ -2514,4 +2514,3 @@ class WatermarkProcessor {
         return result ?? image
     }
 }
-

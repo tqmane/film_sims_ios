@@ -1,7 +1,7 @@
 import Foundation
 
 // MARK: - LUT Item
-struct LutItem: Identifiable, Equatable {
+struct LutItem: Identifiable, Equatable, Sendable {
     let id = UUID()
     let name: String
     let assetPath: String
@@ -12,7 +12,7 @@ struct LutItem: Identifiable, Equatable {
 }
 
 // MARK: - LUT Category
-struct LutCategory: Identifiable, Equatable {
+struct LutCategory: Identifiable, Equatable, Sendable {
     let id = UUID()
     let name: String
     let displayName: String
@@ -24,7 +24,7 @@ struct LutCategory: Identifiable, Equatable {
 }
 
 // MARK: - LUT Brand
-struct LutBrand: Identifiable, Equatable {
+struct LutBrand: Identifiable, Equatable, Sendable {
     let id = UUID()
     let name: String
     let displayName: String
@@ -36,7 +36,7 @@ struct LutBrand: Identifiable, Equatable {
 }
 
 // MARK: - Cube LUT Data
-struct CubeLUT {
+struct CubeLUT: Sendable {
     let size: Int
     let data: [Float]
     
@@ -76,5 +76,70 @@ struct CubeLUT {
         }
 
         return cubeArray.withUnsafeBytes { Data($0) }
+    }
+}
+
+// MARK: - Saved Preset
+struct Preset: Codable, Identifiable, Equatable, Sendable {
+    let id: String
+    let name: String
+    let lutPath: String?
+    let intensity: Float
+    let overlayLutPath: String?
+    let overlayIntensity: Float
+    let grainEnabled: Bool
+    let grainIntensity: Float
+    let grainStyle: String
+    let exposure: Float
+    let contrast: Float
+    let highlights: Float
+    let shadows: Float
+    let colorTemp: Float
+    let watermarkStyleName: String
+    let watermarkDeviceName: String
+    let watermarkTimeText: String
+    let watermarkLocationText: String
+    let watermarkLensInfo: String
+
+    init(
+        id: String,
+        name: String,
+        lutPath: String?,
+        intensity: Float = 1.0,
+        overlayLutPath: String? = nil,
+        overlayIntensity: Float = 0.35,
+        grainEnabled: Bool = false,
+        grainIntensity: Float = 0.5,
+        grainStyle: String = "Xiaomi",
+        exposure: Float = 0,
+        contrast: Float = 0,
+        highlights: Float = 0,
+        shadows: Float = 0,
+        colorTemp: Float = 0,
+        watermarkStyleName: String = "none",
+        watermarkDeviceName: String = "",
+        watermarkTimeText: String = "",
+        watermarkLocationText: String = "",
+        watermarkLensInfo: String = ""
+    ) {
+        self.id = id
+        self.name = name
+        self.lutPath = lutPath
+        self.intensity = intensity
+        self.overlayLutPath = overlayLutPath
+        self.overlayIntensity = overlayIntensity
+        self.grainEnabled = grainEnabled
+        self.grainIntensity = grainIntensity
+        self.grainStyle = grainStyle
+        self.exposure = exposure
+        self.contrast = contrast
+        self.highlights = highlights
+        self.shadows = shadows
+        self.colorTemp = colorTemp
+        self.watermarkStyleName = watermarkStyleName
+        self.watermarkDeviceName = watermarkDeviceName
+        self.watermarkTimeText = watermarkTimeText
+        self.watermarkLocationText = watermarkLocationText
+        self.watermarkLensInfo = watermarkLensInfo
     }
 }

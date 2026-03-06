@@ -5,14 +5,15 @@ import Security
 /// Uses the iOS Keychain for encrypted storage (equivalent to AES-256-GCM on Android).
 /// Falls back to UserDefaults for non-sensitive settings.
 ///
-/// Persists: save quality, intensity, grain enabled/intensity/style
-/// (matches Android SettingsManager properties exactly).
+/// Persists: save quality, LUT intensity, overlay blend, grain, basic adjustments, presets.
 final class SettingsManager: @unchecked Sendable {
 
     static let shared = SettingsManager()
 
     private let defaults = UserDefaults.standard
     private let keychainService = "com.tqmane.filmsim.settings"
+    private let presetsKey = "presets_json"
+    private let maxPresets = 20
 
     private init() {
         migrateIfNeeded()
@@ -37,6 +38,14 @@ final class SettingsManager: @unchecked Sendable {
         set { setKeychainFloat(newValue, forKey: "last_intensity") }
     }
 
+    var lastOverlayIntensity: Float {
+        get {
+            let v = keychainFloat(forKey: "last_overlay_intensity")
+            return v == nil ? 0.35 : Swift.min(Swift.max(v!, 0), 1)
+        }
+        set { setKeychainFloat(newValue, forKey: "last_overlay_intensity") }
+    }
+
     var lastGrainEnabled: Bool {
         get { keychainBool(forKey: "last_grain_enabled") ?? false }
         set { setKeychainBool(newValue, forKey: "last_grain_enabled") }
@@ -53,6 +62,91 @@ final class SettingsManager: @unchecked Sendable {
     var lastGrainStyle: String {
         get { keychainString(forKey: "last_grain_style") ?? "Xiaomi" }
         set { setKeychainString(newValue, forKey: "last_grain_style") }
+    }
+
+    var lastExposure: Float {
+        get {
+            let v = keychainFloat(forKey: "last_exposure")
+            return v == nil ? 0 : Swift.min(Swift.max(v!, -2), 2)
+        }
+        set { setKeychainFloat(newValue, forKey: "last_exposure") }
+    }
+
+    var lastContrast: Float {
+        get {
+            let v = keychainFloat(forKey: "last_contrast")
+            return v == nil ? 0 : Swift.min(Swift.max(v!, -1), 1)
+        }
+        set { setKeychainFloat(newValue, forKey: "last_contrast") }
+    }
+
+    var lastHighlights: Float {
+        get {
+            let v = keychainFloat(forKey: "last_highlights")
+            return v == nil ? 0 : Swift.min(Swift.max(v!, -1), 1)
+        }
+        set { setKeychainFloat(newValue, forKey: "last_highlights") }
+    }
+
+    var lastShadows: Float {
+        get {
+            let v = keychainFloat(forKey: "last_shadows")
+            return v == nil ? 0 : Swift.min(Swift.max(v!, -1), 1)
+        }
+        set { setKeychainFloat(newValue, forKey: "last_shadows") }
+    }
+
+    var lastColorTemp: Float {
+        get {
+            let v = keychainFloat(forKey: "last_color_temp")
+            return v == nil ? 0 : Swift.min(Swift.max(v!, -1), 1)
+        }
+        set { setKeychainFloat(newValue, forKey: "last_color_temp") }
+    }
+
+    var panelHintsEnabled: Bool {
+        get { defaults.object(forKey: "panel_hints_enabled") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "panel_hints_enabled") }
+    }
+
+    // MARK: - Presets
+
+    func loadPresets() -> [Preset] {
+        guard let encoded = keychainString(forKey: presetsKey),
+              let data = encoded.data(using: .utf8) else {
+            return []
+        }
+
+        do {
+            return try JSONDecoder().decode([Preset].self, from: data)
+        } catch {
+            print("Failed to decode presets: \(error)")
+            return []
+        }
+    }
+
+    @discardableResult
+    func savePreset(_ preset: Preset) -> Bool {
+        var presets = loadPresets()
+        guard presets.count < maxPresets else { return false }
+        presets.append(preset)
+        persistPresets(presets)
+        return true
+    }
+
+    func deletePreset(id: String) {
+        let presets = loadPresets().filter { $0.id != id }
+        persistPresets(presets)
+    }
+
+    private func persistPresets(_ presets: [Preset]) {
+        do {
+            let data = try JSONEncoder().encode(presets)
+            guard let json = String(data: data, encoding: .utf8) else { return }
+            setKeychainString(json, forKey: presetsKey)
+        } catch {
+            print("Failed to encode presets: \(error)")
+        }
     }
 
     // MARK: - Keychain Helpers (equivalent to EncryptedSharedPreferences)
@@ -117,6 +211,9 @@ final class SettingsManager: @unchecked Sendable {
 
         if defaults.object(forKey: "save_quality") == nil {
             defaults.set(100, forKey: "save_quality")
+        }
+        if defaults.object(forKey: "panel_hints_enabled") == nil {
+            defaults.set(true, forKey: "panel_hints_enabled")
         }
 
         defaults.set(true, forKey: "_settings_migrated")

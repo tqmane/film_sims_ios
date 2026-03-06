@@ -190,15 +190,15 @@ struct WatermarkView: View {
             localLocation = viewModel.watermarkLocationText
         }
         // Sync FROM ViewModel when a new image is loaded (EXIF update)
-        .onChange(of: viewModel.watermarkDeviceName)   { _, v in if localDevice   != v { localDevice   = v } }
-        .onChange(of: viewModel.watermarkLensInfo)     { _, v in if localLens     != v { localLens     = v } }
-        .onChange(of: viewModel.watermarkTimeText)     { _, v in if localTime     != v { localTime     = v } }
-        .onChange(of: viewModel.watermarkLocationText) { _, v in if localLocation != v { localLocation = v } }
+        .onChangeCompat(of: viewModel.watermarkDeviceName)   { v in if localDevice   != v { localDevice   = v } }
+        .onChangeCompat(of: viewModel.watermarkLensInfo)     { v in if localLens     != v { localLens     = v } }
+        .onChangeCompat(of: viewModel.watermarkTimeText)     { v in if localTime     != v { localTime     = v } }
+        .onChangeCompat(of: viewModel.watermarkLocationText) { v in if localLocation != v { localLocation = v } }
         // Sync TO ViewModel on user edits (triggers watermark re-render with debounce)
-        .onChange(of: localDevice)   { _, v in if viewModel.watermarkDeviceName   != v { viewModel.watermarkDeviceName   = v } }
-        .onChange(of: localLens)     { _, v in if viewModel.watermarkLensInfo     != v { viewModel.watermarkLensInfo     = v } }
-        .onChange(of: localTime)     { _, v in if viewModel.watermarkTimeText     != v { viewModel.watermarkTimeText     = v } }
-        .onChange(of: localLocation) { _, v in if viewModel.watermarkLocationText != v { viewModel.watermarkLocationText = v } }
+        .onChangeCompat(of: localDevice)   { v in if viewModel.watermarkDeviceName   != v { viewModel.watermarkDeviceName   = v } }
+        .onChangeCompat(of: localLens)     { v in if viewModel.watermarkLensInfo     != v { viewModel.watermarkLensInfo     = v } }
+        .onChangeCompat(of: localTime)     { v in if viewModel.watermarkTimeText     != v { viewModel.watermarkTimeText     = v } }
+        .onChangeCompat(of: localLocation) { v in if viewModel.watermarkLocationText != v { viewModel.watermarkLocationText = v } }
     }
 }
 

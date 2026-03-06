@@ -6,7 +6,7 @@ let package = Package(
     name: "FilmSims",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v18),
+        .iOS("16.4"),
         .macOS(.v14),
     ],
     products: [

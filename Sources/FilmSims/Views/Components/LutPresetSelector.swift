@@ -6,6 +6,7 @@ struct LutPresetSelector: View {
     let sourceThumbnail: UIImage?
     @ObservedObject var viewModel: FilmSimsViewModel
     var onLutReselected: (() -> Void)? = nil
+    var selectedHintKey: String? = "adjustments"
     @Environment(\.layoutMetrics) private var metrics
 
     var body: some View {
@@ -16,7 +17,8 @@ struct LutPresetSelector: View {
                         lut: lut,
                         isSelected: selectedLut == lut,
                         thumbnail: sourceThumbnail,
-                        viewModel: viewModel
+                        viewModel: viewModel,
+                        selectedHintKey: selectedHintKey
                     ) {
                         if selectedLut == lut {
                             onLutReselected?()
@@ -73,6 +75,7 @@ struct LutPresetCard: View {
     let isSelected: Bool
     let thumbnail: UIImage?
     @ObservedObject var viewModel: FilmSimsViewModel
+    let selectedHintKey: String?
     let action: () -> Void
     @Environment(\.layoutMetrics) private var metrics
 
@@ -107,13 +110,13 @@ struct LutPresetCard: View {
                     .modifier(ShimmerModifier(active: isLoading))
 
                     // Adjust hint overlay (Android: 28dp height, 13dp icon, 8sp text)
-                    if isSelected {
+                    if isSelected, let selectedHintKey {
                         VStack(spacing: 1) {
                             Image(systemName: "slider.horizontal.3")
                                 .font(.system(size: max(9, cardSize * 0.138), weight: .medium))
                                 .foregroundColor(.white)
                             if cardSize >= 80 {
-                                Text(L10n.tr("adjustments"))
+                                Text(L10n.tr(selectedHintKey))
                                     .font(.system(size: max(6, cardSize * 0.085), weight: .medium))
                                     .foregroundColor(.white.opacity(0.8))
                             }
@@ -127,15 +130,7 @@ struct LutPresetCard: View {
                                 endPoint: .bottom
                             )
                         )
-                        .clipShape(
-                            .rect(
-                                topLeadingRadius: 0,
-                                bottomLeadingRadius: metrics.cardCorner,
-                                bottomTrailingRadius: metrics.cardCorner,
-                                topTrailingRadius: 0,
-                                style: .continuous
-                            )
-                        )
+                        .clipShape(BottomCardHintShape(radius: metrics.cardCorner))
                     }
 
                     // Selection border
@@ -179,7 +174,7 @@ struct LutPresetCard: View {
         .onAppear {
             loadPreview()
         }
-        .onChange(of: thumbnail) { _, _ in
+        .onChangeCompat(of: thumbnail) { _ in
             loadPreview()
         }
         .onDisappear {
@@ -200,5 +195,34 @@ struct LutPresetCard: View {
                 isLoading = false
             }
         }
+    }
+}
+
+private struct BottomCardHintShape: Shape {
+    let radius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - radius))
+        path.addArc(
+            center: CGPoint(x: rect.maxX - radius, y: rect.maxY - radius),
+            radius: radius,
+            startAngle: .degrees(0),
+            endAngle: .degrees(90),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.minX + radius, y: rect.maxY))
+        path.addArc(
+            center: CGPoint(x: rect.minX + radius, y: rect.maxY - radius),
+            radius: radius,
+            startAngle: .degrees(90),
+            endAngle: .degrees(180),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.closeSubpath()
+        return path
     }
 }

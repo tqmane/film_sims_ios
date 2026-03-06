@@ -96,7 +96,7 @@ struct ZoomableImageView: View {
                                 }
                             }
                     )
-                    .onChange(of: isImmersive) { _, newValue in
+                    .onChangeCompat(of: isImmersive) { newValue in
                         // Auto-center when entering fullscreen immersive mode
                         if newValue {
                             withAnimation(.easeInOut(duration: 0.3)) {

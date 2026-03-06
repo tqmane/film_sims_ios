@@ -11,6 +11,13 @@ struct SettingsView: View {
 
     private static let purchaseURL = URL(string: "https://tqmane.booth.pm/")!
 
+    private var panelHintsBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.panelHintsEnabled },
+            set: { viewModel.setPanelHintsEnabled($0) }
+        )
+    }
+
     private var appVersionString: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
@@ -65,6 +72,8 @@ struct SettingsView: View {
             header(metrics: metrics)
 
             qualitySection(metrics: metrics)
+
+            panelHintsSection(metrics: metrics)
 
             Rectangle()
                 .fill(Color.white.opacity(0.094))
@@ -191,6 +200,40 @@ struct SettingsView: View {
             if !proRepo.isPermanentLicense {
                 purchaseLinkCard(metrics: metrics)
             }
+        }
+    }
+
+    private func panelHintsSection(metrics: LayoutMetrics) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel("panel_hints_setting", metrics: metrics)
+
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.tr("panel_hints_setting"))
+                        .font(.system(size: metrics.category == .compact ? 13 : 14, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+
+                    Text(L10n.tr("panel_hints_setting_description"))
+                        .font(.system(size: metrics.category == .compact ? 11 : 12))
+                        .foregroundColor(.textTertiary)
+                        .lineSpacing(3)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Toggle("", isOn: panelHintsBinding)
+                    .labelsHidden()
+                    .tint(.accentPrimary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.white.opacity(0.071))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Color.white.opacity(0.102), lineWidth: 1)
+                    )
+            )
         }
     }
 

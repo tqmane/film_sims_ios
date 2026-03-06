@@ -1,5 +1,9 @@
 import SwiftUI
 import PhotosUI
+import CoreImage
+import CoreImage.CIFilterBuiltins
+import UniformTypeIdentifiers
+import ImageIO
 
 struct ContentView: View {
     @StateObject private var viewModel = FilmSimsViewModel()
@@ -7,10 +11,34 @@ struct ContentView: View {
     @State private var isSettingsPresented = false
     @State private var isShowingOriginal = false
     @State private var isImmersiveMode = false
-    @State private var showAdjustPanel = false
+    @State private var panelMode: BottomPanelMode = .selection
+    @State private var selectedAdjustTab: LiquidAdjustPanel.AdjustTab = .intensity
+    @State private var overlaySelectionSnapshot: LutItem?
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private let freeBrands: Set<String> = ["TECNO", "Nothing", "Nubia"]
+
+    private enum BottomPanelMode: Equatable {
+        case selection
+        case adjustments
+        case overlaySelection
+
+        var isOverlaySelection: Bool {
+            self == .overlaySelection
+        }
+
+        var showsAdjustments: Bool {
+            self == .adjustments
+        }
+    }
+
+    private var isSelectingOverlay: Bool {
+        panelMode.isOverlaySelection
+    }
+
+    private var isShowingAdjustPanel: Bool {
+        panelMode.showsAdjustments && viewModel.currentLut != nil
+    }
 
     var body: some View {
         GeometryReader { geometry in
@@ -25,11 +53,16 @@ struct ContentView: View {
             }
         }
         .animation(.spring(response: 0.45, dampingFraction: 0.55), value: isImmersiveMode)
-        .animation(.spring(response: 0.45, dampingFraction: 0.55), value: showAdjustPanel)
+        .animation(.spring(response: 0.45, dampingFraction: 0.55), value: panelMode)
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView(viewModel: viewModel)
                 .presentationBackground(.clear)
                 .presentationDragIndicator(.hidden)
+        }
+        .onChangeCompat(of: viewModel.currentLut) { currentLut in
+            if currentLut == nil && panelMode == .adjustments {
+                panelMode = .selection
+            }
         }
     }
 
@@ -49,10 +82,10 @@ struct ContentView: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
             .zIndex(0)
 
-            if showAdjustPanel {
+            if isShowingAdjustPanel {
                 Color.clear
                     .contentShape(Rectangle())
-                    .onTapGesture { showAdjustPanel = false }
+                    .onTapGesture { closeAdjustPanel() }
                     .zIndex(5)
             }
 
@@ -66,21 +99,12 @@ struct ContentView: View {
                 Spacer(minLength: 0)
 
                 if !isImmersiveMode && viewModel.originalImage != nil {
-                    VStack(spacing: 0) {
-                        if showAdjustPanel && viewModel.currentLut != nil {
-                            LiquidAdjustPanel(viewModel: viewModel)
-                                .transition(.asymmetric(
-                                    insertion: .move(edge: .bottom).combined(with: .opacity),
-                                    removal: .move(edge: .bottom).combined(with: .opacity)
-                                ))
-                        }
-                        controlPanel(metrics: metrics)
-                            .transition(.asymmetric(
-                                insertion: .move(edge: .bottom).combined(with: .opacity),
-                                removal: .move(edge: .bottom).combined(with: .opacity)
-                            ))
-                    }
-                    .padding(.bottom, max(8, geometry.safeAreaInsets.bottom))
+                    activeBottomPanel(metrics: metrics, showsDragHandle: true)
+                        .padding(.bottom, max(8, geometry.safeAreaInsets.bottom))
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity),
+                            removal: .move(edge: .bottom).combined(with: .opacity)
+                        ))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -103,7 +127,6 @@ struct ContentView: View {
                 }
 
                 HStack(spacing: 0) {
-                    // Left: image preview
                     ZStack {
                         Group {
                             if viewModel.originalImage == nil {
@@ -112,15 +135,15 @@ struct ContentView: View {
                                 imagePreviewView
                             }
                         }
-                        if showAdjustPanel {
+
+                        if isShowingAdjustPanel {
                             Color.clear
                                 .contentShape(Rectangle())
-                                .onTapGesture { showAdjustPanel = false }
+                                .onTapGesture { closeAdjustPanel() }
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                    // Right: sidebar panel
                     if !isImmersiveMode {
                         sidebarPanel(metrics: metrics)
                             .frame(width: metrics.sidebarWidth)
@@ -138,23 +161,15 @@ struct ContentView: View {
     @ViewBuilder
     private func sidebarPanel(metrics: LayoutMetrics) -> some View {
         VStack(spacing: 0) {
-            // Subtle divider at the left edge
             Rectangle()
                 .fill(Color.white.opacity(0.06))
                 .frame(maxHeight: .infinity)
                 .frame(width: 1)
                 .overlay(alignment: .trailing) {
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 0) {
-                            if showAdjustPanel && viewModel.currentLut != nil {
-                                LiquidAdjustPanel(viewModel: viewModel)
-                                    .padding(.bottom, 16)
-                            }
-
-                            selectionSections(metrics: metrics)
-                        }
-                        .padding(.horizontal, metrics.panelHPad)
-                        .padding(.vertical, 16)
+                        activeBottomPanel(metrics: metrics, showsDragHandle: false)
+                            .padding(.horizontal, metrics.panelHPad)
+                            .padding(.vertical, 16)
                     }
                     .frame(width: metrics.sidebarWidth - 1)
                 }
@@ -166,6 +181,20 @@ struct ContentView: View {
                 endPoint: .bottom
             )
         )
+    }
+
+    @ViewBuilder
+    private func activeBottomPanel(metrics: LayoutMetrics, showsDragHandle: Bool) -> some View {
+        if isShowingAdjustPanel {
+            LiquidAdjustPanel(
+                viewModel: viewModel,
+                selectedTab: $selectedAdjustTab,
+                onClose: closeAdjustPanel,
+                onSelectOverlayFilter: startOverlaySelection
+            )
+        } else {
+            selectionPanel(metrics: metrics, showsDragHandle: showsDragHandle)
+        }
     }
 
     // MARK: - Top Bar
@@ -237,7 +266,7 @@ struct ContentView: View {
                 withAnimation { isImmersiveMode.toggle() }
             },
             onLongPressStart: {
-                if viewModel.currentLut != nil {
+                if viewModel.hasVisibleEdits {
                     isShowingOriginal = true
                 }
             },
@@ -248,11 +277,11 @@ struct ContentView: View {
         .id(viewModel.imageLoadCount)
     }
 
-    // MARK: - Control Panel
+    // MARK: - Selection Panel
     @ViewBuilder
-    private func controlPanel(metrics: LayoutMetrics) -> some View {
+    private func selectionPanel(metrics: LayoutMetrics, showsDragHandle: Bool) -> some View {
         VStack(spacing: 0) {
-            if !(showAdjustPanel && viewModel.currentLut != nil) {
+            if showsDragHandle {
                 RoundedRectangle(cornerRadius: 3, style: .continuous)
                     .fill(Color.white.opacity(0.5))
                     .frame(width: 44, height: 4.5)
@@ -267,74 +296,184 @@ struct ContentView: View {
         .padding(.horizontal, metrics.panelHPad)
         .padding(.bottom, metrics.panelBottomPad)
         .background(
-            AndroidControlPanelBackground(
-                topRadius: showAdjustPanel && viewModel.currentLut != nil ? 0 : metrics.panelTopRadius
-            )
+            AndroidControlPanelBackground(topRadius: metrics.panelTopRadius)
         )
     }
 
-    @ViewBuilder
     private func selectionSections(metrics: LayoutMetrics) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            LiquidNoticeCard(
-                title: currentLookNoticeTitle,
-                message: currentLookNoticeMessage,
-                label: currentLookNoticeLabel
+            if viewModel.panelHintsEnabled {
+                selectionNotice(metrics: metrics)
+            }
+
+            if viewModel.panelHintsEnabled && !proRepo.isProUser && !isSelectingOverlay {
+                premiumNotice(metrics: metrics)
+            }
+
+            if isSelectingOverlay {
+                overlaySelectionActions(metrics: metrics)
+                    .padding(.bottom, metrics.category == .compact ? 10 : 12)
+            }
+
+            brandSection
+            categorySection
+            lutSection
+        }
+    }
+
+    private func selectionNotice(metrics: LayoutMetrics) -> some View {
+        LiquidNoticeCard(
+            title: currentLookNoticeTitle,
+            message: currentLookNoticeMessage,
+            label: currentLookNoticeLabel
+        )
+        .padding(.bottom, metrics.category == .compact ? 10 : 12)
+    }
+
+    private func premiumNotice(metrics: LayoutMetrics) -> some View {
+        LiquidNoticeCard(
+            title: L10n.tr("more_brands_title"),
+            message: L10n.tr("premium_brands_hint"),
+            label: L10n.tr("label_pro"),
+            accentColor: .accentSecondary
+        )
+        .padding(.bottom, metrics.category == .compact ? 10 : 14)
+    }
+
+    private var brandSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            LiquidSectionHeader(text: L10n.tr("header_camera"))
+            BrandSelector(
+                brands: viewModel.brands,
+                selectedBrand: $viewModel.selectedBrand,
+                isProUser: proRepo.isProUser,
+                freeBrands: freeBrands
             )
-            .padding(.bottom, metrics.category == .compact ? 10 : 12)
+        }
+    }
 
-            if !proRepo.isProUser {
-                LiquidNoticeCard(
-                    title: L10n.tr("more_brands_title"),
-                    message: L10n.tr("premium_brands_hint"),
-                    label: L10n.tr("label_pro"),
-                    accentColor: .accentSecondary
-                )
-                .padding(.bottom, metrics.category == .compact ? 10 : 14)
-            }
+    private var categorySection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            LiquidSectionHeader(text: L10n.tr("header_style"))
+            GenreSelector(
+                categories: viewModel.currentCategories,
+                selectedCategory: $viewModel.selectedCategory
+            )
+        }
+    }
 
-            VStack(alignment: .leading, spacing: 0) {
-                LiquidSectionHeader(text: L10n.tr("header_camera"))
-                BrandSelector(
-                    brands: viewModel.brands,
-                    selectedBrand: $viewModel.selectedBrand,
-                    isProUser: proRepo.isProUser,
-                    freeBrands: freeBrands
-                )
-            }
+    private var lutSection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            LiquidSectionHeader(text: L10n.tr("header_presets"))
+            LutPresetSelector(
+                luts: viewModel.currentLuts,
+                selectedLut: activeLutBinding,
+                sourceThumbnail: viewModel.thumbnailImage,
+                viewModel: viewModel,
+                onLutReselected: lutReselectAction,
+                selectedHintKey: lutSelectedHintKey
+            )
+        }
+    }
 
-            VStack(alignment: .leading, spacing: 0) {
-                LiquidSectionHeader(text: L10n.tr("header_style"))
-                GenreSelector(
-                    categories: viewModel.currentCategories,
-                    selectedCategory: $viewModel.selectedCategory
-                )
-            }
-
-            VStack(alignment: .leading, spacing: 0) {
-                LiquidSectionHeader(text: L10n.tr("header_presets"))
-                LutPresetSelector(
-                    luts: viewModel.currentLuts,
-                    selectedLut: $viewModel.currentLut,
-                    sourceThumbnail: viewModel.thumbnailImage,
-                    viewModel: viewModel,
-                    onLutReselected: {
-                        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
-                            showAdjustPanel.toggle()
-                        }
+    private func overlaySelectionActions(metrics: LayoutMetrics) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                if viewModel.overlayLut != nil {
+                    LiquidChip(text: L10n.tr("overlay_remove"), isSelected: false) {
+                        viewModel.clearOverlayLut()
                     }
-                )
+                }
+
+                LiquidChip(text: L10n.tr("overlay_done"), isSelected: false) {
+                    finishOverlaySelection()
+                }
+
+                LiquidChip(text: L10n.tr("cancel"), isSelected: false) {
+                    cancelOverlaySelection()
+                }
             }
+            .padding(.horizontal, metrics.scrollContentInset)
+        }
+    }
+
+    private var lutReselectAction: (() -> Void)? {
+        if isSelectingOverlay {
+            return nil
+        }
+
+        return { openAdjustPanel() }
+    }
+
+    private var lutSelectedHintKey: String? {
+        guard viewModel.panelHintsEnabled, !isSelectingOverlay else { return nil }
+        return "adjustments"
+    }
+
+    private var activeLutBinding: Binding<LutItem?> {
+        Binding(
+            get: { isSelectingOverlay ? viewModel.overlayLut : viewModel.currentLut },
+            set: { newValue in
+                if isSelectingOverlay {
+                    viewModel.overlayLut = newValue
+                } else {
+                    viewModel.currentLut = newValue
+                }
+            }
+        )
+    }
+
+    private func openAdjustPanel() {
+        guard viewModel.currentLut != nil else { return }
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+            panelMode = .adjustments
+        }
+    }
+
+    private func closeAdjustPanel() {
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+            panelMode = .selection
+        }
+    }
+
+    private func startOverlaySelection() {
+        selectedAdjustTab = .intensity
+        overlaySelectionSnapshot = viewModel.overlayLut
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+            panelMode = .overlaySelection
+        }
+    }
+
+    private func finishOverlaySelection() {
+        overlaySelectionSnapshot = nil
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+            panelMode = viewModel.currentLut == nil ? .selection : .adjustments
+        }
+    }
+
+    private func cancelOverlaySelection() {
+        viewModel.overlayLut = overlaySelectionSnapshot
+        overlaySelectionSnapshot = nil
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+            panelMode = viewModel.currentLut == nil ? .selection : .adjustments
         }
     }
 
     private var currentLookNoticeTitle: String {
-        viewModel.currentLut?.name
+        if isSelectingOverlay {
+            return L10n.tr("overlay_selection_title")
+        }
+
+        return viewModel.currentLut?.name
             ?? viewModel.selectedBrand?.displayName
             ?? L10n.tr("header_camera")
     }
 
     private var currentLookNoticeMessage: String {
+        if isSelectingOverlay {
+            return L10n.tr("overlay_selection_hint")
+        }
+
         if viewModel.currentLut != nil {
             return L10n.tr("look_ready_hint")
         }
@@ -342,6 +481,9 @@ struct ContentView: View {
     }
 
     private var currentLookNoticeLabel: String? {
-        viewModel.selectedCategory?.displayName
+        if isSelectingOverlay {
+            return viewModel.overlayLut?.name ?? L10n.tr("overlay_filter_none")
+        }
+        return viewModel.selectedCategory?.displayName
     }
 }
