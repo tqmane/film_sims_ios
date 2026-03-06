@@ -52,8 +52,8 @@ struct ContentView: View {
                 phoneLayout(geometry: geometry, metrics: metrics)
             }
         }
-        .animation(.spring(response: 0.45, dampingFraction: 0.55), value: isImmersiveMode)
-        .animation(.spring(response: 0.45, dampingFraction: 0.55), value: panelMode)
+        .animation(AppMotion.panel, value: isImmersiveMode)
+        .animation(AppMotion.panel, value: panelMode)
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView(viewModel: viewModel)
                 .presentationBackground(.clear)
@@ -370,8 +370,7 @@ struct ContentView: View {
                 selectedLut: activeLutBinding,
                 sourceThumbnail: viewModel.thumbnailImage,
                 viewModel: viewModel,
-                onLutReselected: lutReselectAction,
-                selectedHintKey: lutSelectedHintKey
+                onLutReselected: lutReselectAction
             )
         }
     }
@@ -405,11 +404,6 @@ struct ContentView: View {
         return { openAdjustPanel() }
     }
 
-    private var lutSelectedHintKey: String? {
-        guard viewModel.panelHintsEnabled, !isSelectingOverlay else { return nil }
-        return "adjustments"
-    }
-
     private var activeLutBinding: Binding<LutItem?> {
         Binding(
             get: { isSelectingOverlay ? viewModel.overlayLut : viewModel.currentLut },
@@ -425,13 +419,13 @@ struct ContentView: View {
 
     private func openAdjustPanel() {
         guard viewModel.currentLut != nil else { return }
-        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+        withAnimation(AppMotion.panel) {
             panelMode = .adjustments
         }
     }
 
     private func closeAdjustPanel() {
-        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+        withAnimation(AppMotion.panel) {
             panelMode = .selection
         }
     }
@@ -439,14 +433,14 @@ struct ContentView: View {
     private func startOverlaySelection() {
         selectedAdjustTab = .intensity
         overlaySelectionSnapshot = viewModel.overlayLut
-        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+        withAnimation(AppMotion.panel) {
             panelMode = .overlaySelection
         }
     }
 
     private func finishOverlaySelection() {
         overlaySelectionSnapshot = nil
-        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+        withAnimation(AppMotion.panel) {
             panelMode = viewModel.currentLut == nil ? .selection : .adjustments
         }
     }
@@ -454,7 +448,7 @@ struct ContentView: View {
     private func cancelOverlaySelection() {
         viewModel.overlayLut = overlaySelectionSnapshot
         overlaySelectionSnapshot = nil
-        withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+        withAnimation(AppMotion.panel) {
             panelMode = viewModel.currentLut == nil ? .selection : .adjustments
         }
     }

@@ -132,9 +132,9 @@ struct EmptyStateView: View {
         }
         .padding(contentPadding)
         .onAppear {
-            withAnimation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true)) {
-                breathScale = 1.08
-                breathAlpha = 0.85
+            withAnimation(AppMotion.ambient(duration: 3.2)) {
+                breathScale = 1.04
+                breathAlpha = 0.92
             }
         }
     }

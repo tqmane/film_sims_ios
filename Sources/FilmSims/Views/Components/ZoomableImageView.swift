@@ -66,7 +66,7 @@ struct ZoomableImageView: View {
                         // Double tap to reset
                         TapGesture(count: 2)
                             .onEnded {
-                                withAnimation(.spring()) {
+                                withAnimation(AppMotion.reset) {
                                     scale = 1.0
                                     lastScale = 1.0
                                     offset = .zero
@@ -99,7 +99,7 @@ struct ZoomableImageView: View {
                     .onChangeCompat(of: isImmersive) { newValue in
                         // Auto-center when entering fullscreen immersive mode
                         if newValue {
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(AppMotion.reset) {
                                 offset = .zero
                                 lastOffset = .zero
                             }

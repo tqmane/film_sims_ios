@@ -104,7 +104,7 @@ struct LiquidButton<Content: View>: View {
                         .stroke(Color.white.opacity(0.145), lineWidth: 1)
                 )
         }
-        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.92))
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.96))
     }
 }
 
@@ -123,7 +123,7 @@ struct LiquidRoundButton: View {
                 .clipShape(Circle())
                 .overlay(Circle().stroke(Color.glassBorderAndroid, lineWidth: 1))
         }
-        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.88))
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.94))
     }
 }
 
@@ -147,18 +147,17 @@ struct LiquidChip: View {
                         .stroke(isSelected ? Color.accentPrimary.opacity(0.8) : Color.glassBorderAndroid, lineWidth: 1)
                 )
         }
-        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.95))
+        .buttonStyle(BouncyButtonStyle(scaleDownTo: 0.97))
     }
 }
 
-// MARK: - Spring Button Style (matches Android LiquidMotion.SpringSpec: LowBouncy, StiffnessLow)
+// MARK: - Press Button Style
 struct BouncyButtonStyle: ButtonStyle {
     let scaleDownTo: CGFloat
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? scaleDownTo : 1.0)
-            .animation(.spring(response: 0.45, dampingFraction: 0.55, blendDuration: 0), value: configuration.isPressed)
+            .animation(AppMotion.press, value: configuration.isPressed)
     }
 }
-

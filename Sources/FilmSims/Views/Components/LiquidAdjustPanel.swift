@@ -118,7 +118,7 @@ struct LiquidAdjustPanel: View {
                 let isSelected = currentTab == tab
 
                 Button {
-                    withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
+                    withAnimation(AppMotion.selection) {
                         guard isTabAvailable(tab) else {
                             lockedMessageKey = lockMessageKey(for: tab)
                             return
@@ -137,7 +137,7 @@ struct LiquidAdjustPanel: View {
                             RoundedRectangle(cornerRadius: 18, style: .continuous)
                                 .fill(isSelected ? Color.accentPrimary : Color.clear)
                         )
-                        .animation(.easeInOut(duration: 0.25), value: isSelected)
+                        .animation(AppMotion.selection, value: isSelected)
                 }
                 .buttonStyle(.plain)
             }

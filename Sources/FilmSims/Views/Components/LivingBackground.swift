@@ -55,26 +55,26 @@ struct LivingBackground: View {
             .ignoresSafeArea()
             .onAppear {
                 // Androidのtween+Reverseに近い「ゆっくり往復」アニメーション
-                withAnimation(.easeInOut(duration: 8).repeatForever(autoreverses: true)) {
+                withAnimation(AppMotion.ambient(duration: 12)) {
                     amberX = 1
                 }
-                withAnimation(.easeInOut(duration: 10).repeatForever(autoreverses: true)) {
+                withAnimation(AppMotion.ambient(duration: 14)) {
                     amberY = 1
                 }
-                withAnimation(.easeInOut(duration: 12).repeatForever(autoreverses: true)) {
+                withAnimation(AppMotion.ambient(duration: 16)) {
                     cyanX = 0
                 }
-                withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) {
+                withAnimation(AppMotion.ambient(duration: 13)) {
                     cyanY = 1
                 }
-                withAnimation(.easeInOut(duration: 11).repeatForever(autoreverses: true)) {
+                withAnimation(AppMotion.ambient(duration: 15)) {
                     purpleX = 0
                 }
-                withAnimation(.easeInOut(duration: 7).repeatForever(autoreverses: true)) {
+                withAnimation(AppMotion.ambient(duration: 12)) {
                     purpleY = 0
                 }
-                withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) {
-                    scalePulse = 1.1
+                withAnimation(AppMotion.ambient(duration: 10)) {
+                    scalePulse = 1.04
                 }
             }
         }
