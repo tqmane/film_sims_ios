@@ -9,63 +9,39 @@ struct EmptyStateView: View {
     @State private var breathAlpha: Double = 0.5
 
     private var outerSize: CGFloat {
-        switch metrics.category {
-        case .compact: 108
-        case .regular: 130
-        case .large: 148
-        }
+        metrics.value(compact: 108, regular: 130, large: 148)
     }
 
     private var innerSize: CGFloat {
-        switch metrics.category {
-        case .compact: 80
-        case .regular: 96
-        case .large: 108
-        }
+        metrics.value(compact: 80, regular: 96, large: 108)
     }
 
     private var titleFontSize: CGFloat {
-        switch metrics.category {
-        case .compact: 22
-        case .regular: 28
-        case .large: 30
-        }
+        metrics.value(compact: 22, regular: 28, large: 30)
     }
 
     private var bodyFontSize: CGFloat {
-        switch metrics.category {
-        case .compact: 13
-        case .regular: 15
-        case .large: 16
-        }
+        metrics.value(compact: 13, regular: 15, large: 16)
     }
 
     private var buttonHeight: CGFloat {
-        switch metrics.category {
-        case .compact: 48
-        case .regular: 58
-        case .large: 60
-        }
+        metrics.value(compact: 48, regular: 58, large: 60)
     }
 
     private var contentPadding: CGFloat {
-        switch metrics.category {
-        case .compact: 28
-        case .regular: 56
-        case .large: 64
-        }
+        metrics.value(compact: 28, regular: 56, large: 64)
     }
 
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                RoundedRectangle(cornerRadius: metrics.category == .compact ? 28 : 32, style: .continuous)
+                RoundedRectangle(cornerRadius: metrics.value(compact: 28, regular: 32, large: 32), style: .continuous)
                     .fill(Color.accentPrimary.opacity(0.12))
                     .frame(width: outerSize, height: outerSize)
                     .scaleEffect(breathScale)
                     .opacity(breathAlpha * 0.4)
 
-                RoundedRectangle(cornerRadius: metrics.category == .compact ? 22 : 24, style: .continuous)
+                RoundedRectangle(cornerRadius: metrics.value(compact: 22, regular: 24, large: 24), style: .continuous)
                     .fill(
                         LinearGradient(
                             colors: [
@@ -77,7 +53,7 @@ struct EmptyStateView: View {
                         )
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: metrics.category == .compact ? 22 : 24, style: .continuous)
+                        RoundedRectangle(cornerRadius: metrics.value(compact: 22, regular: 24, large: 24), style: .continuous)
                             .stroke(Color.accentPrimary.opacity(breathAlpha * 0.3), lineWidth: 1)
                     )
                     .frame(width: innerSize, height: innerSize)
@@ -85,14 +61,14 @@ struct EmptyStateView: View {
                     .opacity(breathAlpha)
 
                 Image(systemName: "photo.badge.plus")
-                    .font(.system(size: metrics.category == .compact ? 28 : 36))
+                    .font(.system(size: metrics.value(compact: 28, regular: 36, large: 36)))
                     .foregroundColor(.accentPrimary.opacity(0.85))
             }
 
             Text(L10n.tr("label_pick_image"))
                 .font(.system(size: titleFontSize, weight: .regular))
                 .foregroundColor(.textPrimary)
-                .padding(.top, metrics.category == .compact ? 24 : 32)
+                .padding(.top, metrics.value(compact: 24, regular: 32, large: 32))
 
             Text(L10n.tr("desc_pick_image"))
                 .font(.system(size: bodyFontSize))
@@ -102,33 +78,33 @@ struct EmptyStateView: View {
                 .padding(.top, 12)
 
             Text(L10n.tr("workflow_title").uppercased())
-                .font(.system(size: metrics.category == .compact ? 10 : 11, weight: .semibold))
+                .font(.system(size: metrics.value(compact: 10, regular: 11, large: 11), weight: .semibold))
                 .foregroundColor(.accentPrimary)
                 .tracking(0.12)
-                .padding(.top, metrics.category == .compact ? 24 : 28)
+                .padding(.top, metrics.value(compact: 24, regular: 28, large: 28))
                 .padding(.bottom, 10)
 
-            VStack(spacing: metrics.category == .compact ? 8 : 10) {
+            VStack(spacing: metrics.value(compact: 8, regular: 10, large: 10)) {
                 WorkflowStepRow(stepNumber: 1, text: L10n.tr("workflow_step_import"))
                 WorkflowStepRow(stepNumber: 2, text: L10n.tr("workflow_step_choose"))
                 WorkflowStepRow(stepNumber: 3, text: L10n.tr("workflow_step_refine_save"))
             }
-            .frame(maxWidth: metrics.category == .large ? 360 : 320)
+            .frame(maxWidth: metrics.value(compact: 320, regular: 320, large: 360))
 
             PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                HStack(spacing: metrics.category == .compact ? 8 : 10) {
+                HStack(spacing: metrics.value(compact: 8, regular: 10, large: 10)) {
                     Image(systemName: "photo.on.rectangle")
-                        .font(.system(size: metrics.category == .compact ? 18 : 20, weight: .medium))
+                        .font(.system(size: metrics.value(compact: 18, regular: 20, large: 20), weight: .medium))
                     Text(L10n.tr("btn_open_gallery"))
-                        .font(.system(size: metrics.category == .compact ? 14 : 16, weight: .semibold))
+                        .font(.system(size: metrics.value(compact: 14, regular: 16, large: 16), weight: .semibold))
                 }
                 .foregroundColor(.white)
-                .frame(minWidth: metrics.category == .compact ? 180 : 220)
+                .frame(minWidth: metrics.value(compact: 180, regular: 220, large: 220))
                 .frame(height: buttonHeight)
                 .background(AndroidAccentGradientButtonBackground(cornerRadius: buttonHeight / 2))
                 .clipShape(RoundedRectangle(cornerRadius: buttonHeight / 2, style: .continuous))
             }
-            .padding(.top, metrics.category == .compact ? 26 : 32)
+            .padding(.top, metrics.value(compact: 26, regular: 32, large: 32))
         }
         .padding(contentPadding)
         .onAppear {
@@ -157,13 +133,16 @@ private struct WorkflowStepRow: View {
                     )
 
                 Text("\(stepNumber)")
-                    .font(.system(size: metrics.category == .compact ? 11 : 12, weight: .semibold))
+                    .font(.system(size: metrics.value(compact: 11, regular: 12, large: 12), weight: .semibold))
                     .foregroundColor(.accentPrimary)
             }
-            .frame(width: metrics.category == .compact ? 24 : 28, height: metrics.category == .compact ? 24 : 28)
+            .frame(
+                width: metrics.value(compact: 24, regular: 28, large: 28),
+                height: metrics.value(compact: 24, regular: 28, large: 28)
+            )
 
             Text(text)
-                .font(.system(size: metrics.category == .compact ? 12 : 13))
+                .font(.system(size: metrics.value(compact: 12, regular: 13, large: 13)))
                 .foregroundColor(.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .multilineTextAlignment(.leading)

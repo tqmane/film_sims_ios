@@ -38,7 +38,7 @@ struct LiquidAdjustPanel: View {
                     label: tabLabel(for: currentTab)
                 )
                 .padding(.top, 4)
-                .padding(.bottom, metrics.category == .compact ? 10 : 12)
+                .padding(.bottom, metrics.phoneValue(compact: 10, regular: 12))
             }
 
             if viewModel.panelHintsEnabled && !proRepo.isProUser {
@@ -48,7 +48,7 @@ struct LiquidAdjustPanel: View {
                     label: L10n.tr("label_pro"),
                     accentColor: .accentSecondary
                 )
-                .padding(.bottom, metrics.category == .compact ? 10 : 12)
+                .padding(.bottom, metrics.phoneValue(compact: 10, regular: 12))
             }
 
             tabBar
@@ -94,9 +94,9 @@ struct LiquidAdjustPanel: View {
             Button(action: onClose) {
                 HStack(spacing: 4) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: metrics.category == .compact ? 10 : 11, weight: .semibold))
+                        .font(.system(size: metrics.phoneValue(compact: 10, regular: 11), weight: .semibold))
                     Text(L10n.tr("btn_close"))
-                        .font(.system(size: metrics.category == .compact ? 12 : 13, weight: .medium))
+                        .font(.system(size: metrics.phoneValue(compact: 12, regular: 13), weight: .medium))
                 }
                 .foregroundColor(.textSecondary)
             }
@@ -223,14 +223,14 @@ struct LiquidAdjustPanel: View {
 
             LiquidSectionHeader(text: L10n.tr("overlay_filter"))
             Text(viewModel.overlayLut?.name ?? L10n.tr("overlay_filter_none"))
-                .font(.system(size: metrics.category == .compact ? 13 : 14, weight: .medium))
+                .font(.system(size: metrics.phoneValue(compact: 13, regular: 14), weight: .medium))
                 .foregroundColor(viewModel.overlayLut != nil ? .textPrimary : .textSecondary)
                 .padding(.bottom, 4)
 
             Text(
                 L10n.tr(viewModel.overlayLut == nil ? "overlay_filter_hint_empty" : "overlay_filter_hint_active")
             )
-            .font(.system(size: metrics.category == .compact ? 11 : 12))
+            .font(.system(size: metrics.phoneValue(compact: 11, regular: 12)))
             .foregroundColor(.textTertiary)
             .lineSpacing(4)
             .padding(.bottom, 12)
@@ -273,7 +273,7 @@ struct LiquidAdjustPanel: View {
                     viewModel.resetAdjustments()
                 }
                 .buttonStyle(.plain)
-                .font(.system(size: metrics.category == .compact ? 11 : 12, weight: .medium))
+                .font(.system(size: metrics.phoneValue(compact: 11, regular: 12), weight: .medium))
                 .foregroundColor(.accentPrimary)
             }
             .padding(.bottom, 4)
@@ -287,7 +287,7 @@ struct LiquidAdjustPanel: View {
                     AdjustSliderRow(label: L10n.tr("label_color_temp"), value: $viewModel.colorTemp, range: -1...1)
                 }
             }
-            .frame(maxHeight: metrics.category == .compact ? 190 : 220)
+            .frame(maxHeight: metrics.phoneValue(compact: 190, regular: 220))
         }
     }
 
@@ -369,7 +369,7 @@ struct LiquidAdjustPanel: View {
                     isShowingSavePresetDialog = true
                 }
                 .buttonStyle(.plain)
-                .font(.system(size: metrics.category == .compact ? 11 : 12, weight: .medium))
+                .font(.system(size: metrics.phoneValue(compact: 11, regular: 12), weight: .medium))
                 .foregroundColor(.accentPrimary)
                 .disabled(viewModel.presets.count >= 20)
                 .opacity(viewModel.presets.count >= 20 ? 0.5 : 1)
@@ -378,14 +378,14 @@ struct LiquidAdjustPanel: View {
 
             if viewModel.presets.count >= 20 {
                 Text(L10n.tr("preset_limit_reached"))
-                    .font(.system(size: metrics.category == .compact ? 11 : 12))
+                    .font(.system(size: metrics.phoneValue(compact: 11, regular: 12)))
                     .foregroundColor(.textTertiary)
                     .padding(.bottom, 8)
             }
 
             if viewModel.presets.isEmpty {
                 Text(L10n.tr("preset_empty"))
-                    .font(.system(size: metrics.category == .compact ? 12 : 13))
+                    .font(.system(size: metrics.phoneValue(compact: 12, regular: 13)))
                     .foregroundColor(.textSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 24)
@@ -401,7 +401,7 @@ struct LiquidAdjustPanel: View {
                         }
                     }
                 }
-                .frame(maxHeight: metrics.category == .compact ? 160 : 190)
+                .frame(maxHeight: metrics.phoneValue(compact: 160, regular: 190))
             }
         }
     }
@@ -466,17 +466,17 @@ private struct AdjustSliderRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             Text(label)
-                .font(.system(size: metrics.category == .compact ? 11 : 12))
+                .font(.system(size: metrics.phoneValue(compact: 11, regular: 12)))
                 .foregroundColor(.textSecondary)
-                .frame(width: metrics.category == .compact ? 72 : 82, alignment: .leading)
+                .frame(width: metrics.phoneValue(compact: 72, regular: 82), alignment: .leading)
 
             LiquidSlider(value: $value, range: range)
                 .frame(maxWidth: .infinity)
 
             Text(valueFormatter(value))
-                .font(.system(size: metrics.category == .compact ? 11 : 12, weight: .medium))
+                .font(.system(size: metrics.phoneValue(compact: 11, regular: 12), weight: .medium))
                 .foregroundColor(.accentPrimary)
-                .frame(width: metrics.category == .compact ? 42 : 48, alignment: .trailing)
+                .frame(width: metrics.phoneValue(compact: 42, regular: 48), alignment: .trailing)
         }
         .padding(.vertical, 2)
     }
@@ -501,12 +501,12 @@ private struct PresetRow: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(preset.name)
-                    .font(.system(size: metrics.category == .compact ? 12 : 14, weight: .medium))
+                    .font(.system(size: metrics.phoneValue(compact: 12, regular: 14), weight: .medium))
                     .foregroundColor(.textPrimary)
                     .lineLimit(1)
 
                 Text(lutName)
-                    .font(.system(size: metrics.category == .compact ? 10 : 11))
+                    .font(.system(size: metrics.phoneValue(compact: 10, regular: 11)))
                     .foregroundColor(.textTertiary)
                     .lineLimit(1)
             }
@@ -515,7 +515,7 @@ private struct PresetRow: View {
 
             Button(action: onDelete) {
                 Image(systemName: "trash")
-                    .font(.system(size: metrics.category == .compact ? 12 : 14, weight: .medium))
+                    .font(.system(size: metrics.phoneValue(compact: 12, regular: 14), weight: .medium))
                     .foregroundColor(.textTertiary)
                     .frame(width: 30, height: 30)
             }

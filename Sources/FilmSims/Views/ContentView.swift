@@ -211,7 +211,7 @@ struct ContentView: View {
                     .font(.system(size: metrics.subtitleFontSize, weight: .medium))
                     .foregroundColor(.accentPrimary)
                     .tracking(0.15)
-                    .padding(.top, metrics.category == .compact ? 1 : 3)
+                    .padding(.top, metrics.phoneValue(compact: 1, regular: 3))
             }
 
             Spacer()
@@ -219,7 +219,7 @@ struct ContentView: View {
             HStack(spacing: 8) {
                 PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
                     Image(systemName: "plus")
-                        .font(.system(size: metrics.category == .compact ? 15 : 19, weight: .medium))
+                        .font(.system(size: metrics.phoneValue(compact: 15, regular: 19), weight: .medium))
                         .foregroundColor(.textPrimary)
                         .frame(width: metrics.actionButtonSize, height: metrics.actionButtonSize)
                         .background(AndroidRoundGlassBackground())
@@ -227,7 +227,7 @@ struct ContentView: View {
 
                 Button(action: { isSettingsPresented = true }) {
                     Image(systemName: "gearshape")
-                        .font(.system(size: metrics.category == .compact ? 15 : 19, weight: .medium))
+                        .font(.system(size: metrics.phoneValue(compact: 15, regular: 19), weight: .medium))
                         .foregroundColor(.textPrimary)
                         .frame(width: metrics.actionButtonSize, height: metrics.actionButtonSize)
                         .background(AndroidRoundGlassBackground())
@@ -235,11 +235,11 @@ struct ContentView: View {
                 .padding(.trailing, 4)
 
                 LiquidButton(action: { viewModel.saveImage() }, height: metrics.saveButtonHeight) {
-                    HStack(spacing: metrics.category == .compact ? 3 : 5) {
+                    HStack(spacing: metrics.phoneValue(compact: 3, regular: 5)) {
                         Image(systemName: "square.and.arrow.down")
-                            .font(.system(size: metrics.category == .compact ? 12 : 15, weight: .semibold))
+                            .font(.system(size: metrics.phoneValue(compact: 12, regular: 15), weight: .semibold))
                         Text(L10n.tr("save"))
-                            .font(.system(size: metrics.category == .compact ? 12 : 14, weight: .semibold))
+                            .font(.system(size: metrics.phoneValue(compact: 12, regular: 14), weight: .semibold))
                     }
                     .foregroundColor(.white)
                 }
@@ -312,7 +312,7 @@ struct ContentView: View {
 
             if isSelectingOverlay {
                 overlaySelectionActions(metrics: metrics)
-                    .padding(.bottom, metrics.category == .compact ? 10 : 12)
+                    .padding(.bottom, metrics.phoneValue(compact: 10, regular: 12))
             }
 
             brandSection
@@ -327,7 +327,7 @@ struct ContentView: View {
             message: currentLookNoticeMessage,
             label: currentLookNoticeLabel
         )
-        .padding(.bottom, metrics.category == .compact ? 10 : 12)
+        .padding(.bottom, metrics.phoneValue(compact: 10, regular: 12))
     }
 
     private func premiumNotice(metrics: LayoutMetrics) -> some View {
@@ -337,7 +337,7 @@ struct ContentView: View {
             label: L10n.tr("label_pro"),
             accentColor: .accentSecondary
         )
-        .padding(.bottom, metrics.category == .compact ? 10 : 14)
+        .padding(.bottom, metrics.phoneValue(compact: 10, regular: 14))
     }
 
     private var brandSection: some View {

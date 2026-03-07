@@ -40,9 +40,9 @@ struct SettingsView: View {
                 size: geometry.size,
                 horizontalSizeClass: horizontalSizeClass
             )
-            let horizontalInset = metrics.category == .compact ? 16.0 : 20.0
-            let topPadding = max(geometry.safeAreaInsets.top, metrics.category == .compact ? 8 : 24)
-            let bottomPadding = max(geometry.safeAreaInsets.bottom, metrics.category == .compact ? 16 : 24)
+            let horizontalInset = metrics.phoneValue(compact: 16.0, regular: 20.0)
+            let topPadding = max(geometry.safeAreaInsets.top, metrics.phoneValue(compact: 8, regular: 24))
+            let bottomPadding = max(geometry.safeAreaInsets.bottom, metrics.phoneValue(compact: 16, regular: 24))
             let cardWidth = min(geometry.size.width - (horizontalInset * 2), metrics.usesSidebar ? 560 : 520)
 
             ZStack {
@@ -68,7 +68,7 @@ struct SettingsView: View {
     }
 
     private func settingsCard(metrics: LayoutMetrics) -> some View {
-        VStack(alignment: .leading, spacing: metrics.category == .compact ? 18 : 20) {
+        VStack(alignment: .leading, spacing: metrics.phoneValue(compact: 18, regular: 20)) {
             header(metrics: metrics)
 
             qualitySection(metrics: metrics)
@@ -87,10 +87,10 @@ struct SettingsView: View {
 
             closeButton(metrics: metrics)
         }
-        .padding(metrics.category == .compact ? 20 : 28)
+        .padding(metrics.phoneValue(compact: 20, regular: 28))
         .background(
             RoundedRectangle(
-                cornerRadius: metrics.category == .compact ? 26 : 32,
+                cornerRadius: metrics.phoneValue(compact: 26, regular: 32),
                 style: .continuous
             )
             .fill(
@@ -102,7 +102,7 @@ struct SettingsView: View {
             )
             .overlay(
                 RoundedRectangle(
-                    cornerRadius: metrics.category == .compact ? 26 : 32,
+                    cornerRadius: metrics.phoneValue(compact: 26, regular: 32),
                     style: .continuous
                 )
                 .stroke(Color.white.opacity(0.11), lineWidth: 1)
@@ -111,23 +111,23 @@ struct SettingsView: View {
     }
 
     private func header(metrics: LayoutMetrics) -> some View {
-        HStack(spacing: metrics.category == .compact ? 12 : 16) {
+        HStack(spacing: metrics.phoneValue(compact: 12, regular: 16)) {
             ZStack {
-                RoundedRectangle(cornerRadius: metrics.category == .compact ? 12 : 13, style: .continuous)
+                RoundedRectangle(cornerRadius: metrics.phoneValue(compact: 12, regular: 13), style: .continuous)
                     .fill(Color.accentPrimary.opacity(0.15))
                     .overlay(
-                        RoundedRectangle(cornerRadius: metrics.category == .compact ? 12 : 13, style: .continuous)
+                        RoundedRectangle(cornerRadius: metrics.phoneValue(compact: 12, regular: 13), style: .continuous)
                             .stroke(Color.accentPrimary.opacity(0.25), lineWidth: 1)
                     )
 
                 Image(systemName: "gearshape.fill")
-                    .font(.system(size: metrics.category == .compact ? 18 : 22, weight: .medium))
+                    .font(.system(size: metrics.phoneValue(compact: 18, regular: 22), weight: .medium))
                     .foregroundColor(.accentPrimary)
             }
-            .frame(width: metrics.category == .compact ? 38 : 42, height: metrics.category == .compact ? 38 : 42)
+            .frame(width: metrics.phoneValue(compact: 38, regular: 42), height: metrics.phoneValue(compact: 38, regular: 42))
 
             Text(L10n.tr("title_settings"))
-                .font(.system(size: metrics.category == .compact ? 20 : 22, weight: .semibold))
+                .font(.system(size: metrics.phoneValue(compact: 20, regular: 22), weight: .semibold))
                 .foregroundColor(.textPrimary)
 
             Spacer()
@@ -136,7 +136,7 @@ struct SettingsView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: metrics.category == .compact ? 14 : 16, weight: .semibold))
+                    .font(.system(size: metrics.phoneValue(compact: 14, regular: 16), weight: .semibold))
                     .foregroundColor(.textSecondary)
                     .frame(width: 36, height: 36)
                     .background(
@@ -156,7 +156,7 @@ struct SettingsView: View {
             HStack(alignment: .center) {
                 Spacer()
                 Text("\(viewModel.saveQuality)%")
-                    .font(.system(size: metrics.category == .compact ? 15 : 16, weight: .semibold))
+                    .font(.system(size: metrics.phoneValue(compact: 15, regular: 16), weight: .semibold))
                     .foregroundColor(.accentPrimary)
             }
 
@@ -173,7 +173,7 @@ struct SettingsView: View {
 
             if !proRepo.isProUser {
                 Text(L10n.tr("pro_quality_limit"))
-                    .font(.system(size: metrics.category == .compact ? 11 : 12))
+                    .font(.system(size: metrics.phoneValue(compact: 11, regular: 12)))
                     .foregroundColor(.textTertiary)
                     .padding(.leading, 4)
             }
@@ -210,11 +210,11 @@ struct SettingsView: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(L10n.tr("panel_hints_setting"))
-                        .font(.system(size: metrics.category == .compact ? 13 : 14, weight: .semibold))
+                        .font(.system(size: metrics.phoneValue(compact: 13, regular: 14), weight: .semibold))
                         .foregroundColor(.textPrimary)
 
                     Text(L10n.tr("panel_hints_setting_description"))
-                        .font(.system(size: metrics.category == .compact ? 11 : 12))
+                        .font(.system(size: metrics.phoneValue(compact: 11, regular: 12)))
                         .foregroundColor(.textTertiary)
                         .lineSpacing(3)
                 }
@@ -244,24 +244,24 @@ struct SettingsView: View {
                     Circle()
                         .fill(Color.accentPrimary.opacity(0.18))
                         .overlay(Circle().stroke(Color.accentPrimary.opacity(0.45), lineWidth: 2))
-                        .frame(width: metrics.category == .compact ? 42 : 46, height: metrics.category == .compact ? 42 : 46)
+                        .frame(width: metrics.phoneValue(compact: 42, regular: 46), height: metrics.phoneValue(compact: 42, regular: 46))
 
                     Text(String(authViewModel.userName?.first?.uppercased() ?? "?"))
-                        .font(.system(size: metrics.category == .compact ? 16 : 18, weight: .bold))
+                        .font(.system(size: metrics.phoneValue(compact: 16, regular: 18), weight: .bold))
                         .foregroundColor(.accentPrimary)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     if let name = authViewModel.userName {
                         Text(name)
-                            .font(.system(size: metrics.category == .compact ? 14 : 15, weight: .medium))
+                            .font(.system(size: metrics.phoneValue(compact: 14, regular: 15), weight: .medium))
                             .foregroundColor(.textPrimary)
                             .lineLimit(1)
                     }
 
                     if let email = authViewModel.userEmail {
                         Text(email)
-                            .font(.system(size: metrics.category == .compact ? 12 : 13))
+                            .font(.system(size: metrics.phoneValue(compact: 12, regular: 13)))
                             .foregroundColor(.textTertiary)
                             .lineLimit(1)
                     }
@@ -321,7 +321,7 @@ struct SettingsView: View {
     private func signedOutView(metrics: LayoutMetrics) -> some View {
         VStack(spacing: 14) {
             Text(L10n.tr("sign_in_description"))
-                .font(.system(size: metrics.category == .compact ? 13 : 14))
+                .font(.system(size: metrics.phoneValue(compact: 13, regular: 14)))
                 .foregroundColor(.textTertiary)
                 .lineSpacing(2)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -330,7 +330,7 @@ struct SettingsView: View {
                 authViewModel.signInWithGoogle()
             } label: {
                 Text(L10n.tr("btn_sign_in_google"))
-                    .font(.system(size: metrics.category == .compact ? 14 : 15, weight: .semibold))
+                    .font(.system(size: metrics.phoneValue(compact: 14, regular: 15), weight: .semibold))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
@@ -346,11 +346,11 @@ struct SettingsView: View {
     private func warningCard(text: String, metrics: LayoutMetrics) -> some View {
         HStack(spacing: 8) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: metrics.category == .compact ? 12 : 13))
+                .font(.system(size: metrics.phoneValue(compact: 12, regular: 13)))
                 .foregroundColor(.accentPrimary)
 
             Text(text)
-                .font(.system(size: metrics.category == .compact ? 12 : 13))
+                .font(.system(size: metrics.phoneValue(compact: 12, regular: 13)))
                 .foregroundColor(.accentPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -371,7 +371,7 @@ struct SettingsView: View {
             openURL(Self.purchaseURL)
         } label: {
             Text(L10n.tr("label_purchase_license"))
-                .font(.system(size: metrics.category == .compact ? 12 : 13, weight: .medium))
+                .font(.system(size: metrics.phoneValue(compact: 12, regular: 13), weight: .medium))
                 .foregroundColor(.accentPrimary)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 16)
@@ -391,11 +391,11 @@ struct SettingsView: View {
     private func versionSection(metrics: LayoutMetrics) -> some View {
         VStack(spacing: 4) {
             Text("FilmSims")
-                .font(.system(size: metrics.category == .compact ? 12 : 13, weight: .medium))
+                .font(.system(size: metrics.phoneValue(compact: 12, regular: 13), weight: .medium))
                 .foregroundColor(.textSecondary)
 
             Text(appVersionString)
-                .font(.system(size: metrics.category == .compact ? 11 : 12))
+                .font(.system(size: metrics.phoneValue(compact: 11, regular: 12)))
                 .foregroundColor(.textTertiary)
         }
     }
@@ -405,7 +405,7 @@ struct SettingsView: View {
             dismiss()
         } label: {
             Text(L10n.tr("btn_close"))
-                .font(.system(size: metrics.category == .compact ? 15 : 16, weight: .medium))
+                .font(.system(size: metrics.phoneValue(compact: 15, regular: 16), weight: .medium))
                 .foregroundColor(.textPrimary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 52)
@@ -423,7 +423,7 @@ struct SettingsView: View {
 
     private func sectionLabel(_ key: String, metrics: LayoutMetrics) -> some View {
         Text(L10n.tr(key).uppercased())
-            .font(.system(size: metrics.category == .compact ? 10 : 11, weight: .semibold))
+            .font(.system(size: metrics.phoneValue(compact: 10, regular: 11), weight: .semibold))
             .foregroundColor(.textTertiary)
             .tracking(0.18)
             .padding(.leading, 2)

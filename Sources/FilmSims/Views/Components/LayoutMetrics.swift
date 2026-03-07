@@ -1,10 +1,12 @@
 import SwiftUI
 
-/// Adaptive layout metrics derived from device screen dimensions and size class.
-/// Compact: iPhone SE/mini (h<700 || w<385), Regular: standard iPhone, Large: iPad
+/// Adaptive layout metrics derived from the current render canvas.
+/// Uses the active iPhone render mode so Display Zoom and native device families
+/// resolve to safer metrics than a single hard-coded width threshold.
 struct LayoutMetrics: Sendable {
     enum Category: Sendable { case compact, regular, large }
     let category: Category
+    let phoneBlend: CGFloat
 
     // Chip (brand/category selectors) — Android LiquidChip
     let chipHeight: CGFloat
@@ -55,58 +57,196 @@ struct LayoutMetrics: Sendable {
 
     // MARK: - Factory
     static func from(size: CGSize, horizontalSizeClass: UserInterfaceSizeClass?) -> LayoutMetrics {
+        let normalizedSize = normalized(size)
         let w = size.width
-        let h = size.height
-        let isIpad = horizontalSizeClass == .regular
-        let isCompact = !isIpad && (h < 700 || w < 385)
+        let isIpad = isPad(size: normalizedSize, horizontalSizeClass: horizontalSizeClass)
         let useSidebar = isIpad && w > 750
 
         if isIpad {
-            return LayoutMetrics(
-                category: .large,
-                chipHeight: 40, chipFontSize: 14, chipHPad: 18, chipCorner: 22,
-                chipSpacing: 10, chipRowPadBottom: 14,
-                cardSize: 110, lutRowHeight: 150, cardTextSize: 11, cardCorner: 14,
-                panelHPad: 24, panelBottomPad: 24, dragHandlePad: 16, panelTopRadius: 26,
-                headerFontSize: 13, headerBottomPad: 12,
-                titleFontSize: 26, subtitleFontSize: 12, actionButtonSize: 48,
-                saveButtonWidth: 110, saveButtonHeight: 48, topBarVPad: 18, topBarHPad: 32,
-                adjustTabVPad: 13, adjustHPad: 24, adjustTabFontSize: 14,
-                adjustTabTopPad: 16, adjustPanelCorner: 28,
-                usesSidebar: useSidebar, sidebarWidth: useSidebar ? min(w * 0.42, 400) : 0,
-                scrollContentInset: 0
+            return ipadMetrics(containerWidth: w, useSidebar: useSidebar)
+        }
+
+        let resolvedPhoneSize = effectivePhoneCanvasSize(fallback: normalizedSize)
+        let shortSide = resolvedPhoneSize.width
+        let longSide = resolvedPhoneSize.height
+        let isLegacyCompact = shortSide <= 375 && longSide <= 700
+        let phoneBlend = blendedPhoneProgress(shortSide: shortSide, longSide: longSide)
+
+        if isLegacyCompact {
+            return compactPhoneMetrics(shortSide: shortSide, longSide: longSide, phoneBlend: phoneBlend)
+        }
+
+        return regularPhoneMetrics(shortSide: shortSide, longSide: longSide, phoneBlend: phoneBlend)
+    }
+
+    private static func ipadMetrics(containerWidth: CGFloat, useSidebar: Bool) -> LayoutMetrics {
+        LayoutMetrics(
+            category: .large,
+            phoneBlend: 1,
+            chipHeight: 40, chipFontSize: 14, chipHPad: 18, chipCorner: 22,
+            chipSpacing: 10, chipRowPadBottom: 14,
+            cardSize: 110, lutRowHeight: 150, cardTextSize: 11, cardCorner: 14,
+            panelHPad: 24, panelBottomPad: 24, dragHandlePad: 16, panelTopRadius: 26,
+            headerFontSize: 13, headerBottomPad: 12,
+            titleFontSize: 26, subtitleFontSize: 12, actionButtonSize: 48,
+            saveButtonWidth: 110, saveButtonHeight: 48, topBarVPad: 18, topBarHPad: 32,
+            adjustTabVPad: 13, adjustHPad: 24, adjustTabFontSize: 14,
+            adjustTabTopPad: 16, adjustPanelCorner: 28,
+            usesSidebar: useSidebar, sidebarWidth: useSidebar ? min(containerWidth * 0.42, 400) : 0,
+            scrollContentInset: 0
+        )
+    }
+
+    private static func compactPhoneMetrics(shortSide: CGFloat, longSide: CGFloat, phoneBlend: CGFloat) -> LayoutMetrics {
+        let widthScale = clamped(shortSide / 375, min: 0.84, max: 1.0)
+        let heightScale = clamped(longSide / 667, min: 0.84, max: 1.0)
+        let layoutScale = min(widthScale, heightScale)
+        let fontScale = clamped((widthScale * 0.85) + (heightScale * 0.15), min: 0.88, max: 1.0)
+
+        return LayoutMetrics(
+            category: .compact,
+            phoneBlend: phoneBlend,
+            chipHeight: scaled(28, by: layoutScale),
+            chipFontSize: scaled(11, by: fontScale),
+            chipHPad: scaled(10, by: layoutScale),
+            chipCorner: scaled(14, by: layoutScale),
+            chipSpacing: scaled(6, by: layoutScale),
+            chipRowPadBottom: scaled(8, by: heightScale),
+            cardSize: scaled(68, by: layoutScale),
+            lutRowHeight: scaled(94, by: layoutScale),
+            cardTextSize: scaled(9, by: fontScale),
+            cardCorner: scaled(10, by: layoutScale),
+            panelHPad: scaled(12, by: layoutScale),
+            panelBottomPad: scaled(8, by: heightScale),
+            dragHandlePad: scaled(8, by: heightScale),
+            panelTopRadius: scaled(16, by: layoutScale),
+            headerFontSize: scaled(10, by: fontScale),
+            headerBottomPad: scaled(7, by: heightScale),
+            titleFontSize: scaled(20, by: fontScale),
+            subtitleFontSize: scaled(10, by: fontScale),
+            actionButtonSize: scaled(36, by: layoutScale),
+            saveButtonWidth: scaled(76, by: layoutScale),
+            saveButtonHeight: scaled(38, by: layoutScale),
+            topBarVPad: scaled(8, by: heightScale),
+            topBarHPad: scaled(16, by: layoutScale),
+            adjustTabVPad: scaled(7, by: heightScale),
+            adjustHPad: scaled(12, by: layoutScale),
+            adjustTabFontSize: scaled(11, by: fontScale),
+            adjustTabTopPad: scaled(10, by: heightScale),
+            adjustPanelCorner: scaled(18, by: layoutScale),
+            usesSidebar: false,
+            sidebarWidth: 0,
+            scrollContentInset: scaled(12, by: layoutScale)
+        )
+    }
+
+    private static func regularPhoneMetrics(shortSide: CGFloat, longSide: CGFloat, phoneBlend: CGFloat) -> LayoutMetrics {
+        let widthScale = clamped(shortSide / 390, min: 0.95, max: 1.13)
+        let heightScale = clamped(longSide / 844, min: 0.92, max: 1.13)
+        let layoutScale = clamped(min(widthScale, heightScale + 0.06), min: 0.95, max: 1.12)
+        let fontScale = clamped(min(widthScale, heightScale + 0.10), min: 0.96, max: 1.08)
+
+        return LayoutMetrics(
+            category: .regular,
+            phoneBlend: phoneBlend,
+            chipHeight: scaled(36, by: layoutScale),
+            chipFontSize: scaled(13, by: fontScale),
+            chipHPad: scaled(16, by: layoutScale),
+            chipCorner: scaled(20, by: layoutScale),
+            chipSpacing: scaled(8, by: layoutScale),
+            chipRowPadBottom: scaled(12, by: heightScale),
+            cardSize: scaled(94, by: layoutScale),
+            lutRowHeight: scaled(130, by: layoutScale),
+            cardTextSize: scaled(10, by: fontScale),
+            cardCorner: scaled(12, by: layoutScale),
+            panelHPad: scaled(18, by: layoutScale),
+            panelBottomPad: scaled(16, by: heightScale),
+            dragHandlePad: scaled(14, by: heightScale),
+            panelTopRadius: scaled(22, by: layoutScale),
+            headerFontSize: scaled(11.5, by: fontScale),
+            headerBottomPad: scaled(10, by: heightScale),
+            titleFontSize: scaled(26, by: fontScale),
+            subtitleFontSize: scaled(11.5, by: fontScale),
+            actionButtonSize: scaled(46, by: layoutScale),
+            saveButtonWidth: scaled(94, by: layoutScale),
+            saveButtonHeight: scaled(48, by: layoutScale),
+            topBarVPad: scaled(16, by: heightScale),
+            topBarHPad: scaled(24, by: layoutScale),
+            adjustTabVPad: scaled(11, by: heightScale),
+            adjustHPad: scaled(18, by: layoutScale),
+            adjustTabFontSize: scaled(13, by: fontScale),
+            adjustTabTopPad: scaled(14, by: heightScale),
+            adjustPanelCorner: scaled(24, by: layoutScale),
+            usesSidebar: false,
+            sidebarWidth: 0,
+            scrollContentInset: scaled(18, by: layoutScale)
+        )
+    }
+
+    func phoneValue(compact: CGFloat, regular: CGFloat) -> CGFloat {
+        switch category {
+        case .large:
+            return regular
+        case .compact, .regular:
+            return Self.interpolated(compact, regular, t: phoneBlend)
+        }
+    }
+
+    func value(compact: CGFloat, regular: CGFloat, large: CGFloat) -> CGFloat {
+        switch category {
+        case .large:
+            return large
+        case .compact, .regular:
+            return Self.interpolated(compact, regular, t: phoneBlend)
+        }
+    }
+
+    private static func normalized(_ size: CGSize) -> CGSize {
+        CGSize(width: min(size.width, size.height), height: max(size.width, size.height))
+    }
+
+    private static func blendedPhoneProgress(shortSide: CGFloat, longSide: CGFloat) -> CGFloat {
+        let widthBlend = clamped((shortSide - 375) / 55, min: 0, max: 1)
+        let heightBlend = clamped((longSide - 667) / 265, min: 0, max: 1)
+        return max(widthBlend, heightBlend)
+    }
+
+    private static func scaled(_ value: CGFloat, by scale: CGFloat) -> CGFloat {
+        ((value * scale) * 2).rounded() / 2
+    }
+
+    private static func interpolated(_ compact: CGFloat, _ regular: CGFloat, t: CGFloat) -> CGFloat {
+        let value = compact + ((regular - compact) * t)
+        return (value * 2).rounded() / 2
+    }
+
+    private static func clamped(_ value: CGFloat, min minimum: CGFloat, max maximum: CGFloat) -> CGFloat {
+        Swift.min(Swift.max(value, minimum), maximum)
+    }
+
+    private static func isPad(size: CGSize, horizontalSizeClass: UserInterfaceSizeClass?) -> Bool {
+        horizontalSizeClass == .regular && size.width >= 700
+    }
+
+    private static func effectivePhoneCanvasSize(fallback: CGSize) -> CGSize {
+        #if os(iOS)
+        let screen = UIScreen.main
+        if let currentModeSize = screen.currentMode?.size {
+            let rendered = normalized(
+                CGSize(
+                    width: currentModeSize.width / screen.scale,
+                    height: currentModeSize.height / screen.scale
+                )
             )
-        } else if isCompact {
-            return LayoutMetrics(
-                category: .compact,
-                chipHeight: 28, chipFontSize: 11, chipHPad: 10, chipCorner: 14,
-                chipSpacing: 6, chipRowPadBottom: 8,
-                cardSize: 68, lutRowHeight: 94, cardTextSize: 9, cardCorner: 10,
-                panelHPad: 12, panelBottomPad: 8, dragHandlePad: 8, panelTopRadius: 16,
-                headerFontSize: 10, headerBottomPad: 7,
-                titleFontSize: 20, subtitleFontSize: 10, actionButtonSize: 36,
-                saveButtonWidth: 76, saveButtonHeight: 38, topBarVPad: 8, topBarHPad: 16,
-                adjustTabVPad: 7, adjustHPad: 12, adjustTabFontSize: 11,
-                adjustTabTopPad: 10, adjustPanelCorner: 18,
-                usesSidebar: false, sidebarWidth: 0,
-                scrollContentInset: 12
-            )
-        } else {
-            return LayoutMetrics(
-                category: .regular,
-                chipHeight: 36, chipFontSize: 13, chipHPad: 16, chipCorner: 20,
-                chipSpacing: 8, chipRowPadBottom: 12,
-                cardSize: 94, lutRowHeight: 130, cardTextSize: 10, cardCorner: 12,
-                panelHPad: 18, panelBottomPad: 16, dragHandlePad: 14, panelTopRadius: 22,
-                headerFontSize: 11.5, headerBottomPad: 10,
-                titleFontSize: 26, subtitleFontSize: 11.5, actionButtonSize: 46,
-                saveButtonWidth: 94, saveButtonHeight: 48, topBarVPad: 16, topBarHPad: 24,
-                adjustTabVPad: 11, adjustHPad: 18, adjustTabFontSize: 13,
-                adjustTabTopPad: 14, adjustPanelCorner: 24,
-                usesSidebar: false, sidebarWidth: 0,
-                scrollContentInset: 18
+
+            return CGSize(
+                width: min(fallback.width, rendered.width),
+                height: min(fallback.height, rendered.height)
             )
         }
+        #endif
+
+        return fallback
     }
 }
 

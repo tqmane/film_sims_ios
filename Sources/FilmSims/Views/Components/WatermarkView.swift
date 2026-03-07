@@ -117,12 +117,12 @@ struct WatermarkView: View {
             // Brand row (Android: icon 20dp, label 14sp, chips 8dp spacing)
             HStack(spacing: 0) {
                 Image(systemName: "seal.fill")
-                    .font(.system(size: metrics.category == .compact ? 16 : 18))
+                    .font(.system(size: metrics.phoneValue(compact: 16, regular: 18)))
                     .foregroundColor(.accentSecondary)
                     .frame(width: 20)
                 Spacer().frame(width: 12)
                 Text(L10n.tr("label_watermark_brand"))
-                    .font(.system(size: metrics.category == .compact ? 13 : 14))
+                    .font(.system(size: metrics.phoneValue(compact: 13, regular: 14)))
                     .foregroundColor(.textSecondary)
                     .padding(.trailing, 12)
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -148,7 +148,7 @@ struct WatermarkView: View {
                 HStack(spacing: 0) {
                     Spacer().frame(width: 30)
                     Text(L10n.tr("label_watermark_style"))
-                        .font(.system(size: metrics.category == .compact ? 13 : 14))
+                        .font(.system(size: metrics.phoneValue(compact: 13, regular: 14)))
                         .foregroundColor(.textSecondary)
                         .padding(.trailing, 12)
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -211,10 +211,10 @@ struct WatermarkInputRow: View {
     var body: some View {
         HStack(spacing: 0) {
             // Android: padding start=32dp
-            Spacer().frame(width: metrics.category == .compact ? 24 : 32)
+            Spacer().frame(width: metrics.phoneValue(compact: 24, regular: 32))
             // Android: label weight(0.25f), 13sp, LowEmphasis
             Text(label)
-                .font(.system(size: metrics.category == .compact ? 12 : 13))
+                .font(.system(size: metrics.phoneValue(compact: 12, regular: 13)))
                 .foregroundColor(.textTertiary)
                 .lineLimit(1)
                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
@@ -228,9 +228,9 @@ struct WatermarkInputRow: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .stroke(Color.white.opacity(0.094), lineWidth: 1) // 0x18FFFFFF
                     )
-                    .frame(height: metrics.category == .compact ? 36 : 40)
+                    .frame(height: metrics.phoneValue(compact: 36, regular: 40))
                 TextField("—", text: $text)
-                    .font(.system(size: metrics.category == .compact ? 12 : 13))
+                    .font(.system(size: metrics.phoneValue(compact: 12, regular: 13)))
                     .foregroundColor(.textPrimary)
                     .padding(.horizontal, 10)
             }

@@ -9,35 +9,19 @@ struct LiquidNoticeCard: View {
     @Environment(\.layoutMetrics) private var metrics
 
     private var cornerRadius: CGFloat {
-        switch metrics.category {
-        case .compact: 14
-        case .regular: 16
-        case .large: 18
-        }
+        metrics.value(compact: 14, regular: 16, large: 18)
     }
 
     private var titleFontSize: CGFloat {
-        switch metrics.category {
-        case .compact: 13
-        case .regular: 14
-        case .large: 15
-        }
+        metrics.value(compact: 13, regular: 14, large: 15)
     }
 
     private var messageFontSize: CGFloat {
-        switch metrics.category {
-        case .compact: 11
-        case .regular: 12
-        case .large: 13
-        }
+        metrics.value(compact: 11, regular: 12, large: 13)
     }
 
     private var verticalPadding: CGFloat {
-        switch metrics.category {
-        case .compact: 10
-        case .regular: 12
-        case .large: 14
-        }
+        metrics.value(compact: 10, regular: 12, large: 14)
     }
 
     var body: some View {
@@ -71,7 +55,7 @@ struct LiquidNoticeCard: View {
                 }
             }
         }
-        .padding(.horizontal, metrics.category == .compact ? 12 : 14)
+        .padding(.horizontal, metrics.phoneValue(compact: 12, regular: 14))
         .padding(.vertical, verticalPadding)
         .background(
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
