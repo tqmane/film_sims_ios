@@ -52,6 +52,7 @@ struct ContentView: View {
                 phoneLayout(geometry: geometry, metrics: metrics)
             }
         }
+        .ignoresSafeArea()
         .animation(AppMotion.panel, value: isImmersiveMode)
         .animation(AppMotion.panel, value: panelMode)
         .sheet(isPresented: $isSettingsPresented) {
@@ -110,6 +111,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .zIndex(10)
         }
+        .ignoresSafeArea()
         .environment(\.layoutMetrics, metrics)
     }
 
@@ -154,6 +156,7 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .ignoresSafeArea()
         .environment(\.layoutMetrics, metrics)
     }
 

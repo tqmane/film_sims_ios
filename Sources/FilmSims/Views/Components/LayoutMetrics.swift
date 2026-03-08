@@ -229,23 +229,8 @@ struct LayoutMetrics: Sendable {
     }
 
     private static func effectivePhoneCanvasSize(fallback: CGSize) -> CGSize {
-        #if os(iOS)
-        let screen = UIScreen.main
-        if let currentModeSize = screen.currentMode?.size {
-            let rendered = normalized(
-                CGSize(
-                    width: currentModeSize.width / screen.scale,
-                    height: currentModeSize.height / screen.scale
-                )
-            )
-
-            return CGSize(
-                width: min(fallback.width, rendered.width),
-                height: min(fallback.height, rendered.height)
-            )
-        }
-        #endif
-
+        // geometry.size from a GeometryReader with .ignoresSafeArea() already reflects
+        // the full screen canvas — including Display Zoom mode — so the fallback is correct.
         return fallback
     }
 }
