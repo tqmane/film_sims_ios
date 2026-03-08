@@ -1,8 +1,12 @@
 import SwiftUI
 import PhotosUI
+#if canImport(TipKit)
+import TipKit
+#endif
 
 struct EmptyStateView: View {
     @Binding var selectedPhotoItem: PhotosPickerItem?
+    let showsTips: Bool
     @Environment(\.layoutMetrics) private var metrics
 
     @State private var breathScale: CGFloat = 0.92
@@ -99,20 +103,8 @@ struct EmptyStateView: View {
             }
             .frame(maxWidth: metrics.value(compact: 320, regular: 320, large: 360))
 
-            PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                HStack(spacing: metrics.value(compact: 8, regular: 10, large: 10)) {
-                    Image(systemName: "photo.on.rectangle")
-                        .font(.system(size: metrics.value(compact: 18, regular: 20, large: 20), weight: .medium))
-                    Text(L10n.tr("btn_open_gallery"))
-                        .font(.system(size: metrics.value(compact: 14, regular: 16, large: 16), weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .frame(minWidth: metrics.value(compact: 180, regular: 220, large: 220))
-                .frame(height: buttonHeight)
-                .background(AndroidAccentGradientButtonBackground(cornerRadius: buttonHeight / 2))
-                .clipShape(RoundedRectangle(cornerRadius: buttonHeight / 2, style: .continuous))
-            }
-            .padding(.top, metrics.value(compact: 26, regular: 32, large: 32))
+            galleryButton
+                .padding(.top, metrics.value(compact: 26, regular: 32, large: 32))
         }
         .padding(contentPadding)
         .onAppear {
@@ -120,6 +112,35 @@ struct EmptyStateView: View {
                 breathScale = 1.04
                 breathAlpha = 0.92
             }
+        }
+    }
+
+    @ViewBuilder
+    private var galleryButton: some View {
+        let spacing = metrics.value(compact: 8, regular: 10, large: 10)
+        let symbolSize = metrics.value(compact: 18, regular: 20, large: 20)
+        let textSize = metrics.value(compact: 14, regular: 16, large: 16)
+        let minWidth = metrics.value(compact: 180, regular: 220, large: 220)
+        let height = buttonHeight
+        let cornerRadius = height / 2
+        let button = PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+            HStack(spacing: spacing) {
+                Image(systemName: "photo.on.rectangle")
+                    .font(.system(size: symbolSize, weight: .medium))
+                Text(L10n.tr("btn_open_gallery"))
+                    .font(.system(size: textSize, weight: .semibold))
+            }
+            .foregroundColor(.white)
+            .frame(minWidth: minWidth)
+            .frame(height: height)
+            .background(AndroidAccentGradientButtonBackground(cornerRadius: cornerRadius))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+        }
+
+        if #available(iOS 17.0, *), showsTips {
+            button.popoverTip(FilmSimsTips.ImportPhotoTip(), arrowEdge: .bottom)
+        } else {
+            button
         }
     }
 }

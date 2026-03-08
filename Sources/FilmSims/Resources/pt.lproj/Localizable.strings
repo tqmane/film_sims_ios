@@ -324,3 +324,9 @@
 "workflow_step_import" = "Importe uma foto para iniciar a pré-visualização";
 "workflow_step_refine_save" = "Ajuste o resultado e exporte quando estiver pronto";
 "workflow_title" = "Como funciona";
+"tip_import_title" = "Comece com uma foto";
+"tip_import_message" = "Abra a galeria para importar uma foto e começar a editar.";
+"tip_choose_look_title" = "Pré-visualize um look de filme";
+"tip_choose_look_message" = "Escolha uma marca e toque num preset para ver o estilo na sua foto.";
+"tip_refine_save_title" = "Ajuste e guarde";
+"tip_refine_save_message" = "Toque novamente no look selecionado para abrir os ajustes e use Guardar quando quiser exportar.";

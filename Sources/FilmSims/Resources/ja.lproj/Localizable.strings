@@ -324,3 +324,9 @@
 "workflow_step_import" = "まず写真を読み込んでプレビューを始めます";
 "workflow_step_refine_save" = "仕上がりを微調整して、準備ができたら保存します";
 "workflow_title" = "使い方";
+"tip_import_title" = "写真から始める";
+"tip_import_message" = "ギャラリーを開いて写真を読み込み、編集を始めましょう。";
+"tip_choose_look_title" = "フィルムルックを試す";
+"tip_choose_look_message" = "ブランドを選んでからプリセットをタップすると、写真にスタイルをプレビューできます。";
+"tip_refine_save_title" = "微調整して保存";
+"tip_refine_save_message" = "選択中のルックをもう一度タップすると調整が開き、仕上がったら保存して書き出せます。";

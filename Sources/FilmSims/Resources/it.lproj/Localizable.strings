@@ -324,3 +324,9 @@
 "workflow_step_import" = "Importa una foto per avviare l anteprima";
 "workflow_step_refine_save" = "Rifinisci il risultato ed esporta quando è pronto";
 "workflow_title" = "Come funziona";
+"tip_import_title" = "Inizia da una foto";
+"tip_import_message" = "Apri la galleria per importare una foto e iniziare la modifica.";
+"tip_choose_look_title" = "Anteprima look pellicola";
+"tip_choose_look_message" = "Scegli un marchio e tocca un preset per vedere lo stile sulla foto.";
+"tip_refine_save_title" = "Rifinisci e salva";
+"tip_refine_save_message" = "Tocca di nuovo il look selezionato per aprire le regolazioni, poi usa Salva per esportare.";

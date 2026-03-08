@@ -5,18 +5,17 @@ import GoogleSignIn
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        // FirebaseApp.configure() looks in Bundle.main, but with SwiftPM the
-        // GoogleService-Info.plist lives in Bundle.module. Load it explicitly.
-        if let plistURL = Bundle.module.url(forResource: "GoogleService-Info", withExtension: "plist"),
-           let options = FirebaseOptions(contentsOfFile: plistURL.path) {
+        if let plistPath = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
+           let options = FirebaseOptions(contentsOfFile: plistPath) {
+            FirebaseApp.configure(options: options)
+        } else if let plistURL = Bundle.module.url(forResource: "GoogleService-Info", withExtension: "plist"),
+                  let options = FirebaseOptions(contentsOfFile: plistURL.path) {
             FirebaseApp.configure(options: options)
         } else {
-            // Fallback: try main bundle (e.g. when running via Xcode)
             FirebaseApp.configure()
         }
-        // Force early initialisation of the AuthViewModel singleton so that
-        // restoreSession() — and the Firestore pro-licence check — runs at
-        // launch rather than waiting for the Settings sheet to open.
+        AnalyticsManager.configure()
+        FilmSimsTips.configure()
         _ = AuthViewModel.shared
         return true
     }
@@ -24,7 +23,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ app: UIApplication,
                      open url: URL,
                      options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
-        return GIDSignIn.sharedInstance.handle(url)
+        if GIDSignIn.sharedInstance.handle(url) {
+            return true
+        }
+        return IncomingImageCoordinator.shared.handle(url: url)
     }
 }
 
@@ -37,7 +39,10 @@ struct FilmSimsApp: App {
             ContentView()
                 .preferredColorScheme(.dark)
                 .onOpenURL { url in
-                    GIDSignIn.sharedInstance.handle(url)
+                    if GIDSignIn.sharedInstance.handle(url) {
+                        return
+                    }
+                    _ = IncomingImageCoordinator.shared.handle(url: url)
                 }
         }
     }

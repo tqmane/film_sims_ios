@@ -32,6 +32,31 @@
                 <string>com.googleusercontent.apps.566024328587-7btab5rqapkdq9i59fmp68phn4qesrjc</string>
             </array>
         </dict>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.tqmane.filmsim.share</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>filmsims</string>
+            </array>
+        </dict>
     </array>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Image</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.image</string>
+            </array>
+        </dict>
+    </array>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
 </dict>
 </plist>

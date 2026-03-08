@@ -15,7 +15,7 @@ final class SecurityManager: @unchecked Sendable {
     // Cached result to avoid expensive re-computation on every call.
     private var cachedTrustResult: Bool?
     private var lastCheckTimestamp: TimeInterval = 0
-    private let cacheTTL: TimeInterval = 60
+    private let cacheTTL: TimeInterval = 15
 
     /// Comprehensive environment trust check.
     func isEnvironmentTrusted() -> Bool {
@@ -27,7 +27,11 @@ final class SecurityManager: @unchecked Sendable {
             return cached
         }
 
-        let result = !Self.isJailbroken() && !Self.isDebuggerAttached() && !Self.isHookingFrameworkPresent()
+        let result = !Self.isJailbroken()
+            && !Self.isDebuggerAttached()
+            && !Self.isHookingFrameworkPresent()
+            && !Self.hasSuspiciousEnvironmentVariables()
+            && Self.hasExpectedBundleIntegrity()
 
         cachedTrustResult = result
         lastCheckTimestamp = now
@@ -92,6 +96,36 @@ final class SecurityManager: @unchecked Sendable {
             return (info.kp_proc.p_flag & P_TRACED) != 0
         }
         return false
+    }
+
+    private static func hasSuspiciousEnvironmentVariables() -> Bool {
+        let environment = ProcessInfo.processInfo.environment
+        let suspiciousKeys = [
+            "DYLD_INSERT_LIBRARIES",
+            "DYLD_LIBRARY_PATH",
+            "FRIDA_PORT",
+            "FRIDA_VERSION",
+            "MSSafeMode",
+            "XCInjectBundle",
+        ]
+
+        return suspiciousKeys.contains { environment[$0] != nil }
+    }
+
+    private static func hasExpectedBundleIntegrity() -> Bool {
+        guard let bundleIdentifier = Bundle.main.bundleIdentifier,
+              bundleIdentifier.hasSuffix("com.tqmane.filmsim") else {
+            return false
+        }
+
+        guard let executablePath = Bundle.main.executablePath,
+              executablePath.hasPrefix(Bundle.main.bundlePath + "/") else {
+            return false
+        }
+
+        let codeSignaturePath = (Bundle.main.bundlePath as NSString)
+            .appendingPathComponent("_CodeSignature/CodeResources")
+        return FileManager.default.fileExists(atPath: codeSignaturePath)
     }
 
     // MARK: - Hooking Framework Detection

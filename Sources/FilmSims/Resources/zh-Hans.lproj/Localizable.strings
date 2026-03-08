@@ -324,3 +324,9 @@
 "workflow_step_import" = "导入照片以开始预览";
 "workflow_step_refine_save" = "微调效果，准备好后再导出";
 "workflow_title" = "使用方法";
+"tip_import_title" = "从照片开始";
+"tip_import_message" = "打开图库导入照片，然后开始编辑。";
+"tip_choose_look_title" = "预览胶片风格";
+"tip_choose_look_message" = "先选择品牌，再点按预设，即可在照片上预览风格。";
+"tip_refine_save_title" = "微调后保存";
+"tip_refine_save_message" = "再次点按已选风格以打开调整，满意后点击保存导出。";

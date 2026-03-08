@@ -75,6 +75,7 @@ final class AuthViewModel: ObservableObject {
                 userName = user.displayName
                 userEmail = user.email
                 isLoading = false
+                AnalyticsManager.logSignIn(provider: "google")
 
                 await proUserRepository.checkProStatus(email: user.email)
             } catch {
@@ -97,5 +98,6 @@ final class AuthViewModel: ObservableObject {
         userName = nil
         userEmail = nil
         proUserRepository.clearProStatus()
+        AnalyticsManager.logSignOut()
     }
 }

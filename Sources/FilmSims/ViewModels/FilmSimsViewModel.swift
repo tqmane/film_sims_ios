@@ -47,6 +47,9 @@ class FilmSimsViewModel: ObservableObject {
         didSet {
             guard !suppressAutomaticProcessing else { return }
             scheduleApply()
+            if let currentLut, let context = selectionContext(for: currentLut.assetPath) {
+                AnalyticsManager.logLutApplied(brand: context.brand.displayName, category: context.category.displayName)
+            }
         }
     }
 
@@ -235,6 +238,12 @@ class FilmSimsViewModel: ObservableObject {
     private var suppressAutomaticProcessing = false
     // Limits concurrent LUT parse+apply tasks for thumbnail previews.
     private let previewSemaphore = AsyncSemaphore(limit: 4)
+
+    private enum ImageImportSource: String {
+        case photoLibrary = "photos"
+        case shareExtension = "share"
+        case externalFile = "file"
+    }
 
     nonisolated(unsafe) private static let basicAdjustKernel: CIColorKernel? = {
         CIColorKernel(source: """
@@ -458,6 +467,7 @@ class FilmSimsViewModel: ObservableObject {
         let didSave = SettingsManager.shared.savePreset(preset)
         if didSave {
             presets = SettingsManager.shared.loadPresets()
+            AnalyticsManager.logPresetSaved()
         }
         return didSave
     }
@@ -491,11 +501,21 @@ class FilmSimsViewModel: ObservableObject {
             watermarkLocationText = preset.watermarkLocationText
             watermarkLensInfo = preset.watermarkLensInfo
         }
+        AnalyticsManager.logPresetLoaded()
     }
 
     func deletePreset(_ preset: Preset) {
         SettingsManager.shared.deletePreset(id: preset.id)
         presets = SettingsManager.shared.loadPresets()
+    }
+
+    func handleIncomingImage(_ request: IncomingImageRequest) async -> Bool {
+        switch request.source {
+        case .pasteboard(let name):
+            return await loadImageFromPasteboard(named: name)
+        case .file(let url):
+            return await loadImage(fromFileURL: url)
+        }
     }
     
     // MARK: - Image Loading
@@ -504,40 +524,89 @@ class FilmSimsViewModel: ObservableObject {
         
         do {
             if let data = try await item.loadTransferable(type: Data.self) {
-                originalImageData = data
-                
-                if let uiImage = UIImage(data: data) {
-                    originalImage = uiImage
-                    processedImage = uiImage
-                    imageLoadCount += 1
-                    
-                    // Create thumbnail for LUT previews
-                    let maxDim: CGFloat = 256
-                    let scale = min(maxDim / uiImage.size.width, maxDim / uiImage.size.height, 1.0)
-                    let newSize = CGSize(
-                        width: uiImage.size.width * scale,
-                        height: uiImage.size.height * scale
-                    )
-                    
-                    UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-                    uiImage.draw(in: CGRect(origin: .zero, size: newSize))
-                    thumbnailImage = UIGraphicsGetImageFromCurrentImageContext()
-                    UIGraphicsEndImageContext()
-
-                    // Invalidate per-thumbnail preview cache
-                    thumbnailStamp = UUID()
-                    thumbnailPreviewCache.removeAll(keepingCapacity: true)
-                    thumbnailPreviewTaskCache.removeAll(keepingCapacity: true)
-
-                    // Extract EXIF metadata to auto-populate watermark fields.
-                    readExif(from: data)
-
-                    await applyCurrentLut()
-                }
+                _ = await loadImageData(data, source: .photoLibrary)
             }
         } catch {
             print("Failed to load image: \(error)")
         }
+    }
+
+    private func loadImageFromPasteboard(named name: String) async -> Bool {
+        let pasteboardName = UIPasteboard.Name(name)
+        guard let pasteboard = UIPasteboard(name: pasteboardName, create: false) else {
+            print("Failed to load shared image: missing pasteboard")
+            return false
+        }
+
+        defer {
+            pasteboard.items = []
+        }
+
+        let data = pasteboard.data(forPasteboardType: UTType.data.identifier)
+            ?? pasteboard.items.compactMap { item in
+                (item[UTType.data.identifier] as? Data)
+                    ?? item.values.compactMap { $0 as? Data }.first
+            }.first
+
+        guard let data else {
+            print("Failed to load shared image: missing data")
+            return false
+        }
+
+        return await loadImageData(data, source: .shareExtension)
+    }
+
+    private func loadImage(fromFileURL url: URL) async -> Bool {
+        let didAccessResource = url.startAccessingSecurityScopedResource()
+        defer {
+            if didAccessResource {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        do {
+            let data = try await Task.detached(priority: .userInitiated) {
+                try Data(contentsOf: url)
+            }.value
+            return await loadImageData(data, source: .externalFile)
+        } catch {
+            print("Failed to load external image: \(error)")
+            return false
+        }
+    }
+
+    @discardableResult
+    private func loadImageData(_ data: Data, source: ImageImportSource) async -> Bool {
+        guard let uiImage = UIImage(data: data) else {
+            print("Failed to decode image from \(source.rawValue)")
+            return false
+        }
+
+        originalImageData = data
+        originalImage = uiImage
+        processedImage = uiImage
+        imageLoadCount += 1
+
+        let maxDim: CGFloat = 256
+        let scale = min(maxDim / uiImage.size.width, maxDim / uiImage.size.height, 1.0)
+        let newSize = CGSize(
+            width: uiImage.size.width * scale,
+            height: uiImage.size.height * scale
+        )
+
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+        uiImage.draw(in: CGRect(origin: .zero, size: newSize))
+        thumbnailImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        thumbnailStamp = UUID()
+        thumbnailPreviewCache.removeAll(keepingCapacity: true)
+        thumbnailPreviewTaskCache.removeAll(keepingCapacity: true)
+
+        readExif(from: data)
+        await applyCurrentLut()
+        AnalyticsManager.logImageImported(source: source.rawValue)
+        return true
     }
     
     // MARK: - LUT Loading
@@ -1017,10 +1086,17 @@ class FilmSimsViewModel: ObservableObject {
     }
     
     private func saveToPhotoLibrary(_ image: UIImage) {
+        guard SecurityManager.shared.isEnvironmentTrusted() else {
+            AnalyticsManager.logSecurityBlocked(reason: "save_untrusted_env")
+            return
+        }
+
         // Cap quality at 60% for non-pro users (matches Android)
         let effectiveQuality = ProUserRepository.shared.isProUser ? saveQuality : min(saveQuality, 60)
         let compressionQuality = CGFloat(effectiveQuality) / 100.0
         let metadataSourceData = originalImageData
+        let isProUser = ProUserRepository.shared.isProUser
+        let hasWatermark = watermarkEnabled && watermarkStyle != .none
 
         guard let data = makeJPEGDataPreservingMetadata(
             from: image,
@@ -1037,6 +1113,7 @@ class FilmSimsViewModel: ObservableObject {
             } completionHandler: { success, error in
                 DispatchQueue.main.async {
                     if success {
+                        AnalyticsManager.logImageSaved(isProUser: isProUser, hasWatermark: hasWatermark)
                         print("Image saved successfully")
                     } else if let error = error {
                         print("Save error: \(error)")

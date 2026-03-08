@@ -7,10 +7,14 @@ import ImageIO
 #if os(iOS)
 import UIKit
 #endif
+#if canImport(TipKit)
+import TipKit
+#endif
 
 struct ContentView: View {
     @StateObject private var viewModel = FilmSimsViewModel()
     @ObservedObject private var proRepo = ProUserRepository.shared
+    @ObservedObject private var incomingImageCoordinator = IncomingImageCoordinator.shared
     @State private var isSettingsPresented = false
     @State private var isShowingOriginal = false
     @State private var isImmersiveMode = false
@@ -62,6 +66,10 @@ struct ContentView: View {
             SettingsView(viewModel: viewModel)
                 .presentationBackground(.clear)
                 .presentationDragIndicator(.hidden)
+        }
+        .onAppear(perform: processPendingIncomingImage)
+        .onChangeCompat(of: incomingImageCoordinator.pendingRequest?.id) { _ in
+            processPendingIncomingImage()
         }
         .onChangeCompat(of: viewModel.currentLut) { currentLut in
             if currentLut == nil && panelMode == .adjustments {
@@ -244,16 +252,7 @@ struct ContentView: View {
                 }
                 .padding(.trailing, 4)
 
-                LiquidButton(action: { viewModel.saveImage() }, height: metrics.saveButtonHeight) {
-                    HStack(spacing: metrics.phoneValue(compact: 3, regular: 5)) {
-                        Image(systemName: "square.and.arrow.down")
-                            .font(.system(size: metrics.phoneValue(compact: 12, regular: 15), weight: .semibold))
-                        Text(L10n.tr("save"))
-                            .font(.system(size: metrics.phoneValue(compact: 12, regular: 14), weight: .semibold))
-                    }
-                    .foregroundColor(.white)
-                }
-                .frame(width: metrics.saveButtonWidth)
+                saveButton(metrics: metrics)
             }
         }
         .padding(.horizontal, metrics.topBarHPad)
@@ -273,7 +272,10 @@ struct ContentView: View {
 
             Spacer(minLength: 0)
 
-            EmptyStateView(selectedPhotoItem: $viewModel.selectedPhotoItem)
+            EmptyStateView(
+                selectedPhotoItem: $viewModel.selectedPhotoItem,
+                showsTips: viewModel.panelHintsEnabled
+            )
                 .frame(maxWidth: .infinity)
 
             Spacer(minLength: 0)
@@ -389,8 +391,9 @@ struct ContentView: View {
         }
     }
 
+    @ViewBuilder
     private var lutSection: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let section = VStack(alignment: .leading, spacing: 0) {
             LiquidSectionHeader(text: L10n.tr("header_presets"))
             LutPresetSelector(
                 luts: viewModel.currentLuts,
@@ -399,6 +402,12 @@ struct ContentView: View {
                 viewModel: viewModel,
                 onLutReselected: lutReselectAction
             )
+        }
+
+        if #available(iOS 17.0, *), viewModel.panelHintsEnabled, viewModel.currentLut == nil {
+            section.popoverTip(FilmSimsTips.ChooseLookTip(), arrowEdge: .top)
+        } else {
+            section
         }
     }
 
@@ -514,6 +523,26 @@ struct ContentView: View {
         return safeArea.top + max(titleBlockHeight, controlsHeight) + (metrics.topBarVPad * 2) + metrics.phoneValue(compact: 8, regular: 12)
     }
 
+    @ViewBuilder
+    private func saveButton(metrics: LayoutMetrics) -> some View {
+        let button = LiquidButton(action: { viewModel.saveImage() }, height: metrics.saveButtonHeight) {
+            HStack(spacing: metrics.phoneValue(compact: 3, regular: 5)) {
+                Image(systemName: "square.and.arrow.down")
+                    .font(.system(size: metrics.phoneValue(compact: 12, regular: 15), weight: .semibold))
+                Text(L10n.tr("save"))
+                    .font(.system(size: metrics.phoneValue(compact: 12, regular: 14), weight: .semibold))
+            }
+            .foregroundColor(.white)
+        }
+        .frame(width: metrics.saveButtonWidth)
+
+        if #available(iOS 17.0, *), viewModel.panelHintsEnabled, viewModel.currentLut != nil {
+            button.popoverTip(FilmSimsTips.RefineSaveTip(), arrowEdge: .bottom)
+        } else {
+            button
+        }
+    }
+
     private func resolvedSafeAreaInsets(for geometry: GeometryProxy) -> EdgeInsets {
         #if os(iOS)
         let windowInsets = UIApplication.shared.connectedScenes
@@ -531,5 +560,21 @@ struct ContentView: View {
         #else
         return geometry.safeAreaInsets
         #endif
+    }
+
+    private func processPendingIncomingImage() {
+        guard let request = incomingImageCoordinator.pendingRequest else { return }
+
+        Task {
+            let handled = await viewModel.handleIncomingImage(request)
+            await MainActor.run {
+                if handled {
+                    isImmersiveMode = false
+                    isShowingOriginal = false
+                    panelMode = .selection
+                }
+                incomingImageCoordinator.consume(request)
+            }
+        }
     }
 }

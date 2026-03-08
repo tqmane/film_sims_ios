@@ -78,11 +78,13 @@ final class ProUserRepository: ObservableObject {
         isProUser = matchedCurrentVersion
         isPermanentLicense = matchedPermanentLicense
         licenseMismatchVersion = matchedCurrentVersion ? nil : mismatchedVersion
+        AnalyticsManager.updateProStatus(isProUser: isProUser)
     }
 
     func clearProStatus() {
         isProUser = false
         isPermanentLicense = false
         licenseMismatchVersion = nil
+        AnalyticsManager.updateProStatus(isProUser: false)
     }
 }

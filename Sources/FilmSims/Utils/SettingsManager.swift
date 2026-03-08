@@ -174,7 +174,7 @@ final class SettingsManager: @unchecked Sendable {
         ]
         let attributes: [String: Any] = [
             kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+            kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
         ]
 
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)

@@ -324,3 +324,9 @@
 "workflow_step_import" = "Import a photo to start the preview";
 "workflow_step_refine_save" = "Fine-tune the result, then export when ready";
 "workflow_title" = "How it works";
+"tip_import_title" = "Start with a photo";
+"tip_import_message" = "Open the gallery to bring in an image and begin editing.";
+"tip_choose_look_title" = "Preview a film look";
+"tip_choose_look_message" = "Choose a brand, then tap a preset to see the style on your photo.";
+"tip_refine_save_title" = "Fine-tune, then save";
+"tip_refine_save_message" = "Tap the selected look again to open adjustments, then use Save when you are ready to export.";

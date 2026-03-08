@@ -1,3 +1,9 @@
 version: 1
 bundleID: com.tqmane.filmsim
+product: FilmSims
 infoPath: Info.plist
+resources:
+  - Sources/FilmSims/Resources/GoogleService-Info.plist
+extensions:
+  - product: FilmSimsShareExtension
+    infoPath: FilmSimsShareExtension-Info.plist

@@ -14,6 +14,10 @@ let package = Package(
             name: "FilmSims",
             targets: ["FilmSims"]
         ),
+        .library(
+            name: "FilmSimsShareExtension",
+            targets: ["FilmSimsShareExtension"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.0.0"),
@@ -23,7 +27,9 @@ let package = Package(
         .target(
             name: "FilmSims",
             dependencies: [
+                "FilmSimsShared",
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS])),
                 .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
                 .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS"),
@@ -49,6 +55,15 @@ let package = Package(
                 .copy("Resources/luts"),
                 .copy("Resources/watermark"),
             ]
+        ),
+        .target(
+            name: "FilmSimsShared",
+            path: "Sources/FilmSimsShared"
+        ),
+        .target(
+            name: "FilmSimsShareExtension",
+            dependencies: ["FilmSimsShared"],
+            path: "Sources/FilmSimsShareExtension"
         ),
     ]
 )

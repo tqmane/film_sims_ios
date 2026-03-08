@@ -324,3 +324,9 @@
 "workflow_step_import" = "Importez une photo pour démarrer l aperçu";
 "workflow_step_refine_save" = "Affinez le résultat puis exportez quand tout est prêt";
 "workflow_title" = "Fonctionnement";
+"tip_import_title" = "Commencez avec une photo";
+"tip_import_message" = "Ouvrez la galerie pour importer une photo et commencer la retouche.";
+"tip_choose_look_title" = "Prévisualisez un rendu film";
+"tip_choose_look_message" = "Choisissez une marque puis touchez un préréglage pour voir le style sur votre photo.";
+"tip_refine_save_title" = "Ajustez puis enregistrez";
+"tip_refine_save_message" = "Touchez à nouveau le rendu sélectionné pour ouvrir les réglages, puis utilisez Enregistrer pour exporter.";
