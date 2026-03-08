@@ -4,6 +4,9 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 import UniformTypeIdentifiers
 import ImageIO
+#if os(iOS)
+import UIKit
+#endif
 
 struct ContentView: View {
     @StateObject private var viewModel = FilmSimsViewModel()
@@ -70,12 +73,14 @@ struct ContentView: View {
     // MARK: - Phone Layout (bottom panel)
     @ViewBuilder
     private func phoneLayout(geometry: GeometryProxy, metrics: LayoutMetrics) -> some View {
+        let safeArea = resolvedSafeAreaInsets(for: geometry)
+
         ZStack {
             LivingBackground()
 
             Group {
                 if viewModel.originalImage == nil {
-                    placeholderView(metrics: metrics)
+                    placeholderView(metrics: metrics, safeArea: safeArea)
                 } else {
                     imagePreviewView
                 }
@@ -93,7 +98,7 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 if !isImmersiveMode {
                     topBar(metrics: metrics)
-                        .padding(.top, geometry.safeAreaInsets.top + 4)
+                        .padding(.top, safeArea.top + 4)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
@@ -101,7 +106,7 @@ struct ContentView: View {
 
                 if !isImmersiveMode && viewModel.originalImage != nil {
                     activeBottomPanel(metrics: metrics, showsDragHandle: true)
-                        .padding(.bottom, max(8, geometry.safeAreaInsets.bottom))
+                        .padding(.bottom, max(8, safeArea.bottom))
                         .transition(.asymmetric(
                             insertion: .move(edge: .bottom).combined(with: .opacity),
                             removal: .move(edge: .bottom).combined(with: .opacity)
@@ -118,13 +123,15 @@ struct ContentView: View {
     // MARK: - iPad Sidebar Layout
     @ViewBuilder
     private func sidebarLayout(geometry: GeometryProxy, metrics: LayoutMetrics) -> some View {
+        let safeArea = resolvedSafeAreaInsets(for: geometry)
+
         ZStack {
             LivingBackground()
 
             VStack(spacing: 0) {
                 if !isImmersiveMode {
                     topBar(metrics: metrics)
-                        .padding(.top, geometry.safeAreaInsets.top + 4)
+                        .padding(.top, safeArea.top + 4)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
@@ -132,7 +139,7 @@ struct ContentView: View {
                     ZStack {
                         Group {
                             if viewModel.originalImage == nil {
-                                placeholderView(metrics: metrics)
+                                placeholderView(metrics: metrics, safeArea: safeArea)
                             } else {
                                 imagePreviewView
                             }
@@ -149,7 +156,7 @@ struct ContentView: View {
                     if !isImmersiveMode {
                         sidebarPanel(metrics: metrics)
                             .frame(width: metrics.sidebarWidth)
-                            .padding(.bottom, geometry.safeAreaInsets.bottom)
+                            .padding(.bottom, safeArea.bottom)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                     }
                 }
@@ -256,8 +263,25 @@ struct ContentView: View {
 
     // MARK: - Placeholder View
     @ViewBuilder
-    private func placeholderView(metrics: LayoutMetrics) -> some View {
-        EmptyStateView(selectedPhotoItem: $viewModel.selectedPhotoItem)
+    private func placeholderView(metrics: LayoutMetrics, safeArea: EdgeInsets) -> some View {
+        let topReserved = isImmersiveMode ? safeArea.top : topBarReservedHeight(metrics: metrics, safeArea: safeArea)
+        let bottomReserved = safeArea.bottom + metrics.phoneValue(compact: 12, regular: 18)
+
+        VStack(spacing: 0) {
+            Color.clear
+                .frame(height: topReserved)
+
+            Spacer(minLength: 0)
+
+            EmptyStateView(selectedPhotoItem: $viewModel.selectedPhotoItem)
+                .frame(maxWidth: .infinity)
+
+            Spacer(minLength: 0)
+
+            Color.clear
+                .frame(height: bottomReserved)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Image Preview View
@@ -482,5 +506,30 @@ struct ContentView: View {
             return viewModel.overlayLut?.name ?? L10n.tr("overlay_filter_none")
         }
         return viewModel.selectedCategory?.displayName
+    }
+
+    private func topBarReservedHeight(metrics: LayoutMetrics, safeArea: EdgeInsets) -> CGFloat {
+        let titleBlockHeight = metrics.titleFontSize + metrics.subtitleFontSize + metrics.phoneValue(compact: 6, regular: 8)
+        let controlsHeight = max(metrics.actionButtonSize, metrics.saveButtonHeight)
+        return safeArea.top + max(titleBlockHeight, controlsHeight) + (metrics.topBarVPad * 2) + metrics.phoneValue(compact: 8, regular: 12)
+    }
+
+    private func resolvedSafeAreaInsets(for geometry: GeometryProxy) -> EdgeInsets {
+        #if os(iOS)
+        let windowInsets = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)?
+            .safeAreaInsets ?? .zero
+
+        return EdgeInsets(
+            top: max(geometry.safeAreaInsets.top, windowInsets.top),
+            leading: max(geometry.safeAreaInsets.leading, windowInsets.left),
+            bottom: max(geometry.safeAreaInsets.bottom, windowInsets.bottom),
+            trailing: max(geometry.safeAreaInsets.trailing, windowInsets.right)
+        )
+        #else
+        return geometry.safeAreaInsets
+        #endif
     }
 }

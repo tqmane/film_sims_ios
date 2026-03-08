@@ -28,6 +28,10 @@ struct EmptyStateView: View {
         metrics.value(compact: 48, regular: 58, large: 60)
     }
 
+    private var iconSize: CGFloat {
+        metrics.value(compact: 30, regular: 38, large: 40)
+    }
+
     private var contentPadding: CGFloat {
         metrics.value(compact: 28, regular: 56, large: 64)
     }
@@ -61,8 +65,12 @@ struct EmptyStateView: View {
                     .opacity(breathAlpha)
 
                 Image(systemName: "photo.badge.plus")
-                    .font(.system(size: metrics.value(compact: 28, regular: 36, large: 36)))
-                    .foregroundColor(.accentPrimary.opacity(0.85))
+                    .font(.system(size: iconSize, weight: .semibold))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Color.accentPrimary)
+                    .frame(width: innerSize, height: innerSize)
+                    .scaleEffect(0.94 + ((breathScale - 0.92) * 0.6))
+                    .opacity(0.78 + ((breathAlpha - 0.5) * 0.35))
             }
 
             Text(L10n.tr("label_pick_image"))
