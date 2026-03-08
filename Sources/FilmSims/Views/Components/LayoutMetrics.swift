@@ -69,10 +69,10 @@ struct LayoutMetrics: Sendable {
         let resolvedPhoneSize = effectivePhoneCanvasSize(fallback: normalizedSize)
         let shortSide = resolvedPhoneSize.width
         let longSide = resolvedPhoneSize.height
-        let isLegacyCompact = shortSide <= 375 && longSide <= 700
+        let isCompact = shortSide <= 375
         let phoneBlend = blendedPhoneProgress(shortSide: shortSide, longSide: longSide)
 
-        if isLegacyCompact {
+        if isCompact {
             return compactPhoneMetrics(shortSide: shortSide, longSide: longSide, phoneBlend: phoneBlend)
         }
 
@@ -99,7 +99,7 @@ struct LayoutMetrics: Sendable {
 
     private static func compactPhoneMetrics(shortSide: CGFloat, longSide: CGFloat, phoneBlend: CGFloat) -> LayoutMetrics {
         let widthScale = clamped(shortSide / 375, min: 0.84, max: 1.0)
-        let heightScale = clamped(longSide / 667, min: 0.84, max: 1.0)
+        let heightScale = clamped(longSide / 667, min: 0.84, max: 1.15)
         let layoutScale = min(widthScale, heightScale)
         let fontScale = clamped((widthScale * 0.85) + (heightScale * 0.15), min: 0.88, max: 1.0)
 
