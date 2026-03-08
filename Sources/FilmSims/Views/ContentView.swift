@@ -505,7 +505,7 @@ struct ContentView: View {
         if isSelectingOverlay {
             return viewModel.overlayLut?.name ?? L10n.tr("overlay_filter_none")
         }
-        return viewModel.selectedCategory?.displayName
+        return viewModel.currentLutCategoryDisplayName ?? viewModel.selectedCategory?.displayName
     }
 
     private func topBarReservedHeight(metrics: LayoutMetrics, safeArea: EdgeInsets) -> CGFloat {

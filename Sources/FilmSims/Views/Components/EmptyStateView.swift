@@ -64,13 +64,13 @@ struct EmptyStateView: View {
                     .scaleEffect(breathScale)
                     .opacity(breathAlpha)
 
-                Image(systemName: "photo.badge.plus")
-                    .font(.system(size: iconSize, weight: .semibold))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(Color.accentPrimary)
-                    .frame(width: innerSize, height: innerSize)
-                    .scaleEffect(0.94 + ((breathScale - 0.92) * 0.6))
-                    .opacity(0.78 + ((breathAlpha - 0.5) * 0.35))
+                PlaceholderPhotoBadgeIcon(
+                    size: iconSize,
+                    accentOpacity: 0.82 + ((breathAlpha - 0.5) * 0.18)
+                )
+                .frame(width: innerSize, height: innerSize)
+                .scaleEffect(0.94 + ((breathScale - 0.92) * 0.6))
+                .opacity(0.82 + ((breathAlpha - 0.5) * 0.22))
             }
 
             Text(L10n.tr("label_pick_image"))
@@ -121,6 +121,93 @@ struct EmptyStateView: View {
                 breathAlpha = 0.92
             }
         }
+    }
+}
+
+private struct PlaceholderPhotoBadgeIcon: View {
+    let size: CGFloat
+    let accentOpacity: Double
+
+    var body: some View {
+        Canvas { context, canvasSize in
+            let w = canvasSize.width
+            let h = canvasSize.height
+            let lineWidth = max(1.5, size * 0.08)
+            let frameRect = CGRect(
+                x: w * 0.12,
+                y: h * 0.18,
+                width: w * 0.62,
+                height: h * 0.50
+            )
+
+            let framePath = Path(
+                roundedRect: frameRect,
+                cornerRadius: size * 0.16
+            )
+            context.fill(
+                framePath,
+                with: .linearGradient(
+                    Gradient(colors: [
+                        Color.white.opacity(0.24),
+                        Color.white.opacity(0.08)
+                    ]),
+                    startPoint: CGPoint(x: frameRect.midX, y: frameRect.minY),
+                    endPoint: CGPoint(x: frameRect.midX, y: frameRect.maxY)
+                )
+            )
+            context.stroke(
+                framePath,
+                with: .color(.accentPrimary.opacity(accentOpacity)),
+                style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
+            )
+
+            let sunRect = CGRect(
+                x: frameRect.minX + (frameRect.width * 0.14),
+                y: frameRect.minY + (frameRect.height * 0.14),
+                width: size * 0.14,
+                height: size * 0.14
+            )
+            context.fill(Path(ellipseIn: sunRect), with: .color(.accentPrimary.opacity(accentOpacity)))
+
+            var ridgePath = Path()
+            ridgePath.move(to: CGPoint(x: frameRect.minX + frameRect.width * 0.14, y: frameRect.maxY - frameRect.height * 0.18))
+            ridgePath.addLine(to: CGPoint(x: frameRect.minX + frameRect.width * 0.38, y: frameRect.minY + frameRect.height * 0.52))
+            ridgePath.addLine(to: CGPoint(x: frameRect.minX + frameRect.width * 0.52, y: frameRect.minY + frameRect.height * 0.66))
+            ridgePath.addLine(to: CGPoint(x: frameRect.minX + frameRect.width * 0.72, y: frameRect.minY + frameRect.height * 0.38))
+            context.stroke(
+                ridgePath,
+                with: .color(.accentPrimary.opacity(accentOpacity)),
+                style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round)
+            )
+
+            let badgeDiameter = size * 0.34
+            let badgeRect = CGRect(
+                x: frameRect.maxX - (badgeDiameter * 0.22),
+                y: frameRect.maxY - (badgeDiameter * 0.10),
+                width: badgeDiameter,
+                height: badgeDiameter
+            )
+            context.fill(Path(ellipseIn: badgeRect), with: .color(.accentPrimary))
+
+            var plusVertical = Path()
+            plusVertical.move(to: CGPoint(x: badgeRect.midX, y: badgeRect.minY + badgeDiameter * 0.25))
+            plusVertical.addLine(to: CGPoint(x: badgeRect.midX, y: badgeRect.maxY - badgeDiameter * 0.25))
+            context.stroke(
+                plusVertical,
+                with: .color(.white.opacity(0.95)),
+                style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+            )
+
+            var plusHorizontal = Path()
+            plusHorizontal.move(to: CGPoint(x: badgeRect.minX + badgeDiameter * 0.25, y: badgeRect.midY))
+            plusHorizontal.addLine(to: CGPoint(x: badgeRect.maxX - badgeDiameter * 0.25, y: badgeRect.midY))
+            context.stroke(
+                plusHorizontal,
+                with: .color(.white.opacity(0.95)),
+                style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+            )
+        }
+        .frame(width: size, height: size)
     }
 }
 

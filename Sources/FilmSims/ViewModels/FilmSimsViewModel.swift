@@ -24,20 +24,21 @@ class FilmSimsViewModel: ObservableObject {
     @Published var brands: [LutBrand] = []
     @Published var selectedBrand: LutBrand? {
         didSet {
-            if let brand = selectedBrand {
-                selectedCategory = brand.categories.first
+            guard let brand = selectedBrand else {
+                selectedCategory = nil
+                return
             }
+
+            let preferredCategory = selectedCategory.flatMap { currentCategory in
+                brand.categories.first(where: { $0.name == currentCategory.name })
+            } ?? brand.categories.first
+
+            selectedCategory = preferredCategory
         }
     }
     
     @Published var selectedCategory: LutCategory? {
         didSet {
-            if !suppressAutomaticProcessing {
-                performBatchedUpdates(applyAfter: true) {
-                    currentLut = nil
-                    overlayLut = nil
-                }
-            }
             prefetchCategoryLuts()
         }
     }
@@ -270,6 +271,10 @@ class FilmSimsViewModel: ObservableObject {
         hasBasicAdjustments ||
         (grainEnabled && grainIntensity > 0) ||
         (watermarkEnabled && watermarkStyle != .none)
+    }
+
+    var currentLutCategoryDisplayName: String? {
+        selectionContext(for: currentLut?.assetPath)?.category.displayName
     }
     
     // MARK: - Initialization
