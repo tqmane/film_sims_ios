@@ -8,7 +8,7 @@ class VivoFontManager: @unchecked Sendable {
     
     private var fontCache = [Int: UIFont]()
     
-    private let FONT_PATH = "watermark/Vivo/fonts/"
+    private let FONT_PATH = "watermark/vivo/fonts/"
     private let FONT_PATH_ALT = "vivo_watermark_full2/assets/fonts/"
     
     private let FONT_MAP: [Int: String] = [
@@ -34,16 +34,9 @@ class VivoFontManager: @unchecked Sendable {
         let paths = [FONT_PATH + file, FONT_PATH_ALT + file]
         
         for path in paths {
-            if let url = Bundle.module.url(forResource: path, withExtension: nil) {
-                var error: Unmanaged<CFError>?
-                CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error)
-                if let data = try? Data(contentsOf: url),
-                   let provider = CGDataProvider(data: data as CFData),
-                   let cgFont = CGFont(provider),
-                   let name = cgFont.postScriptName as String? {
-                    font = UIFont(name: name, size: size)
-                    break
-                }
+            if let loadedFont = AssetDecryptor.openFont(path: path, size: size) {
+                font = loadedFont
+                break
             }
         }
         

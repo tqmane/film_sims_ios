@@ -248,17 +248,15 @@ class ZeissWatermarkRenderer: @unchecked Sendable {
     private func loadImage(imageName: String) -> UIImage? {
         if imageName.isEmpty { return nil }
         let paths = [
-            "watermark/Vivo/logos/\(imageName)",
-            "watermark/Vivo/frames/\(imageName)",
+            "watermark/vivo/logos/\(imageName)",
+            "watermark/vivo/frames/\(imageName)",
             "vivo_watermark_full2/assets/zeiss_editors/\(imageName)",
             "vivo_watermark_full2/assets/CameraWmElement/\(imageName)",
             "vivo_watermark_full2/assets/CameraWmElement copy/\(imageName)"
         ]
         
         for path in paths {
-            if let url = Bundle.module.url(forResource: path, withExtension: nil),
-               let data = try? Data(contentsOf: url),
-               let image = UIImage(data: data) {
+            if let image = AssetDecryptor.openImageAsset(path: path) {
                 return image
             }
         }

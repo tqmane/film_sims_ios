@@ -171,9 +171,7 @@ class TecnoWatermarkRenderer: @unchecked Sendable {
         ]
         
         for path in searchPaths {
-            if let url = Bundle.module.url(forResource: path, withExtension: nil),
-               let data = try? Data(contentsOf: url),
-               let image = UIImage(data: data) {
+            if let image = AssetDecryptor.openImageAsset(path: path) {
                 return image
             }
         }
@@ -183,17 +181,9 @@ class TecnoWatermarkRenderer: @unchecked Sendable {
     private func getTecnoTypeface(_ fontFileName: String, size: CGFloat) -> UIFont {
         let key = "\(fontFileName)-\(size)"
         if let cached = typefaceCache[key] { return cached }
-        if let url = Bundle.module.url(forResource: "watermark/TECNO/fonts/\(fontFileName)", withExtension: nil) {
-            var error: Unmanaged<CFError>?
-            CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error)
-            if let data = try? Data(contentsOf: url),
-               let provider = CGDataProvider(data: data as CFData),
-               let cgFont = CGFont(provider),
-               let name = cgFont.postScriptName as String?,
-               let font = UIFont(name: name, size: size) {
-                typefaceCache[key] = font
-                return font
-            }
+        if let font = AssetDecryptor.openFont(path: "watermark/TECNO/fonts/\(fontFileName)", size: size) {
+            typefaceCache[key] = font
+            return font
         }
         return UIFont.systemFont(ofSize: size)
     }

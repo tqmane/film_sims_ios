@@ -569,9 +569,7 @@ class WatermarkProcessor {
             }
 
             // YG logo: 672×504 @6144, margin=[0,0,188,92], right|bottom
-            if let ygURL = Bundle.module.resourceURL?.appendingPathComponent("watermark/Honor/FrameWatermarkYG/yg.png"),
-               let ygData = try? Data(contentsOf: ygURL),
-               let ygImg  = UIImage(data: ygData)?.cgImage {
+                if let ygImg = AssetDecryptor.openImageAsset(path: "watermark/Honor/FrameWatermarkYG/yg.png")?.cgImage {
                 let drawW     = 672 * scale
                 let drawH     = 504 * scale
                 let marginR   = 188 * scale
@@ -610,9 +608,7 @@ class WatermarkProcessor {
             }
 
             // YG logo: 672×504 @6144, margin=[0,0,299,86], right|bottom
-            if let ygURL = Bundle.module.resourceURL?.appendingPathComponent("watermark/Honor/TextWatermarkYG/yg.png"),
-               let ygData = try? Data(contentsOf: ygURL),
-               let ygImg  = UIImage(data: ygData)?.cgImage {
+                if let ygImg = AssetDecryptor.openImageAsset(path: "watermark/Honor/TextWatermarkYG/yg.png")?.cgImage {
                 let drawW   = 672 * scale
                 let drawH   = 504 * scale
                 let marginR = 299 * scale
@@ -754,18 +750,9 @@ class WatermarkProcessor {
     private static func loadMeizuFont(_ filename: String, size: CGFloat) -> UIFont {
         let key = "\(filename)-\(size)"
         if let cached = fontCache[key] { return cached }
-        if let url = Bundle.module.url(forResource: filename, withExtension: nil,
-                                        subdirectory: "watermark/Meizu/fonts") {
-            var error: Unmanaged<CFError>?
-            CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error)
-            if let data = try? Data(contentsOf: url),
-               let provider = CGDataProvider(data: data as CFData),
-               let cgFont = CGFont(provider),
-               let name = cgFont.postScriptName as String?,
-               let font = UIFont(name: name, size: size) {
-                fontCache[key] = font
-                return font
-            }
+        if let font = AssetDecryptor.openFont(path: "watermark/Meizu/fonts/\(filename)", size: size) {
+            fontCache[key] = font
+            return font
         }
         return UIFont.systemFont(ofSize: size)
     }
@@ -779,10 +766,7 @@ class WatermarkProcessor {
     }
 
     private static func loadMeizuLogo(_ name: String) -> UIImage? {
-        guard let url = Bundle.module.resourceURL else { return nil }
-        let logoURL = url.appendingPathComponent("watermark/Meizu/logos/\(name)")
-        if let data = try? Data(contentsOf: logoURL) { return UIImage(data: data) }
-        return nil
+        AssetDecryptor.openImageAsset(path: "watermark/Meizu/logos/\(name)")
     }
 
     /// Split lensInfo string into discrete parts separated by "  " or " | " or "|"
@@ -1155,17 +1139,8 @@ class WatermarkProcessor {
         // HONORSansVFCN.ttf is a variable font with 'wght' axis (300..1000)
         // Register once, then use UIFontDescriptor variation to apply weight
         if honorTypeface == nil {
-            if let fontURL = Bundle.module.url(forResource: "HONORSansVFCN", withExtension: "ttf",
-                                               subdirectory: "watermark/Honor/fonts") {
-                var error: Unmanaged<CFError>?
-                CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, &error)
-                if let fontData = try? Data(contentsOf: fontURL),
-                   let provider = CGDataProvider(data: fontData as CFData),
-                   let cgFont   = CGFont(provider),
-                   let psName   = cgFont.postScriptName as String? {
-                    // Store a placeholder UIFont with the PostScript name
-                    honorTypeface = UIFont(name: psName, size: 12) ?? UIFont.systemFont(ofSize: 12)
-                }
+            if let font = AssetDecryptor.openFont(path: "watermark/Honor/fonts/HONORSansVFCN.ttf", size: 12) {
+                honorTypeface = font
             }
         }
 
@@ -1184,19 +1159,12 @@ class WatermarkProcessor {
     
     /// Load Honor logo image
     private static func loadHonorLogo(_ variant: String) -> CGImage? {
-        guard let bundle = Bundle.module.resourceURL else { return nil }
-        let logoURL = bundle.appendingPathComponent("watermark/Honor/\(variant)/logo.png")
-        guard let imageData = try? Data(contentsOf: logoURL),
-              let image = UIImage(data: imageData) else {
-            return nil
-        }
-        return image.cgImage
+        AssetDecryptor.openImageAsset(path: "watermark/Honor/\(variant)/logo.png")?.cgImage
     }
     
     // MARK: - Vivo Helpers
     
     private static func loadVivoLogo(_ name: String) -> UIImage? {
-        guard let bundle = Bundle.module.resourceURL else { return nil }
         // Try multiple locations
         let paths = [
             "watermark/vivo/logos/\(name)",
@@ -1204,9 +1172,7 @@ class WatermarkProcessor {
         ]
         
         for path in paths {
-            let logoURL = bundle.appendingPathComponent(path)
-            if let imageData = try? Data(contentsOf: logoURL),
-               let image = UIImage(data: imageData) {
+            if let image = AssetDecryptor.openImageAsset(path: path) {
                 return image
             }
         }
@@ -1233,20 +1199,9 @@ class WatermarkProcessor {
             return cached
         }
         
-        // Use subdirectory search for safety
-        if let fontURL = Bundle.module.url(forResource: filename, withExtension: nil, subdirectory: "watermark/vivo/fonts") {
-             var error: Unmanaged<CFError>?
-             CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, &error)
-             
-             if let fontData = try? Data(contentsOf: fontURL),
-                let dataProvider = CGDataProvider(data: fontData as CFData),
-                let cgFont = CGFont(dataProvider),
-                let fontName = cgFont.postScriptName as String? {
-                 if let font = UIFont(name: fontName, size: size) {
-                     fontCache[key] = font
-                     return font
-                 }
-             }
+        if let font = AssetDecryptor.openFont(path: "watermark/vivo/fonts/\(filename)", size: size) {
+            fontCache[key] = font
+            return font
         }
         
         return UIFont.systemFont(ofSize: size)
@@ -1749,16 +1704,13 @@ class WatermarkProcessor {
             ctx.fill(CGRect(x: 0, y: CGFloat(imgHeight), width: CGFloat(imgWidth), height: scaledBarHeight))
             
             // Backdrop Texture
-             if let bundle = Bundle.module.resourceURL {
-                 let texURL = bundle.appendingPathComponent("watermark/TECNO/icons/TriangleTexture.png")
-                 if let data = try? Data(contentsOf: texURL), let texImg = UIImage(data: data) {
-                    let texWidth = 429.0 * scale
-                    let texHeight = scaledBarHeight
-                    let texX = 651.0 * scale
-                    let barTop = CGFloat(imgHeight)
-                    texImg.draw(in: CGRect(x: texX, y: barTop, width: texWidth, height: texHeight))
+                 if let texImg = AssetDecryptor.openImageAsset(path: "watermark/TECNO/icons/TriangleTexture.png") {
+                     let texWidth = 429.0 * scale
+                     let texHeight = scaledBarHeight
+                     let texX = 651.0 * scale
+                     let barTop = CGFloat(imgHeight)
+                     texImg.draw(in: CGRect(x: texX, y: barTop, width: texWidth, height: texHeight))
                  }
-             }
              
              let barCY = CGFloat(imgHeight) + scaledBarHeight / 2
              

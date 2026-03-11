@@ -4,8 +4,7 @@ class VivoWatermarkConfigParser: @unchecked Sendable {
     static let shared = VivoWatermarkConfigParser()
     
     func parseConfig(assetPath: String) -> VivoWatermarkTemplate? {
-        guard let url = Bundle.module.url(forResource: assetPath, withExtension: nil) else { return nil }
-        guard let content = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+        guard let content = AssetDecryptor.openStringAsset(path: assetPath) else { return nil }
         return parseContent(content)
     }
     

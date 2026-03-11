@@ -137,7 +137,7 @@ struct EmptyStateView: View {
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         }
 
-        if #available(iOS 17.0, *), showsTips {
+        if #available(iOS 17.0, *), FilmSimsTips.isSupported, showsTips {
             button.popoverTip(FilmSimsTips.ImportPhotoTip(), arrowEdge: .bottom)
         } else {
             button

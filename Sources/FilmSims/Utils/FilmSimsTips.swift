@@ -5,6 +5,15 @@ import TipKit
 #endif
 
 enum FilmSimsTips {
+    static var isSupported: Bool {
+        #if canImport(TipKit)
+        if #available(iOS 17.0, *) {
+            return true
+        }
+        #endif
+        return false
+    }
+
     static func configure() {
         #if canImport(TipKit)
         guard #available(iOS 17.0, *) else { return }

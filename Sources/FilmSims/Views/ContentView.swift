@@ -404,7 +404,7 @@ struct ContentView: View {
             )
         }
 
-        if #available(iOS 17.0, *), viewModel.panelHintsEnabled, viewModel.currentLut == nil {
+        if #available(iOS 17.0, *), FilmSimsTips.isSupported, viewModel.panelHintsEnabled, viewModel.currentLut == nil {
             section.popoverTip(FilmSimsTips.ChooseLookTip(), arrowEdge: .top)
         } else {
             section
@@ -536,7 +536,7 @@ struct ContentView: View {
         }
         .frame(width: metrics.saveButtonWidth)
 
-        if #available(iOS 17.0, *), viewModel.panelHintsEnabled, viewModel.currentLut != nil {
+        if #available(iOS 17.0, *), FilmSimsTips.isSupported, viewModel.panelHintsEnabled, viewModel.currentLut != nil {
             button.popoverTip(FilmSimsTips.RefineSaveTip(), arrowEdge: .bottom)
         } else {
             button

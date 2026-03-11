@@ -15,8 +15,9 @@ class FilmSimsViewModel: ObservableObject {
     
     @Published var selectedPhotoItem: PhotosPickerItem? {
         didSet {
+            let selectedItem = selectedPhotoItem
             Task {
-                await loadImage(from: selectedPhotoItem)
+                await loadImage(from: selectedItem)
             }
         }
     }
@@ -542,9 +543,9 @@ class FilmSimsViewModel: ObservableObject {
             pasteboard.items = []
         }
 
-        let data = pasteboard.data(forPasteboardType: UTType.data.identifier)
+        let data = pasteboard.data(forPasteboardType: UTType.image.identifier)
             ?? pasteboard.items.compactMap { item in
-                (item[UTType.data.identifier] as? Data)
+                (item[UTType.image.identifier] as? Data)
                     ?? item.values.compactMap { $0 as? Data }.first
             }.first
 
@@ -582,6 +583,7 @@ class FilmSimsViewModel: ObservableObject {
             return false
         }
 
+        applyTask?.cancel()
         originalImageData = data
         originalImage = uiImage
         processedImage = uiImage
@@ -603,7 +605,9 @@ class FilmSimsViewModel: ObservableObject {
         thumbnailPreviewCache.removeAll(keepingCapacity: true)
         thumbnailPreviewTaskCache.removeAll(keepingCapacity: true)
 
-        readExif(from: data)
+        performBatchedUpdates(applyAfter: false) {
+            readExif(from: data)
+        }
         await applyCurrentLut()
         AnalyticsManager.logImageImported(source: source.rawValue)
         return true
@@ -850,8 +854,10 @@ class FilmSimsViewModel: ObservableObject {
     private func readExif(from data: Data) {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let props = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any] else {
-            // No EXIF — set default time
+                        watermarkDeviceName = ""
             watermarkTimeText = WatermarkProcessor.defaultTimeString()
+                        watermarkLensInfo = ""
+                        watermarkLocationText = ""
             return
         }
 
@@ -878,7 +884,9 @@ class FilmSimsViewModel: ObservableObject {
            let lon = gps?[kCGImagePropertyGPSLongitude as String] as? Double {
             let latRef = gps?[kCGImagePropertyGPSLatitudeRef  as String] as? String ?? "N"
             let lonRef = gps?[kCGImagePropertyGPSLongitudeRef as String] as? String ?? "E"
-            watermarkLocationText = String(format: "%.4f°%@ %.4f°%@", lat, latRef, lon, lonRef)
+            let signedLat = latRef.uppercased() == "S" ? -lat : lat
+            let signedLon = lonRef.uppercased() == "W" ? -lon : lon
+            watermarkLocationText = String(format: "%.4f°%@ %.4f°%@", abs(signedLat), latRef, abs(signedLon), lonRef)
         } else {
             watermarkLocationText = ""
         }
@@ -994,33 +1002,17 @@ class FilmSimsViewModel: ObservableObject {
         return UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
     }
 
-    nonisolated(unsafe) private static var cachedFilmGrainTextures: [String: CIImage] = [:]
-
-    nonisolated private static func filmGrainTextureCIImage(style: String = "Xiaomi") -> CIImage? {
-        if let cached = cachedFilmGrainTextures[style] { return cached }
-        let resourceName = style == "OnePlus" ? "film_grain_oneplus" : "film_grain"
-        guard let url = Bundle.module.url(forResource: resourceName, withExtension: "png") else {
-            return nil
-        }
-        guard let ci = CIImage(contentsOf: url, options: [CIImageOption.applyOrientationProperty: true]) else {
-            return nil
-        }
-        // Clamp so tiling doesn't sample transparent edges.
-        let clamped = ci.clampedToExtent()
-        cachedFilmGrainTextures[style] = clamped
-        return clamped
-    }
-    
     private func scaleToMaxPixels(_ image: UIImage, maxPixels: Int) -> UIImage {
-        let currentPixels = Int(image.size.width * image.size.height)
+        let pixelScale = image.scale
+        let currentPixels = Int(image.size.width * pixelScale * image.size.height * pixelScale)
         if currentPixels <= maxPixels {
             return image
         }
         
-        let scale = sqrt(Float(maxPixels) / Float(currentPixels))
+        let resizeScale = sqrt(Float(maxPixels) / Float(currentPixels))
         let newSize = CGSize(
-            width: image.size.width * CGFloat(scale),
-            height: image.size.height * CGFloat(scale)
+            width: image.size.width * CGFloat(resizeScale),
+            height: image.size.height * CGFloat(resizeScale)
         )
         
         UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)

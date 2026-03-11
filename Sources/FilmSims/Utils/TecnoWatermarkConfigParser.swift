@@ -4,8 +4,7 @@ import UIKit
 class TecnoWatermarkConfigParser {
     
     func parseConfig(assetPath: String = "watermark/TECNO/TranssionWM.json") -> TecnoWatermarkTemplate? {
-        guard let url = Bundle.module.url(forResource: assetPath, withExtension: nil) else { return nil }
-        guard let data = try? Data(contentsOf: url) else { return nil }
+        guard let data = AssetDecryptor.openAsset(path: assetPath) else { return nil }
         return parseContent(data: data)
     }
 
@@ -28,8 +27,7 @@ class TecnoWatermarkConfigParser {
     }
 
     func getMode(template: TecnoWatermarkTemplate, modeName: String, isLandscape: Bool) -> TecnoModeConfig? {
-        guard let url = Bundle.module.url(forResource: "watermark/TECNO/TranssionWM.json", withExtension: nil),
-              let data = try? Data(contentsOf: url),
+        guard let data = AssetDecryptor.openAsset(path: "watermark/TECNO/TranssionWM.json"),
               let root = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
               let watermark = root["WATERMARK"] as? [String: Any],
               let modeObj = watermark[modeName] as? [String: Any] else {

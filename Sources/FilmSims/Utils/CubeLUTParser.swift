@@ -5,14 +5,7 @@ class CubeLUTParser {
 
     /// Load asset data, trying .enc (encrypted) first then plain (matches Android AssetUtil.openAsset).
     private static func loadAssetData(atPath path: String) -> Data? {
-        // Try encrypted version first
-        let encPath = path + ".enc"
-        if let encData = FileManager.default.contents(atPath: encPath) {
-            let decrypted = AssetDecryptor.decryptData(encData)
-            return decrypted
-        }
-        // Fallback to plain
-        return FileManager.default.contents(atPath: path)
+        AssetDecryptor.openAsset(path: path)
     }
 
     static func parse(assetPath: String) -> CubeLUT? {
@@ -262,15 +255,7 @@ class CubeLUTParser {
     
     // MARK: - PNG LUT Parser (HALD format)
     private static func parsePngLut(assetPath: String) -> CubeLUT? {
-        // Try encrypted first, then plain file
-        let image: UIImage?
-        let encPath = assetPath + ".enc"
-        if let encData = FileManager.default.contents(atPath: encPath) {
-            let decrypted = AssetDecryptor.decryptData(encData)
-            image = UIImage(data: decrypted)
-        } else {
-            image = UIImage(contentsOfFile: assetPath)
-        }
+        let image = AssetDecryptor.openAsset(path: assetPath).flatMap(UIImage.init(data:))
         guard let image, let cgImage = image.cgImage else {
             return nil
         }

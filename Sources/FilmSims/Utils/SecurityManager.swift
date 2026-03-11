@@ -16,6 +16,7 @@ final class SecurityManager: @unchecked Sendable {
     private var cachedTrustResult: Bool?
     private var lastCheckTimestamp: TimeInterval = 0
     private let cacheTTL: TimeInterval = 15
+    private let lock = NSLock()
 
     /// Comprehensive environment trust check.
     func isEnvironmentTrusted() -> Bool {
@@ -23,9 +24,12 @@ final class SecurityManager: @unchecked Sendable {
         return true
         #else
         let now = Date().timeIntervalSince1970
+        lock.lock()
         if let cached = cachedTrustResult, (now - lastCheckTimestamp) < cacheTTL {
+            lock.unlock()
             return cached
         }
+        lock.unlock()
 
         let result = !Self.isJailbroken()
             && !Self.isDebuggerAttached()
@@ -33,16 +37,20 @@ final class SecurityManager: @unchecked Sendable {
             && !Self.hasSuspiciousEnvironmentVariables()
             && Self.hasExpectedBundleIntegrity()
 
+        lock.lock()
         cachedTrustResult = result
         lastCheckTimestamp = now
+        lock.unlock()
         return result
         #endif
     }
 
     /// Force re-evaluation on next call.
     func invalidateCache() {
+        lock.lock()
         cachedTrustResult = nil
         lastCheckTimestamp = 0
+        lock.unlock()
     }
 
     // MARK: - Jailbreak Detection
@@ -114,7 +122,7 @@ final class SecurityManager: @unchecked Sendable {
 
     private static func hasExpectedBundleIntegrity() -> Bool {
         guard let bundleIdentifier = Bundle.main.bundleIdentifier,
-              bundleIdentifier.hasSuffix("com.tqmane.filmsim") else {
+                            bundleIdentifier == "com.tqmane.filmsim" else {
             return false
         }
 

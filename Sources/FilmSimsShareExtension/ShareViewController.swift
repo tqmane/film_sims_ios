@@ -45,7 +45,7 @@ final class ShareViewController: UIViewController {
             }
 
             pasteboard.setItems(
-                [[UTType.data.identifier: imageData]],
+                [[UTType.image.identifier: imageData]],
                 options: [
                     .expirationDate: Date().addingTimeInterval(300),
                     .localOnly: true,
