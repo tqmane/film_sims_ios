@@ -17,13 +17,34 @@ xcuserdata/
 # --- xtool outputs (xtools系) ---
 xtool/
 *.ipa
+*.xcarchive
 
-# --- App assets that must not be committed ---
+# --- Secret / private app config ---
+Sources/FilmSims/Utils/SecretKeys.swift
+GoogleService-Info.plist
+Sources/FilmSims/Resources/GoogleService-Info.plist
+.env
+.env.*
+!.env.example
+
+# --- Signing / distribution credentials ---
+*.p8
+AuthKey_*.p8
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+# --- Generated / proprietary app assets ---
 Sources/FilmSims/Resources/film_grain.png
 Sources/FilmSims/Resources/film_grain_oneplus.png
 Sources/FilmSims/Resources/luts/
 Sources/FilmSims/Resources/watermark/
+Sources/FilmSims/SecureResources/luts/
+Sources/FilmSims/SecureResources/watermark/
 
-GoogleService-Info.plist
+# --- Local tooling / caches ---
+Scripts/__pycache__/
 .github/
 .claude/
+iPhone-resolution.csv
