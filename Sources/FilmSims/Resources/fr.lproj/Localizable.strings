@@ -330,3 +330,10 @@
 "tip_choose_look_message" = "Choisissez une marque puis touchez un préréglage pour voir le style sur votre photo.";
 "tip_refine_save_title" = "Ajustez puis enregistrez";
 "tip_refine_save_message" = "Touchez à nouveau le rendu sélectionné pour ouvrir les réglages, puis utilisez Enregistrer pour exporter.";
+"compare_preview" = "Aperçu comparatif";
+"compare_preview_hint" = "Activez l'aperçu avant après pour comparer l'édition actuelle à l'image d'origine.";
+"compare_split" = "Séparation";
+"compare_before" = "Avant";
+"compare_after" = "Après";
+"compare_vertical" = "Vertical";
+"compare_horizontal" = "Horizontal";

@@ -5,6 +5,9 @@ struct LiquidAdjustPanel: View {
     @Binding var selectedTab: AdjustTab
     let onClose: () -> Void
     let onSelectOverlayFilter: () -> Void
+    @Binding var compareEnabled: Bool
+    @Binding var comparePosition: Float
+    @Binding var compareVertical: Bool
     @ObservedObject private var proRepo = ProUserRepository.shared
     @Environment(\.layoutMetrics) private var metrics
     @State private var lockedMessageKey = "pro_adjust_tools_hint"
@@ -257,6 +260,30 @@ struct LiquidAdjustPanel: View {
                 AdjustSliderRow(
                     label: L10n.tr("overlay_blend"),
                     value: $viewModel.overlayIntensity,
+                    range: 0...1,
+                    valueFormatter: { "\(Int($0 * 100))%" }
+                )
+            }
+
+            if compareEnabled {
+                Spacer().frame(height: 6)
+                LiquidSectionHeader(text: L10n.tr("compare_preview"))
+                HStack(spacing: 8) {
+                    LiquidChip(
+                        text: L10n.tr("compare_vertical"),
+                        isSelected: compareVertical
+                    ) { compareVertical = true }
+
+                    LiquidChip(
+                        text: L10n.tr("compare_horizontal"),
+                        isSelected: !compareVertical
+                    ) { compareVertical = false }
+                }
+                .padding(.vertical, 8)
+
+                AdjustSliderRow(
+                    label: L10n.tr("compare_split"),
+                    value: $comparePosition,
                     range: 0...1,
                     valueFormatter: { "\(Int($0 * 100))%" }
                 )

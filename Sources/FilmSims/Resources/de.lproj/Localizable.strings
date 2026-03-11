@@ -330,3 +330,10 @@
 "tip_choose_look_message" = "Wähle eine Marke und tippe dann auf ein Preset, um den Stil auf deinem Foto zu sehen.";
 "tip_refine_save_title" = "Fein abstimmen und speichern";
 "tip_refine_save_message" = "Tippe erneut auf den ausgewählten Look, um die Anpassungen zu öffnen, und nutze danach Speichern zum Exportieren.";
+"compare_preview" = "Vergleichsvorschau";
+"compare_preview_hint" = "Aktiviere Vorher Nachher, um die aktuelle Bearbeitung mit dem Originalbild zu vergleichen.";
+"compare_split" = "Teilung";
+"compare_before" = "Vorher";
+"compare_after" = "Nachher";
+"compare_vertical" = "Vertikal";
+"compare_horizontal" = "Horizontal";

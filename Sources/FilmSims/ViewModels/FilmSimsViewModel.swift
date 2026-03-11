@@ -944,61 +944,58 @@ class FilmSimsViewModel: ObservableObject {
         }
     }
     
+    /// Film grain kernel that matches the Android fragment_shader.glsl grain pass.
+    /// Converts grain texture from [0,1] → [-1,+1], applies luminance-aware masking,
+    /// and adds with configurable intensity (amp = intensity × 0.15).
+    nonisolated(unsafe) private static let grainKernel: CIColorKernel? = {
+        CIColorKernel(source: """
+        kernel vec4 filmGrain(__sample pixel, __sample grain, float intensity) {
+            vec3 grainOffset = (grain.rgb - 0.5) * 2.0;
+            float luminance = dot(pixel.rgb, vec3(0.299, 0.587, 0.114));
+            float grainMask = smoothstep(0.0, 0.3, luminance) * smoothstep(1.0, 0.7, luminance);
+            vec3 result = pixel.rgb + grainOffset * intensity * grainMask * 0.15;
+            return vec4(clamp(result, 0.0, 1.0), pixel.a);
+        }
+        """)
+    }()
+
     nonisolated private static func applyFilmGrain(to image: UIImage, intensity: Float, ciContext: CIContext, style: String = "Xiaomi") -> UIImage? {
         guard let cgImage = image.cgImage else { return nil }
-        
-        let ciImage = CIImage(cgImage: cgImage)
-
         guard intensity > 0 else { return image }
 
+        let ciImage = CIImage(cgImage: cgImage)
         let extent = ciImage.extent
 
-        // CIRandomGenerator is infinite (no tiling) — use it directly.
-        guard let random = CIFilter(name: "CIRandomGenerator")?.outputImage else { return image }
-        let randomCropped = random.cropped(to: extent)
-
-        // Soft-blur the white noise to produce organic film-like grain clusters.
-        // OnePlus uses a slightly coarser grain than Xiaomi.
-        let blurRadius: Double = style == "OnePlus" ? 1.5 : 0.8
-        let blurredNoise: CIImage
-        if let blur = CIFilter(name: "CIGaussianBlur") {
-            blur.setValue(randomCropped, forKey: kCIInputImageKey)
-            blur.setValue(blurRadius, forKey: kCIInputRadiusKey)
-            blurredNoise = (blur.outputImage ?? randomCropped).cropped(to: extent)
-        } else {
-            blurredNoise = randomCropped
+        // Load the bundled grain texture matching the selected style (same PNGs as Android).
+        let textureName = style == "OnePlus" ? "film_grain_oneplus" : "film_grain"
+        guard let textureURL = Bundle.module.url(forResource: textureName, withExtension: "png"),
+              let textureImage = CIImage(contentsOf: textureURL) else {
+            return image
         }
 
-        // Desaturate to luma-only noise.
-        let grayNoise: CIImage
-        if let controls = CIFilter(name: "CIColorControls") {
-            controls.setValue(blurredNoise, forKey: kCIInputImageKey)
-            controls.setValue(0.0, forKey: kCIInputSaturationKey)
-            controls.setValue(1.0, forKey: kCIInputContrastKey)
-            controls.setValue(0.0, forKey: kCIInputBrightnessKey)
-            grayNoise = (controls.outputImage ?? blurredNoise).cropped(to: extent)
-        } else {
-            grayNoise = blurredNoise
+        // Tile the grain texture across the image extent with a scale factor (matches Android uGrainScale = 4.0).
+        let grainScale: CGFloat = 4.0
+        let tiledGrain = textureImage
+            .applyingFilter("CIAffineTile")
+            .applyingFilter("CIAffineTransform", parameters: [
+                "inputTransform": CGAffineTransform(
+                    scaleX: extent.width / (textureImage.extent.width * grainScale) * grainScale,
+                    y: extent.height / (textureImage.extent.height * grainScale) * grainScale
+                )
+            ])
+            .cropped(to: extent)
+
+        guard let kernel = grainKernel,
+              let output = kernel.apply(
+                extent: extent,
+                arguments: [ciImage, tiledGrain, NSNumber(value: intensity)]
+              ) else {
+            return image
         }
 
-        // Convert [0,1] -> [-amp,+amp] and add to the image.
-        // Smaller amp looks more like film grain (not a visible texture overlay).
-        let amp = CGFloat(intensity) * 0.06
-        guard let matrix = CIFilter(name: "CIColorMatrix") else { return image }
-        matrix.setValue(grayNoise, forKey: kCIInputImageKey)
-        matrix.setValue(CIVector(x: 2 * amp, y: 0, z: 0, w: 0), forKey: "inputRVector")
-        matrix.setValue(CIVector(x: 0, y: 2 * amp, z: 0, w: 0), forKey: "inputGVector")
-        matrix.setValue(CIVector(x: 0, y: 0, z: 2 * amp, w: 0), forKey: "inputBVector")
-        matrix.setValue(CIVector(x: 0, y: 0, z: 0, w: 1), forKey: "inputAVector")
-        matrix.setValue(CIVector(x: -amp, y: -amp, z: -amp, w: 0), forKey: "inputBiasVector")
-        let signedNoise = (matrix.outputImage ?? grayNoise).cropped(to: extent)
-
-        guard let add = CIFilter(name: "CIAdditionCompositing") else { return image }
-        add.setValue(signedNoise, forKey: kCIInputImageKey)
-        add.setValue(ciImage, forKey: kCIInputBackgroundImageKey)
-        let out = (add.outputImage ?? ciImage).cropped(to: extent)
-
-        guard let outputCGImage = ciContext.createCGImage(out, from: out.extent) else { return nil }
+        guard let outputCGImage = ciContext.createCGImage(output.cropped(to: extent), from: extent) else {
+            return nil
+        }
         return UIImage(cgImage: outputCGImage, scale: image.scale, orientation: image.imageOrientation)
     }
 

@@ -330,3 +330,10 @@
 "tip_choose_look_message" = "Scegli un marchio e tocca un preset per vedere lo stile sulla foto.";
 "tip_refine_save_title" = "Rifinisci e salva";
 "tip_refine_save_message" = "Tocca di nuovo il look selezionato per aprire le regolazioni, poi usa Salva per esportare.";
+"compare_preview" = "Anteprima confronto";
+"compare_preview_hint" = "Attiva il confronto prima dopo per paragonare la modifica corrente all'immagine originale.";
+"compare_split" = "Divisione";
+"compare_before" = "Prima";
+"compare_after" = "Dopo";
+"compare_vertical" = "Verticale";
+"compare_horizontal" = "Orizzontale";

@@ -330,3 +330,10 @@
 "tip_choose_look_message" = "Choose a brand, then tap a preset to see the style on your photo.";
 "tip_refine_save_title" = "Fine-tune, then save";
 "tip_refine_save_message" = "Tap the selected look again to open adjustments, then use Save when you are ready to export.";
+"compare_preview" = "Compare preview";
+"compare_preview_hint" = "Switch on before and after preview to compare the current edit against the original image.";
+"compare_split" = "Split";
+"compare_before" = "Before";
+"compare_after" = "After";
+"compare_vertical" = "Vertical";
+"compare_horizontal" = "Horizontal";

@@ -330,3 +330,10 @@
 "tip_choose_look_message" = "先选择品牌，再点按预设，即可在照片上预览风格。";
 "tip_refine_save_title" = "微调后保存";
 "tip_refine_save_message" = "再次点按已选风格以打开调整，满意后点击保存导出。";
+"compare_preview" = "对比预览";
+"compare_preview_hint" = "开启前后对比，以便将当前编辑结果与原图进行比较。";
+"compare_split" = "分割位置";
+"compare_before" = "原图";
+"compare_after" = "编辑后";
+"compare_vertical" = "纵向分割";
+"compare_horizontal" = "横向分割";

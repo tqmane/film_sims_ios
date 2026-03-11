@@ -330,3 +330,10 @@
 "tip_choose_look_message" = "اختر علامة تجارية ثم اضغط على إعداد مسبق لمعاينة النمط على صورتك.";
 "tip_refine_save_title" = "عدّل ثم احفظ";
 "tip_refine_save_message" = "اضغط على المظهر المحدد مرة أخرى لفتح أدوات التعديل، ثم استخدم حفظ عندما تصبح النتيجة جاهزة للتصدير.";
+"compare_preview" = "معاينة المقارنة";
+"compare_preview_hint" = "فعّل عرض قبل وبعد لمقارنة التعديل الحالي بالصورة الأصلية.";
+"compare_split" = "موضع الفصل";
+"compare_before" = "قبل";
+"compare_after" = "بعد";
+"compare_vertical" = "عمودي";
+"compare_horizontal" = "أفقي";

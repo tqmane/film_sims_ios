@@ -330,3 +330,10 @@
 "tip_choose_look_message" = "ブランドを選んでからプリセットをタップすると、写真にスタイルをプレビューできます。";
 "tip_refine_save_title" = "微調整して保存";
 "tip_refine_save_message" = "選択中のルックをもう一度タップすると調整が開き、仕上がったら保存して書き出せます。";
+"compare_preview" = "比較プレビュー";
+"compare_preview_hint" = "現在の編集結果と元画像を見比べるためのビフォー・アフター表示です。";
+"compare_split" = "分割位置";
+"compare_before" = "元画像";
+"compare_after" = "編集後";
+"compare_vertical" = "縦分割";
+"compare_horizontal" = "横分割";

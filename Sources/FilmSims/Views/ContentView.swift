@@ -21,6 +21,9 @@ struct ContentView: View {
     @State private var panelMode: BottomPanelMode = .selection
     @State private var selectedAdjustTab: LiquidAdjustPanel.AdjustTab = .intensity
     @State private var overlaySelectionSnapshot: LutItem?
+    @State private var compareEnabled = false
+    @State private var comparePosition: Float = 0.5
+    @State private var compareVertical = true
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private let freeBrands: Set<String> = ["TECNO", "Nothing", "Nubia"]
@@ -96,13 +99,6 @@ struct ContentView: View {
             .frame(width: geometry.size.width, height: geometry.size.height)
             .zIndex(0)
 
-            if isShowingAdjustPanel {
-                Color.clear
-                    .contentShape(Rectangle())
-                    .onTapGesture { closeAdjustPanel() }
-                    .zIndex(5)
-            }
-
             VStack(spacing: 0) {
                 if !isImmersiveMode {
                     topBar(metrics: metrics)
@@ -153,11 +149,7 @@ struct ContentView: View {
                             }
                         }
 
-                        if isShowingAdjustPanel {
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture { closeAdjustPanel() }
-                        }
+
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -208,7 +200,10 @@ struct ContentView: View {
                 viewModel: viewModel,
                 selectedTab: $selectedAdjustTab,
                 onClose: closeAdjustPanel,
-                onSelectOverlayFilter: startOverlaySelection
+                onSelectOverlayFilter: startOverlaySelection,
+                compareEnabled: $compareEnabled,
+                comparePosition: $comparePosition,
+                compareVertical: $compareVertical
             )
         } else {
             selectionPanel(metrics: metrics, showsDragHandle: showsDragHandle)
@@ -235,6 +230,16 @@ struct ContentView: View {
             Spacer()
 
             HStack(spacing: 8) {
+                if viewModel.hasVisibleEdits {
+                    Button(action: { compareEnabled.toggle() }) {
+                        Image(systemName: "square.split.2x1")
+                            .font(.system(size: metrics.phoneValue(compact: 15, regular: 19), weight: .medium))
+                            .foregroundColor(compareEnabled ? .accentPrimary : .textPrimary)
+                            .frame(width: metrics.actionButtonSize, height: metrics.actionButtonSize)
+                            .background(AndroidRoundGlassBackground())
+                    }
+                }
+
                 PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .images) {
                     Image(systemName: "plus")
                         .font(.system(size: metrics.phoneValue(compact: 15, regular: 19), weight: .medium))
@@ -288,22 +293,43 @@ struct ContentView: View {
 
     // MARK: - Image Preview View
     private var imagePreviewView: some View {
-        ZoomableImageView(
-            image: isShowingOriginal ? viewModel.originalImage : viewModel.processedImage,
-            isImmersive: isImmersiveMode,
-            onTap: {
-                withAnimation { isImmersiveMode.toggle() }
-            },
-            onLongPressStart: {
-                if viewModel.hasVisibleEdits {
-                    isShowingOriginal = true
-                }
-            },
-            onLongPressEnd: {
-                isShowingOriginal = false
+        ZStack {
+            if compareEnabled && !isShowingOriginal && viewModel.hasVisibleEdits {
+                CompareImageView(
+                    originalImage: viewModel.originalImage,
+                    processedImage: viewModel.processedImage,
+                    split: comparePosition,
+                    vertical: compareVertical,
+                    isImmersive: isImmersiveMode,
+                    onTap: { withAnimation { isImmersiveMode.toggle() } }
+                )
+                .id(viewModel.imageLoadCount)
+
+                ComparePreviewOverlay(
+                    split: comparePosition,
+                    vertical: compareVertical,
+                    onSplitChange: { comparePosition = $0 }
+                )
+                .allowsHitTesting(true)
+            } else {
+                ZoomableImageView(
+                    image: isShowingOriginal ? viewModel.originalImage : viewModel.processedImage,
+                    isImmersive: isImmersiveMode,
+                    onTap: {
+                        withAnimation { isImmersiveMode.toggle() }
+                    },
+                    onLongPressStart: {
+                        if viewModel.hasVisibleEdits {
+                            isShowingOriginal = true
+                        }
+                    },
+                    onLongPressEnd: {
+                        isShowingOriginal = false
+                    }
+                )
+                .id(viewModel.imageLoadCount)
             }
-        )
-        .id(viewModel.imageLoadCount)
+        }
     }
 
     // MARK: - Selection Panel
