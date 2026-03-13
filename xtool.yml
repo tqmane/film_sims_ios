@@ -6,4 +6,5 @@ resources:
   - Sources/FilmSims/Resources/GoogleService-Info.plist
 extensions:
   - product: FilmSimsShareExtension
+    bundleID: com.tqmane.filmsim.share
     infoPath: FilmSimsShareExtension-Info.plist

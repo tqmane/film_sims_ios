@@ -29,7 +29,7 @@ let package = Package(
             dependencies: [
                 "FilmSimsShared",
                 .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
-                .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS])),
+                .product(name: "FirebaseAnalyticsWithoutAdIdSupport", package: "firebase-ios-sdk", condition: .when(platforms: [.iOS])),
                 .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS"),
                 .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS"),

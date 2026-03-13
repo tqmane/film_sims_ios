@@ -19,7 +19,7 @@
         <string>zh-Hans</string>
     </array>
     <key>CFBundleShortVersionString</key>
-    <string>1.1.7s</string>
+    <string>1.1.7</string>
     <key>CFBundleVersion</key>
     <string>20</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
