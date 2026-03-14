@@ -29,8 +29,16 @@ class VivoWatermarkConfigParser: @unchecked Sendable {
             
             if line == "SETIN" || line == "PATHSETIN" || line == "PARAMSETIN" { continue }
             if line == "PATHCLOSE" || line == "PARAMCLOSE" || line == "CLOSE" {
-                if inPicParam { currentLine?.images.append(currentPicParam!); inPicParam = false; currentPicParam = nil }
-                if inTextParam { currentLine?.texts.append(currentTextParam!); inTextParam = false; currentTextParam = nil }
+                if inPicParam, let currentPicParam {
+                    currentLine?.images.append(currentPicParam)
+                }
+                inPicParam = false
+                currentPicParam = nil
+                if inTextParam, let currentTextParam {
+                    currentLine?.texts.append(currentTextParam)
+                }
+                inTextParam = false
+                currentTextParam = nil
                 if let cl = currentLine { currentSubgroup?.lines.append(cl); currentLine = nil }
                 if let cs = currentSubgroup { currentGroup?.subgroups.append(cs); currentSubgroup = nil }
                 if let cg = currentGroup { groups.append(cg); currentGroup = nil }
@@ -135,8 +143,8 @@ class VivoWatermarkConfigParser: @unchecked Sendable {
     
     private func parseRect(_ str: String) -> VivoRect? {
         let pts = parsePoints(str)
-        if pts.count >= 2 {
-            return VivoRect(left: pts.first!.x, top: pts.first!.y, right: pts.last!.x, bottom: pts.last!.y)
+        if pts.count >= 2, let first = pts.first, let last = pts.last {
+            return VivoRect(left: first.x, top: first.y, right: last.x, bottom: last.y)
         }
         return nil
     }

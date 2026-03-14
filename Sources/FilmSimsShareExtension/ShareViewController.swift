@@ -96,12 +96,32 @@ final class ShareViewController: UIViewController {
             return dataRepresentation
         }
 
-        if let image = try? await provider.loadImageObject(),
-           let imageData = image.jpegData(compressionQuality: 0.98) {
-            return imageData
+        if let image = try? await provider.loadImageObject() {
+            if let pngData = image.pngData(), imageHasAlpha(image) {
+                return pngData
+            }
+
+            if let jpegData = image.jpegData(compressionQuality: 1.0) {
+                return jpegData
+            }
         }
 
         throw ShareError.failedToLoadImage
+    }
+
+    private func imageHasAlpha(_ image: UIImage) -> Bool {
+        guard let alphaInfo = image.cgImage?.alphaInfo else {
+            return false
+        }
+
+        switch alphaInfo {
+        case .first, .last, .premultipliedFirst, .premultipliedLast:
+            return true
+        case .none, .noneSkipFirst, .noneSkipLast, .alphaOnly:
+            return false
+        @unknown default:
+            return false
+        }
     }
 }
 

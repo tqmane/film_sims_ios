@@ -81,12 +81,23 @@ enum AssetDecryptor {
         defer { fontRegistrationLock.unlock() }
 
         if !registeredFonts.contains(postScriptName) {
-            var error: Unmanaged<CFError>?
-            CTFontManagerRegisterGraphicsFont(cgFont, &error)
-            registeredFonts.insert(postScriptName)
+            var registrationError: Unmanaged<CFError>?
+            let didRegister = CTFontManagerRegisterGraphicsFont(cgFont, &registrationError)
+            let error = registrationError?.takeRetainedValue()
+
+            if didRegister || isAlreadyRegisteredFontError(error) {
+                registeredFonts.insert(postScriptName)
+            }
         }
 
         return UIFont(name: postScriptName, size: size)
+    }
+
+    private static func isAlreadyRegisteredFontError(_ error: CFError?) -> Bool {
+        guard let error else { return false }
+
+        return CFErrorGetDomain(error) == kCTFontManagerErrorDomain &&
+            CFErrorGetCode(error) == CTFontManagerError.alreadyRegistered.rawValue
     }
 #endif
 

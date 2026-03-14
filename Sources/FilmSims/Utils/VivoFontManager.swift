@@ -7,6 +7,7 @@ class VivoFontManager: @unchecked Sendable {
     static let shared = VivoFontManager()
     
     private var fontCache = [Int: UIFont]()
+    private let fontCacheLock = NSLock()
     
     private let FONT_PATH = "watermark/vivo/fonts/"
     private let FONT_PATH_ALT = "vivo_watermark_full2/assets/fonts/"
@@ -28,7 +29,12 @@ class VivoFontManager: @unchecked Sendable {
     func getTypeface(typeface: Int, size: CGFloat, weight: Int) -> UIFont {
         let file = FONT_MAP[typeface] ?? "Roboto-Bold.ttf"
         let key = typeface * 1000 + Int(size * 10) + weight
-        if let cached = fontCache[key] { return cached }
+        fontCacheLock.lock()
+        if let cached = fontCache[key] {
+            fontCacheLock.unlock()
+            return cached
+        }
+        fontCacheLock.unlock()
 
         var font: UIFont? = nil
         let paths = [FONT_PATH + file, FONT_PATH_ALT + file]
@@ -42,12 +48,16 @@ class VivoFontManager: @unchecked Sendable {
         
         // Apply synthesis for weights if possible
         if let f = font {
+            let resolvedFont: UIFont
             if weight >= 700 {
-                fontCache[key] = applyBoldTrait(f)
+                resolvedFont = applyBoldTrait(f)
             } else {
-                fontCache[key] = f
+                resolvedFont = f
             }
-            return fontCache[key]!
+            fontCacheLock.lock()
+            fontCache[key] = resolvedFont
+            fontCacheLock.unlock()
+            return resolvedFont
         }
         
         return weight >= 700 ? UIFont.boldSystemFont(ofSize: size) : UIFont.systemFont(ofSize: size)

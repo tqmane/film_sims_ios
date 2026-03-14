@@ -102,6 +102,8 @@ class WatermarkProcessor {
     
     nonisolated(unsafe) private static var honorTypeface: UIFont?
     nonisolated(unsafe) private static var fontCache: [String: UIFont] = [:]
+    private static let honorTypefaceLock = NSLock()
+    private static let fontCacheLock = NSLock()
     
     // MARK: - Public API
 
@@ -749,9 +751,17 @@ class WatermarkProcessor {
 
     private static func loadMeizuFont(_ filename: String, size: CGFloat) -> UIFont {
         let key = "\(filename)-\(size)"
-        if let cached = fontCache[key] { return cached }
+        fontCacheLock.lock()
+        if let cached = fontCache[key] {
+            fontCacheLock.unlock()
+            return cached
+        }
+        fontCacheLock.unlock()
+
         if let font = AssetDecryptor.openFont(path: "watermark/Meizu/fonts/\(filename)", size: size) {
+            fontCacheLock.lock()
             fontCache[key] = font
+            fontCacheLock.unlock()
             return font
         }
         return UIFont.systemFont(ofSize: size)
@@ -1138,15 +1148,16 @@ class WatermarkProcessor {
     private static func getHonorFont(size: CGFloat, weight: Int) -> UIFont {
         // HONORSansVFCN.ttf is a variable font with 'wght' axis (300..1000)
         // Register once, then use UIFontDescriptor variation to apply weight
-        if honorTypeface == nil {
-            if let font = AssetDecryptor.openFont(path: "watermark/Honor/fonts/HONORSansVFCN.ttf", size: 12) {
-                honorTypeface = font
-            }
+        honorTypefaceLock.lock()
+        if honorTypeface == nil,
+           let font = AssetDecryptor.openFont(path: "watermark/Honor/fonts/HONORSansVFCN.ttf", size: 12) {
+            honorTypeface = font
         }
+        let base = honorTypeface
+        honorTypefaceLock.unlock()
 
-        guard let base = honorTypeface else {
-            let uiW: UIFont.Weight = weight >= 800 ? .black : weight >= 700 ? .bold : weight >= 400 ? .regular : .light
-            return UIFont.systemFont(ofSize: size, weight: uiW)
+        guard let base else {
+            return UIFont.systemFont(ofSize: size, weight: systemWeight(for: weight))
         }
 
         // Apply variable font axis: 'wght' tag = 0x77676874 = 2003265652
@@ -1155,6 +1166,19 @@ class WatermarkProcessor {
         let descriptor = UIFontDescriptor(name: base.fontName, size: size)
             .addingAttributes([variationAttr: [wghtAxis: weight]])
         return UIFont(descriptor: descriptor, size: size)
+    }
+
+    private static func systemWeight(for weight: Int) -> UIFont.Weight {
+        switch weight {
+        case 800...:
+            return .black
+        case 700...:
+            return .bold
+        case 400...:
+            return .regular
+        default:
+            return .light
+        }
     }
     
     /// Load Honor logo image
@@ -1179,6 +1203,18 @@ class WatermarkProcessor {
         return nil
     }
 
+    private static func drawTintedLogoMask(_ image: UIImage, in rect: CGRect, color: UIColor, context: CGContext) {
+        guard let cgImage = image.cgImage else { return }
+
+        context.saveGState()
+        context.translateBy(x: rect.origin.x, y: rect.origin.y + rect.height)
+        context.scaleBy(x: 1.0, y: -1.0)
+        context.clip(to: CGRect(origin: .zero, size: rect.size), mask: cgImage)
+        context.setFillColor(color.cgColor)
+        context.fill(CGRect(origin: .zero, size: rect.size))
+        context.restoreGState()
+    }
+
     private static func getVivoFont(_ name: String, size: CGFloat) -> UIFont {
         // Map abstract names to filenames
         let filename: String
@@ -1193,14 +1229,18 @@ class WatermarkProcessor {
         case "VivoSimpleBold": filename = "vivotypeSimple-Bold.ttf"
         default: filename = "vivo-Regular.otf"
         }
-        
-        let key = "\(filename)-\(size)"
-        if let cached = fontCache[key] {
+
+        fontCacheLock.lock()
+        if let cached = fontCache["\(filename)-\(size)"] {
+            fontCacheLock.unlock()
             return cached
         }
-        
+        fontCacheLock.unlock()
+
         if let font = AssetDecryptor.openFont(path: "watermark/vivo/fonts/\(filename)", size: size) {
-            fontCache[key] = font
+            fontCacheLock.lock()
+            fontCache["\(filename)-\(size)"] = font
+            fontCacheLock.unlock()
             return font
         }
         
@@ -1250,15 +1290,8 @@ class WatermarkProcessor {
                 
                 // Tint black
                 let logoRect = CGRect(x: curX, y: logoY, width: logoW, height: logoH)
-                
-                // Draw mask for tinting
-                ctx.saveGState()
-                ctx.translateBy(x: logoRect.origin.x, y: logoRect.origin.y + logoRect.height)
-                ctx.scaleBy(x: 1.0, y: -1.0)
-                ctx.clip(to: CGRect(x: 0, y: 0, width: logoRect.width, height: logoRect.height), mask: vivoLogo.cgImage!)
-                ctx.setFillColor(UIColor.black.cgColor)
-                ctx.fill(CGRect(x: 0, y: 0, width: logoRect.width, height: logoRect.height))
-                ctx.restoreGState()
+
+                drawTintedLogoMask(vivoLogo, in: logoRect, color: .black, context: ctx)
                 
                 curX += logoW + 3.9 * dp
             }
@@ -1521,15 +1554,8 @@ class WatermarkProcessor {
                 let logoY = barCY - logoH / 2
                 
                 let logoRect = CGRect(x: curX, y: logoY, width: logoW, height: logoH)
-                
-                // Tint Black
-                ctx.saveGState()
-                ctx.translateBy(x: logoRect.origin.x, y: logoRect.origin.y + logoRect.height)
-                ctx.scaleBy(x: 1.0, y: -1.0)
-                ctx.clip(to: CGRect(x: 0, y: 0, width: logoRect.width, height: logoRect.height), mask: logo.cgImage!)
-                ctx.setFillColor(UIColor.black.cgColor)
-                ctx.fill(CGRect(x: 0, y: 0, width: logoRect.width, height: logoRect.height))
-                ctx.restoreGState()
+
+                drawTintedLogoMask(logo, in: logoRect, color: .black, context: ctx)
                 
                 curX += logoW
             }
