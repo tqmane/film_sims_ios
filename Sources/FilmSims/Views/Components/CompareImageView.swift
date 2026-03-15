@@ -8,6 +8,8 @@ struct CompareImageView: View {
     let split: Float
     let vertical: Bool
     var isImmersive: Bool = false
+    /// Vertical offset applied to images so they don't sit behind the bottom panel.
+    var contentOffset: CGFloat = 0
     var onTap: (() -> Void)?
 
     var body: some View {
@@ -32,6 +34,7 @@ struct CompareImageView: View {
                             SplitClipShape(split: CGFloat(split), vertical: vertical)
                         )
                 }
+                .offset(y: contentOffset)
                 .onTapGesture { onTap?() }
             } else {
                 Color.clear

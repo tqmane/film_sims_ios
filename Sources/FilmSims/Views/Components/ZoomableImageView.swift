@@ -4,6 +4,9 @@ struct ZoomableImageView: View {
     let image: UIImage?
     /// When this toggles to `true`, the view resets to centered position (immersive/fullscreen mode).
     var isImmersive: Bool = false
+    /// Vertical offset applied to the image rest position so it doesn't sit behind the bottom panel.
+    /// Negative values shift the image upward.
+    var contentOffset: CGFloat = 0
     var onTap: (() -> Void)?
     var onLongPressStart: (() -> Void)?
     var onLongPressEnd: (() -> Void)?
@@ -32,11 +35,15 @@ struct ZoomableImageView: View {
     var body: some View {
         GeometryReader { geometry in
             if let image = image {
+                let effectiveOffset = CGSize(
+                    width: offset.width,
+                    height: offset.height + contentOffset
+                )
                 Image(uiImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .scaleEffect(scale)
-                    .offset(offset)
+                    .offset(effectiveOffset)
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .gesture(
                         SimultaneousGesture(

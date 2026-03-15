@@ -173,3 +173,29 @@ struct AndroidControlPanelBackground: View {
         }
     }
 }
+
+/// Background for the iPad sidebar panel.
+/// Uses the same color palette as the Android sidebar: #1A1A22 → #050508 vertical gradient
+/// with a subtle 1px right-edge divider.
+struct AndroidSidebarBackground: View {
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                stops: [
+                    .init(color: Color(hex: "#1A1A22"), location: 0.0),
+                    .init(color: Color(hex: "#050508"), location: 1.0),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // Subtle right-edge divider
+            HStack(spacing: 0) {
+                Spacer(minLength: 0)
+                Rectangle()
+                    .fill(Color.white.opacity(0.06))
+                    .frame(width: 1)
+            }
+        }
+    }
+}
