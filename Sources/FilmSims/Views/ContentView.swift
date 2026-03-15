@@ -145,32 +145,60 @@ struct ContentView: View {
     @ViewBuilder
     private func ipadLayout(geometry: GeometryProxy, metrics: LayoutMetrics) -> some View {
         let safeArea = resolvedSafeAreaInsets(for: geometry)
+        let hasImage = viewModel.originalImage != nil
 
         ZStack {
             LivingBackground()
 
-            HStack(spacing: 0) {
-                // Left: Sidebar with selectors
-                ipadSidebar(metrics: metrics, safeArea: safeArea)
-                    .frame(width: metrics.sidebarWidth)
+            if hasImage {
+                // Image positioned in the area to the right of the sidebar
+                let imageAreaWidth = geometry.size.width - metrics.sidebarWidth
+                HStack(spacing: 0) {
+                    Spacer().frame(width: metrics.sidebarWidth)
+                    imagePreviewView(contentOffset: 0)
+                        .frame(width: imageAreaWidth, height: geometry.size.height)
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .zIndex(0)
 
-                // Right: Image preview area
-                ZStack {
-                    let imageAreaWidth = geometry.size.width - metrics.sidebarWidth
+                // Sidebar background extended into left safe area — sits above image
+                HStack(spacing: 0) {
+                    AndroidSidebarBackground()
+                        .frame(width: metrics.sidebarWidth + safeArea.leading)
+                    Spacer(minLength: 0)
+                }
+                .ignoresSafeArea()
+                .zIndex(5)
 
-                    Group {
-                        if viewModel.originalImage == nil {
-                            ipadPlaceholderView(metrics: metrics, safeArea: safeArea)
-                        } else {
-                            imagePreviewView(contentOffset: 0)
-                        }
-                    }
-                    .frame(width: imageAreaWidth, height: geometry.size.height)
+                HStack(spacing: 0) {
+                    // Left: Sidebar with selectors
+                    ipadSidebar(metrics: metrics, safeArea: safeArea)
+                        .frame(width: metrics.sidebarWidth)
 
-                    // Top bar overlay (over image area only)
+                    Spacer(minLength: 0)
+
+                    // Top bar overlay (over image area only, to the right of sidebar)
                     VStack(spacing: 0) {
                         if !isImmersiveMode {
-                            topBar(metrics: metrics)
+                            topBar(metrics: metrics, showsTitle: false)
+                                .padding(.top, safeArea.top + 4)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .frame(width: geometry.size.width - metrics.sidebarWidth)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .zIndex(10)
+            } else {
+                // No image: full-width placeholder with normal top bar (shows title)
+                ZStack {
+                    placeholderView(metrics: metrics, safeArea: safeArea)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+
+                    VStack(spacing: 0) {
+                        if !isImmersiveMode {
+                            topBar(metrics: metrics, showsTitle: true)
                                 .padding(.top, safeArea.top + 4)
                                 .transition(.move(edge: .top).combined(with: .opacity))
                         }
@@ -204,37 +232,39 @@ struct ContentView: View {
                 }
                 .padding(.bottom, 20)
 
-                if viewModel.panelHintsEnabled {
-                    selectionNotice(metrics: metrics)
-                }
+                if viewModel.originalImage != nil {
+                    if viewModel.panelHintsEnabled {
+                        selectionNotice(metrics: metrics)
+                    }
 
-                if viewModel.panelHintsEnabled && !proRepo.isProUser && !isSelectingOverlay {
-                    premiumNotice(metrics: metrics)
-                }
+                    if viewModel.panelHintsEnabled && !proRepo.isProUser && !isSelectingOverlay {
+                        premiumNotice(metrics: metrics)
+                    }
 
-                if isSelectingOverlay {
-                    overlaySelectionActions(metrics: metrics)
-                        .padding(.bottom, 12)
-                }
+                    if isSelectingOverlay {
+                        overlaySelectionActions(metrics: metrics)
+                            .padding(.bottom, 12)
+                    }
 
-                brandSection
-                categorySection
-                lutSection
+                    brandSection
+                    categorySection
+                    lutSection
 
-                // Adjust panel content inline in sidebar when a LUT is selected
-                if viewModel.currentLut != nil {
-                    Divider()
-                        .background(Color.white.opacity(0.08))
-                        .padding(.vertical, 16)
+                    // Adjust panel content inline in sidebar when a LUT is selected
+                    if viewModel.currentLut != nil {
+                        Divider()
+                            .background(Color.white.opacity(0.08))
+                            .padding(.vertical, 16)
 
-                    ipadAdjustSection(metrics: metrics)
+                        ipadAdjustSection(metrics: metrics)
+                    }
                 }
             }
             .padding(.horizontal, metrics.panelHPad)
             .padding(.top, safeArea.top + 16)
             .padding(.bottom, max(safeArea.bottom, 24))
         }
-        .background(AndroidSidebarBackground())
+        .background(Color.clear)
     }
 
     // MARK: - iPad Adjust Section (inline in sidebar)
@@ -243,11 +273,11 @@ struct ContentView: View {
         LiquidAdjustPanel(
             viewModel: viewModel,
             selectedTab: $selectedAdjustTab,
-            onClose: closeAdjustPanel,
             onSelectOverlayFilter: startOverlaySelection,
             compareEnabled: $compareEnabled,
             comparePosition: $comparePosition,
-            compareVertical: $compareVertical
+            compareVertical: $compareVertical,
+            isInline: true
         )
     }
 
@@ -292,19 +322,21 @@ struct ContentView: View {
 
     // MARK: - Top Bar
     @ViewBuilder
-    private func topBar(metrics: LayoutMetrics) -> some View {
+    private func topBar(metrics: LayoutMetrics, showsTitle: Bool = true) -> some View {
         HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("FilmSims")
-                    .font(.system(size: metrics.titleFontSize, weight: .semibold))
-                    .foregroundColor(.textPrimary)
-                    .tracking(0.005)
+            if showsTitle {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("FilmSims")
+                        .font(.system(size: metrics.titleFontSize, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                        .tracking(0.005)
 
-                Text(L10n.tr("subtitle_film_simulator").uppercased())
-                    .font(.system(size: metrics.subtitleFontSize, weight: .medium))
-                    .foregroundColor(.accentPrimary)
-                    .tracking(0.15)
-                    .padding(.top, metrics.phoneValue(compact: 1, regular: 3))
+                    Text(L10n.tr("subtitle_film_simulator").uppercased())
+                        .font(.system(size: metrics.subtitleFontSize, weight: .medium))
+                        .foregroundColor(.accentPrimary)
+                        .tracking(0.15)
+                        .padding(.top, metrics.phoneValue(compact: 1, regular: 3))
+                }
             }
 
             Spacer()

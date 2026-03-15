@@ -3,11 +3,14 @@ import SwiftUI
 struct LiquidAdjustPanel: View {
     @ObservedObject var viewModel: FilmSimsViewModel
     @Binding var selectedTab: AdjustTab
-    let onClose: () -> Void
+    var onClose: (() -> Void)? = nil
     let onSelectOverlayFilter: () -> Void
     @Binding var compareEnabled: Bool
     @Binding var comparePosition: Float
     @Binding var compareVertical: Bool
+    /// When `true` the panel is embedded inline (e.g. iPad sidebar) – the close
+    /// button and control-panel background are hidden.
+    var isInline: Bool = false
     @ObservedObject private var proRepo = ProUserRepository.shared
     @Environment(\.layoutMetrics) private var metrics
     @State private var lockedMessageKey = "pro_adjust_tools_hint"
@@ -31,8 +34,10 @@ struct LiquidAdjustPanel: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
-                .padding(.bottom, 4)
+            if !isInline {
+                header
+                    .padding(.bottom, 4)
+            }
 
             if viewModel.panelHintsEnabled {
                 LiquidNoticeCard(
@@ -72,11 +77,15 @@ struct LiquidAdjustPanel: View {
                 }
             }
         }
-        .padding(.top, metrics.adjustTabTopPad)
-        .padding(.bottom, 10)
-        .padding(.horizontal, metrics.adjustHPad)
+        .padding(.top, isInline ? 0 : metrics.adjustTabTopPad)
+        .padding(.bottom, isInline ? 0 : 10)
+        .padding(.horizontal, isInline ? 0 : metrics.adjustHPad)
         .background(
-            AndroidControlPanelBackground(topRadius: metrics.adjustPanelCorner)
+            Group {
+                if !isInline {
+                    AndroidControlPanelBackground(topRadius: metrics.adjustPanelCorner)
+                }
+            }
         )
         .alert(L10n.tr("preset_save_title"), isPresented: $isShowingSavePresetDialog) {
             TextField(L10n.tr("preset_name_hint"), text: $presetDraftName)
@@ -94,16 +103,18 @@ struct LiquidAdjustPanel: View {
 
     private var header: some View {
         HStack {
-            Button(action: onClose) {
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: metrics.phoneValue(compact: 10, regular: 11), weight: .semibold))
-                    Text(L10n.tr("btn_close"))
-                        .font(.system(size: metrics.phoneValue(compact: 12, regular: 13), weight: .medium))
+            if let onClose {
+                Button(action: onClose) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: metrics.phoneValue(compact: 10, regular: 11), weight: .semibold))
+                        Text(L10n.tr("btn_close"))
+                            .font(.system(size: metrics.phoneValue(compact: 12, regular: 13), weight: .medium))
+                    }
+                    .foregroundColor(.textSecondary)
                 }
-                .foregroundColor(.textSecondary)
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
 
             Spacer()
 
