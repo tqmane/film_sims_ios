@@ -56,11 +56,7 @@ struct ContentView: View {
                 size: geometry.size,
                 horizontalSizeClass: horizontalSizeClass
             )
-            if metrics.usesSidebar {
-                sidebarLayout(geometry: geometry, metrics: metrics)
-            } else {
-                phoneLayout(geometry: geometry, metrics: metrics)
-            }
+            phoneLayout(geometry: geometry, metrics: metrics)
         }
         .ignoresSafeArea()
         .animation(AppMotion.panel, value: isImmersiveMode)
@@ -122,75 +118,6 @@ struct ContentView: View {
         }
         .ignoresSafeArea()
         .environment(\.layoutMetrics, metrics)
-    }
-
-    // MARK: - iPad Sidebar Layout
-    @ViewBuilder
-    private func sidebarLayout(geometry: GeometryProxy, metrics: LayoutMetrics) -> some View {
-        let safeArea = resolvedSafeAreaInsets(for: geometry)
-
-        ZStack {
-            LivingBackground()
-
-            VStack(spacing: 0) {
-                if !isImmersiveMode {
-                    topBar(metrics: metrics)
-                        .padding(.top, safeArea.top + 4)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
-
-                HStack(spacing: 0) {
-                    ZStack {
-                        Group {
-                            if viewModel.originalImage == nil {
-                                placeholderView(metrics: metrics, safeArea: safeArea)
-                            } else {
-                                imagePreviewView
-                            }
-                        }
-
-
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    if !isImmersiveMode {
-                        sidebarPanel(metrics: metrics)
-                            .frame(width: metrics.sidebarWidth)
-                            .padding(.bottom, safeArea.bottom)
-                            .transition(.move(edge: .trailing).combined(with: .opacity))
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-        }
-        .ignoresSafeArea()
-        .environment(\.layoutMetrics, metrics)
-    }
-
-    // MARK: - iPad Sidebar Panel
-    @ViewBuilder
-    private func sidebarPanel(metrics: LayoutMetrics) -> some View {
-        VStack(spacing: 0) {
-            Rectangle()
-                .fill(Color.white.opacity(0.06))
-                .frame(maxHeight: .infinity)
-                .frame(width: 1)
-                .overlay(alignment: .trailing) {
-                    ScrollView {
-                        activeBottomPanel(metrics: metrics, showsDragHandle: false)
-                            .padding(.horizontal, metrics.panelHPad)
-                            .padding(.vertical, 16)
-                    }
-                    .frame(width: metrics.sidebarWidth - 1)
-                }
-        }
-        .background(
-            LinearGradient(
-                colors: [Color(hex: "#1A1A22"), Color(hex: "#050508")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
     }
 
     @ViewBuilder

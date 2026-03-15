@@ -47,4 +47,5 @@ Sources/FilmSims/SecureResources/watermark/
 Scripts/__pycache__/
 .github/
 .claude/
+.agents/
 iPhone-resolution.csv
