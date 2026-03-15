@@ -23,7 +23,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ app: UIApplication,
                      open url: URL,
                      options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        NSLog("AppDelegate: application(_:open:) called with url=%@", url.absoluteString)
         if GIDSignIn.sharedInstance.handle(url) {
+            NSLog("AppDelegate: GIDSignIn handled URL")
             return true
         }
         return IncomingImageCoordinator.shared.handle(url: url)
@@ -39,7 +41,9 @@ struct FilmSimsApp: App {
             ContentView()
                 .preferredColorScheme(.dark)
                 .onOpenURL { url in
+                    NSLog("FilmSimsApp: onOpenURL called with url=%@", url.absoluteString)
                     if GIDSignIn.sharedInstance.handle(url) {
+                        NSLog("FilmSimsApp: GIDSignIn handled URL")
                         return
                     }
                     _ = IncomingImageCoordinator.shared.handle(url: url)

@@ -57,8 +57,11 @@ final class AuthViewModel: ObservableObject {
 
         Task { @MainActor in
             do {
+                NSLog("AuthViewModel: Starting GIDSignIn.signIn(withPresenting:)")
                 let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootVC)
+                NSLog("AuthViewModel: GIDSignIn succeeded, user=%@", result.user.userID ?? "nil")
                 guard let idToken = result.user.idToken?.tokenString else {
+                    NSLog("AuthViewModel: No idToken in result")
                     isLoading = false
                     return
                 }
@@ -68,8 +71,10 @@ final class AuthViewModel: ObservableObject {
                     accessToken: result.user.accessToken.tokenString
                 )
 
+                NSLog("AuthViewModel: Calling Firebase Auth signIn")
                 let authResult = try await Auth.auth().signIn(with: credential)
                 let user = authResult.user
+                NSLog("AuthViewModel: Firebase Auth succeeded, email=%@", user.email ?? "nil")
 
                 isSignedIn = true
                 userName = user.displayName
@@ -79,7 +84,8 @@ final class AuthViewModel: ObservableObject {
 
                 await proUserRepository.checkProStatus(email: user.email)
             } catch {
-                print("AuthViewModel: Sign in failed: \(error)")
+                NSLog("AuthViewModel: Sign in failed: %@", error.localizedDescription)
+                NSLog("AuthViewModel: Full error: %@", String(describing: error))
                 isLoading = false
             }
         }

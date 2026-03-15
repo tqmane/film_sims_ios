@@ -173,3 +173,62 @@ struct AndroidControlPanelBackground: View {
         }
     }
 }
+
+/// Background for the iPad sidebar panel.
+/// Semi-transparent, matching the bottom panel style so the image preview bleeds through.
+struct AndroidSidebarBackground: View {
+    var body: some View {
+        ZStack {
+            // Base fill: same palette as AndroidControlPanelBackground
+            LinearGradient(
+                stops: [
+                    .init(color: Color(hex: "#141419").opacity(0.92), location: 0.0), // SurfaceMedium
+                    .init(color: Color(hex: "#0C0C11").opacity(0.95), location: 1.0), // SurfaceDark
+                ],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+
+            // Subtle accent glow at left edge (mirrors top-center glow on bottom panel)
+            HStack(spacing: 0) {
+                LinearGradient(
+                    stops: [
+                        .init(color: Color.accentPrimary.opacity(0.05), location: 0.0),
+                        .init(color: Color.clear, location: 1.0),
+                    ],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 80)
+                Spacer(minLength: 0)
+            }
+
+            // Right-edge divider + highlight line (mirrors top highlight on bottom panel)
+            HStack(spacing: 0) {
+                Spacer(minLength: 0)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 48)
+                    LinearGradient(
+                        stops: [
+                            .init(color: Color.white.opacity(0.0), location: 0.0),
+                            .init(color: Color.white.opacity(0.157), location: 0.5), // #28FFFFFF
+                            .init(color: Color.white.opacity(0.0), location: 1.0),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(width: 1)
+                    Spacer(minLength: 48)
+                }
+            }
+
+            // Outer right border
+            HStack(spacing: 0) {
+                Spacer(minLength: 0)
+                Rectangle()
+                    .fill(Color.white.opacity(0.0627)) // #10FFFFFF
+                    .frame(width: 1)
+            }
+        }
+    }
+}

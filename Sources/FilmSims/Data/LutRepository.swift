@@ -5,8 +5,11 @@ class LutRepository {
     static let shared = LutRepository()
     
     // Keep parity with Android supported formats.
-    private let lutExtensions = [".cube", ".png", ".bin", ".webp", ".jpg", ".jpeg", ".sel",
-                                  ".cube.enc", ".png.enc", ".bin.enc", ".webp.enc", ".jpg.enc", ".jpeg.enc", ".sel.enc"]
+    // Compound .enc extensions MUST come before their plain counterparts so
+    // that "Name.cube.enc" strips fully to "Name" instead of leaving "Name.enc".
+    private let lutExtensions = [".cube.enc", ".png.enc", ".bin.enc", ".webp.enc", ".jpg.enc", ".jpeg.enc", ".sel.enc",
+                                  ".cube", ".png", ".bin", ".webp", ".jpg", ".jpeg", ".sel",
+                                  ".enc"]
     
     private init() {}
     

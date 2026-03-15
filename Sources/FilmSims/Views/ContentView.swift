@@ -24,6 +24,8 @@ struct ContentView: View {
     @State private var compareEnabled = false
     @State private var comparePosition: Float = 0.5
     @State private var compareVertical = true
+    /// Measured height of the bottom panel (phone layout), used to offset the image upward.
+    @State private var bottomPanelHeight: CGFloat = 0
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     private let freeBrands: Set<String> = ["TECNO", "Nothing", "Nubia"]
@@ -57,7 +59,7 @@ struct ContentView: View {
                 horizontalSizeClass: horizontalSizeClass
             )
             if metrics.usesSidebar {
-                sidebarLayout(geometry: geometry, metrics: metrics)
+                ipadLayout(geometry: geometry, metrics: metrics)
             } else {
                 phoneLayout(geometry: geometry, metrics: metrics)
             }
@@ -85,6 +87,10 @@ struct ContentView: View {
     @ViewBuilder
     private func phoneLayout(geometry: GeometryProxy, metrics: LayoutMetrics) -> some View {
         let safeArea = resolvedSafeAreaInsets(for: geometry)
+        // Shift image upward by a fraction of the panel height so it doesn't hide behind controls.
+        // Use ~40% of the measured panel height; in immersive mode reset to zero.
+        let imageOffset: CGFloat = (!isImmersiveMode && viewModel.originalImage != nil)
+            ? -(bottomPanelHeight * 0.4) : 0
 
         ZStack {
             LivingBackground()
@@ -93,7 +99,7 @@ struct ContentView: View {
                 if viewModel.originalImage == nil {
                     placeholderView(metrics: metrics, safeArea: safeArea)
                 } else {
-                    imagePreviewView
+                    imagePreviewView(contentOffset: imageOffset)
                 }
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
@@ -110,6 +116,17 @@ struct ContentView: View {
 
                 if !isImmersiveMode && viewModel.originalImage != nil {
                     activeBottomPanel(metrics: metrics, showsDragHandle: true)
+                        .background(
+                            GeometryReader { panelGeo in
+                                Color.clear.preference(
+                                    key: PanelHeightPreferenceKey.self,
+                                    value: panelGeo.size.height
+                                )
+                            }
+                        )
+                        .onPreferenceChange(PanelHeightPreferenceKey.self) { height in
+                            bottomPanelHeight = height
+                        }
                         .padding(.bottom, max(8, safeArea.bottom))
                         .transition(.asymmetric(
                             insertion: .move(edge: .bottom).combined(with: .opacity),
@@ -124,73 +141,166 @@ struct ContentView: View {
         .environment(\.layoutMetrics, metrics)
     }
 
-    // MARK: - iPad Sidebar Layout
+    // MARK: - iPad Layout (sidebar + main)
     @ViewBuilder
-    private func sidebarLayout(geometry: GeometryProxy, metrics: LayoutMetrics) -> some View {
+    private func ipadLayout(geometry: GeometryProxy, metrics: LayoutMetrics) -> some View {
         let safeArea = resolvedSafeAreaInsets(for: geometry)
+        let hasImage = viewModel.originalImage != nil
 
         ZStack {
             LivingBackground()
 
-            VStack(spacing: 0) {
-                if !isImmersiveMode {
-                    topBar(metrics: metrics)
-                        .padding(.top, safeArea.top + 4)
-                        .transition(.move(edge: .top).combined(with: .opacity))
+            if hasImage {
+                // Image positioned in the area to the right of the sidebar
+                let imageAreaWidth = geometry.size.width - metrics.sidebarWidth
+                HStack(spacing: 0) {
+                    Spacer().frame(width: metrics.sidebarWidth)
+                    imagePreviewView(contentOffset: 0)
+                        .frame(width: imageAreaWidth, height: geometry.size.height)
                 }
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .zIndex(0)
+
+                // Sidebar background extended into left safe area — sits above image
+                HStack(spacing: 0) {
+                    AndroidSidebarBackground()
+                        .frame(width: metrics.sidebarWidth + safeArea.leading)
+                    Spacer(minLength: 0)
+                }
+                .ignoresSafeArea()
+                .zIndex(5)
 
                 HStack(spacing: 0) {
-                    ZStack {
-                        Group {
-                            if viewModel.originalImage == nil {
-                                placeholderView(metrics: metrics, safeArea: safeArea)
-                            } else {
-                                imagePreviewView
-                            }
+                    // Left: Sidebar with selectors
+                    ipadSidebar(metrics: metrics, safeArea: safeArea)
+                        .frame(width: metrics.sidebarWidth)
+
+                    Spacer(minLength: 0)
+
+                    // Top bar overlay (over image area only, to the right of sidebar)
+                    VStack(spacing: 0) {
+                        if !isImmersiveMode {
+                            topBar(metrics: metrics, showsTitle: false)
+                                .padding(.top, safeArea.top + 4)
+                                .transition(.move(edge: .top).combined(with: .opacity))
                         }
-
-
+                        Spacer(minLength: 0)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    if !isImmersiveMode {
-                        sidebarPanel(metrics: metrics)
-                            .frame(width: metrics.sidebarWidth)
-                            .padding(.bottom, safeArea.bottom)
-                            .transition(.move(edge: .trailing).combined(with: .opacity))
-                    }
+                    .frame(width: geometry.size.width - metrics.sidebarWidth)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .zIndex(10)
+            } else {
+                // No image: full-width placeholder with normal top bar (shows title)
+                ZStack {
+                    placeholderView(metrics: metrics, safeArea: safeArea)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+
+                    VStack(spacing: 0) {
+                        if !isImmersiveMode {
+                            topBar(metrics: metrics, showsTitle: true)
+                                .padding(.top, safeArea.top + 4)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             }
         }
         .ignoresSafeArea()
         .environment(\.layoutMetrics, metrics)
     }
 
-    // MARK: - iPad Sidebar Panel
+    // MARK: - iPad Sidebar
     @ViewBuilder
-    private func sidebarPanel(metrics: LayoutMetrics) -> some View {
-        VStack(spacing: 0) {
-            Rectangle()
-                .fill(Color.white.opacity(0.06))
-                .frame(maxHeight: .infinity)
-                .frame(width: 1)
-                .overlay(alignment: .trailing) {
-                    ScrollView {
-                        activeBottomPanel(metrics: metrics, showsDragHandle: false)
-                            .padding(.horizontal, metrics.panelHPad)
-                            .padding(.vertical, 16)
-                    }
-                    .frame(width: metrics.sidebarWidth - 1)
+    private func ipadSidebar(metrics: LayoutMetrics, safeArea: EdgeInsets) -> some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Title in sidebar
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("FilmSims")
+                        .font(.system(size: metrics.titleFontSize, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                        .tracking(0.005)
+
+                    Text(L10n.tr("subtitle_film_simulator").uppercased())
+                        .font(.system(size: metrics.subtitleFontSize, weight: .medium))
+                        .foregroundColor(.accentPrimary)
+                        .tracking(0.15)
+                        .padding(.top, 3)
                 }
+                .padding(.bottom, 20)
+
+                if viewModel.originalImage != nil {
+                    if viewModel.panelHintsEnabled {
+                        selectionNotice(metrics: metrics)
+                    }
+
+                    if viewModel.panelHintsEnabled && !proRepo.isProUser && !isSelectingOverlay {
+                        premiumNotice(metrics: metrics)
+                    }
+
+                    if isSelectingOverlay {
+                        overlaySelectionActions(metrics: metrics)
+                            .padding(.bottom, 12)
+                    }
+
+                    brandSection
+                    categorySection
+                    lutSection
+
+                    // Adjust panel content inline in sidebar when a LUT is selected
+                    if viewModel.currentLut != nil {
+                        Divider()
+                            .background(Color.white.opacity(0.08))
+                            .padding(.vertical, 16)
+
+                        ipadAdjustSection(metrics: metrics)
+                    }
+                }
+            }
+            .padding(.horizontal, metrics.panelHPad)
+            .padding(.top, safeArea.top + 16)
+            .padding(.bottom, max(safeArea.bottom, 24))
         }
-        .background(
-            LinearGradient(
-                colors: [Color(hex: "#1A1A22"), Color(hex: "#050508")],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+        .background(Color.clear)
+    }
+
+    // MARK: - iPad Adjust Section (inline in sidebar)
+    @ViewBuilder
+    private func ipadAdjustSection(metrics: LayoutMetrics) -> some View {
+        LiquidAdjustPanel(
+            viewModel: viewModel,
+            selectedTab: $selectedAdjustTab,
+            onSelectOverlayFilter: startOverlaySelection,
+            compareEnabled: $compareEnabled,
+            comparePosition: $comparePosition,
+            compareVertical: $compareVertical,
+            isInline: true
         )
+    }
+
+    // MARK: - iPad Placeholder
+    @ViewBuilder
+    private func ipadPlaceholderView(metrics: LayoutMetrics, safeArea: EdgeInsets) -> some View {
+        let topReserved = isImmersiveMode ? safeArea.top : topBarReservedHeight(metrics: metrics, safeArea: safeArea)
+
+        VStack(spacing: 0) {
+            Color.clear
+                .frame(height: topReserved)
+
+            Spacer(minLength: 0)
+
+            EmptyStateView(
+                selectedPhotoItem: $viewModel.selectedPhotoItem,
+                showsTips: viewModel.panelHintsEnabled
+            )
+                .frame(maxWidth: .infinity)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder
@@ -212,19 +322,21 @@ struct ContentView: View {
 
     // MARK: - Top Bar
     @ViewBuilder
-    private func topBar(metrics: LayoutMetrics) -> some View {
+    private func topBar(metrics: LayoutMetrics, showsTitle: Bool = true) -> some View {
         HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("FilmSims")
-                    .font(.system(size: metrics.titleFontSize, weight: .semibold))
-                    .foregroundColor(.textPrimary)
-                    .tracking(0.005)
+            if showsTitle {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("FilmSims")
+                        .font(.system(size: metrics.titleFontSize, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                        .tracking(0.005)
 
-                Text(L10n.tr("subtitle_film_simulator").uppercased())
-                    .font(.system(size: metrics.subtitleFontSize, weight: .medium))
-                    .foregroundColor(.accentPrimary)
-                    .tracking(0.15)
-                    .padding(.top, metrics.phoneValue(compact: 1, regular: 3))
+                    Text(L10n.tr("subtitle_film_simulator").uppercased())
+                        .font(.system(size: metrics.subtitleFontSize, weight: .medium))
+                        .foregroundColor(.accentPrimary)
+                        .tracking(0.15)
+                        .padding(.top, metrics.phoneValue(compact: 1, regular: 3))
+                }
             }
 
             Spacer()
@@ -292,7 +404,8 @@ struct ContentView: View {
     }
 
     // MARK: - Image Preview View
-    private var imagePreviewView: some View {
+    @ViewBuilder
+    private func imagePreviewView(contentOffset: CGFloat) -> some View {
         ZStack {
             if compareEnabled && !isShowingOriginal && viewModel.hasVisibleEdits {
                 CompareImageView(
@@ -301,6 +414,7 @@ struct ContentView: View {
                     split: comparePosition,
                     vertical: compareVertical,
                     isImmersive: isImmersiveMode,
+                    contentOffset: contentOffset,
                     onTap: { withAnimation { isImmersiveMode.toggle() } }
                 )
                 .id(viewModel.imageLoadCount)
@@ -315,6 +429,7 @@ struct ContentView: View {
                 ZoomableImageView(
                     image: isShowingOriginal ? viewModel.originalImage : viewModel.processedImage,
                     isImmersive: isImmersiveMode,
+                    contentOffset: contentOffset,
                     onTap: {
                         withAnimation { isImmersiveMode.toggle() }
                     },
@@ -602,5 +717,13 @@ struct ContentView: View {
                 incomingImageCoordinator.consume(request)
             }
         }
+    }
+}
+
+// MARK: - Preference Key for measuring bottom panel height
+private struct PanelHeightPreferenceKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
