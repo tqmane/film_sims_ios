@@ -4,6 +4,7 @@ struct SettingsView: View {
     @ObservedObject var viewModel: FilmSimsViewModel
     @ObservedObject private var authViewModel = AuthViewModel.shared
     @ObservedObject private var proRepo = ProUserRepository.shared
+    @ObservedObject private var updateChecker = AppUpdateChecker.shared
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -389,14 +390,50 @@ struct SettingsView: View {
     }
 
     private func versionSection(metrics: LayoutMetrics) -> some View {
-        VStack(spacing: 4) {
-            Text("FilmSims")
-                .font(.system(size: metrics.phoneValue(compact: 12, regular: 13), weight: .medium))
-                .foregroundColor(.textSecondary)
+        VStack(spacing: 8) {
+            VStack(spacing: 4) {
+                Text("FilmSims")
+                    .font(.system(size: metrics.phoneValue(compact: 12, regular: 13), weight: .medium))
+                    .foregroundColor(.textSecondary)
 
-            Text(appVersionString)
-                .font(.system(size: metrics.phoneValue(compact: 11, regular: 12)))
-                .foregroundColor(.textTertiary)
+                Text(appVersionString)
+                    .font(.system(size: metrics.phoneValue(compact: 11, regular: 12)))
+                    .foregroundColor(.textTertiary)
+            }
+
+            if updateChecker.hasUpdate, let version = updateChecker.availableVersion {
+                Button {
+                    openURL(URL(string: "https://github.com/tqmane/film_sims/releases/latest")!)
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .font(.system(size: metrics.phoneValue(compact: 13, regular: 14)))
+
+                        Text(L10n.tr("new_version_available", version))
+                            .font(.system(size: metrics.phoneValue(compact: 12, regular: 13), weight: .medium))
+                    }
+                    .foregroundColor(.accentPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.accentPrimary.opacity(0.10))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.accentPrimary.opacity(0.25), lineWidth: 1)
+                            )
+                    )
+                }
+                .buttonStyle(.plain)
+            } else if updateChecker.checkFailed {
+                Text(L10n.tr("update_check_failed"))
+                    .font(.system(size: metrics.phoneValue(compact: 11, regular: 12)))
+                    .foregroundColor(.textTertiary)
+            }
+        }
+        .onAppear {
+            updateChecker.checkIfNeeded()
         }
     }
 
