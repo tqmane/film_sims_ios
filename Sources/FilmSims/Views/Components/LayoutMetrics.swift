@@ -141,45 +141,45 @@ struct LayoutMetrics: Sendable {
     }
 
     private static func regularPhoneMetrics(shortSide: CGFloat, longSide: CGFloat, phoneBlend: CGFloat) -> LayoutMetrics {
-        let widthScale = clamped(shortSide / 390, min: 0.95, max: 1.13)
-        let heightScale = clamped(longSide / 844, min: 0.92, max: 1.13)
-        let layoutScale = clamped(min(widthScale, heightScale + 0.06), min: 0.95, max: 1.12)
-        let fontScale = clamped(min(widthScale, heightScale + 0.10), min: 0.96, max: 1.08)
+        let widthScale = clamped(shortSide / 390, min: 0.95, max: 1.15)
+        let heightScale = clamped(longSide / 844, min: 0.92, max: 1.15)
+        let layoutScale = clamped(min(widthScale, heightScale + 0.06), min: 0.95, max: 1.14)
+        let fontScale = clamped(min(widthScale, heightScale + 0.10), min: 0.96, max: 1.12)
 
         return LayoutMetrics(
             category: .regular,
             phoneBlend: phoneBlend,
-            chipHeight: scaled(36, by: layoutScale),
-            chipFontSize: scaled(13, by: fontScale),
-            chipHPad: scaled(16, by: layoutScale),
-            chipCorner: scaled(20, by: layoutScale),
+            chipHeight: scaled(32, by: layoutScale),
+            chipFontSize: scaled(12, by: fontScale),
+            chipHPad: scaled(14, by: layoutScale),
+            chipCorner: scaled(18, by: layoutScale),
             chipSpacing: scaled(8, by: layoutScale),
-            chipRowPadBottom: scaled(12, by: heightScale),
-            cardSize: scaled(94, by: layoutScale),
-            lutRowHeight: scaled(130, by: layoutScale),
-            cardTextSize: scaled(10, by: fontScale),
-            cardCorner: scaled(12, by: layoutScale),
-            panelHPad: scaled(18, by: layoutScale),
-            panelBottomPad: scaled(16, by: heightScale),
-            dragHandlePad: scaled(14, by: heightScale),
-            panelTopRadius: scaled(22, by: layoutScale),
-            headerFontSize: scaled(11.5, by: fontScale),
-            headerBottomPad: scaled(10, by: heightScale),
-            titleFontSize: scaled(26, by: fontScale),
-            subtitleFontSize: scaled(11.5, by: fontScale),
-            actionButtonSize: scaled(46, by: layoutScale),
-            saveButtonWidth: scaled(94, by: layoutScale),
-            saveButtonHeight: scaled(48, by: layoutScale),
-            topBarVPad: scaled(16, by: heightScale),
-            topBarHPad: scaled(24, by: layoutScale),
-            adjustTabVPad: scaled(11, by: heightScale),
-            adjustHPad: scaled(18, by: layoutScale),
-            adjustTabFontSize: scaled(13, by: fontScale),
-            adjustTabTopPad: scaled(14, by: heightScale),
-            adjustPanelCorner: scaled(24, by: layoutScale),
+            chipRowPadBottom: scaled(10, by: heightScale),
+            cardSize: scaled(84, by: layoutScale),
+            lutRowHeight: scaled(116, by: layoutScale),
+            cardTextSize: scaled(9, by: fontScale),
+            cardCorner: scaled(11, by: layoutScale),
+            panelHPad: scaled(16, by: layoutScale),
+            panelBottomPad: scaled(14, by: heightScale),
+            dragHandlePad: scaled(12, by: heightScale),
+            panelTopRadius: scaled(20, by: layoutScale),
+            headerFontSize: scaled(10.5, by: fontScale),
+            headerBottomPad: scaled(9, by: heightScale),
+            titleFontSize: scaled(23, by: fontScale),
+            subtitleFontSize: scaled(10, by: fontScale),
+            actionButtonSize: scaled(36, by: layoutScale),
+            saveButtonWidth: scaled(72, by: layoutScale),
+            saveButtonHeight: scaled(38, by: layoutScale),
+            topBarVPad: scaled(14, by: heightScale),
+            topBarHPad: scaled(20, by: layoutScale),
+            adjustTabVPad: scaled(10, by: heightScale),
+            adjustHPad: scaled(16, by: layoutScale),
+            adjustTabFontSize: scaled(12, by: fontScale),
+            adjustTabTopPad: scaled(12, by: heightScale),
+            adjustPanelCorner: scaled(22, by: layoutScale),
             usesSidebar: false,
             sidebarWidth: 0,
-            scrollContentInset: scaled(18, by: layoutScale)
+            scrollContentInset: scaled(16, by: layoutScale)
         )
     }
 

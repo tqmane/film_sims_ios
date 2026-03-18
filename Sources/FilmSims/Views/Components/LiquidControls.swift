@@ -132,18 +132,19 @@ struct LiquidChip: View {
     let text: String
     let isSelected: Bool
     let action: () -> Void
+    @Environment(\.layoutMetrics) private var metrics
 
     var body: some View {
         Button(action: action) {
             Text(text)
-                .font(.system(size: 14, weight: isSelected ? .medium : .regular))
+                .font(.system(size: metrics.chipFontSize, weight: isSelected ? .medium : .regular))
                 .foregroundColor(isSelected ? Color(white: 0.05) : Color(white: 0.9)) // TextMediumEmphasis approximation
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .padding(.horizontal, metrics.chipHPad)
+                .frame(height: metrics.chipHeight)
                 .background(isSelected ? Color.accentPrimary : Color.glassSurface)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: metrics.chipCorner, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: metrics.chipCorner, style: .continuous)
                         .stroke(isSelected ? Color.accentPrimary.opacity(0.8) : Color.glassBorderAndroid, lineWidth: 1)
                 )
         }
