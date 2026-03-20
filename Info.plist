@@ -19,9 +19,9 @@
         <string>zh-Hans</string>
     </array>
     <key>CFBundleShortVersionString</key>
-    <string>1.1.8</string>
+    <string>1.1.9</string>
     <key>CFBundleVersion</key>
-    <string>21</string>
+    <string>22</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>FilmSims needs access to save processed photos to your library.</string>
     <key>CFBundleURLTypes</key>
